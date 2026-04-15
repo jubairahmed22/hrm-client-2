@@ -51,7 +51,7 @@ const DashboardPage = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
         <Loader2 className="w-10 h-10 text-indigo-600 animate-spin mb-4" />
-        <p className="text-gray-500 font-medium">Loading Dashboard Data...</p>
+        <p className="text-gray-500 font-medium">Loading Dashboard Data.. </p>
       </div>
     );
   }
