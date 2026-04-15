@@ -41,7 +41,7 @@ const DashboardPage = () => {
   const formatCurrency = (val) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'BDT', // Changed to BDT based on your location, change to USD if preferred
+      currency: 'BDT', // Changed to BDT based on your location, change to USD if preferred kire 
       maximumFractionDigits: 0
     }).format(val || 0);
   };
