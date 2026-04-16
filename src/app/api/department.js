@@ -2,7 +2,7 @@
 export const fetchDepartments = async (page = 1, search = "") => {
   try {
     const res = await fetch(
-      `https://code360.pro/api/get-department?page=${page}&name=${search}`
+      `http://localhost:50001/api/get-department?page=${page}&name=${search}`
     );
     const data = await res.json();
     if (data.success) {
@@ -18,7 +18,7 @@ export const fetchDepartments = async (page = 1, search = "") => {
 
 export const createDepartment = async (deptForm) => {
   try {
-    const res = await fetch("https://code360.pro/api/add-department", {
+    const res = await fetch("http://localhost:50001/api/add-department", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(deptForm),
@@ -34,7 +34,7 @@ export const createDepartment = async (deptForm) => {
 
 export const deleteDepartment = async (departmentId) => {
   try {
-    const res = await fetch("https://code360.pro/api/delete-department", {
+    const res = await fetch("http://localhost:50001/api/delete-department", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ departmentId }),
@@ -51,7 +51,7 @@ export const deleteDepartment = async (departmentId) => {
 export const assignDepartmentHead = async (departmentId, headData) => {
   try {
     const res = await fetch(
-      `https://code360.pro/api/add-department-head/${departmentId}`,
+      `http://localhost:50001/api/add-department-head/${departmentId}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -76,7 +76,7 @@ export const assignDepartmentHead = async (departmentId, headData) => {
 export const removeDepartmentHead = async (departmentId) => {
   try {
     const res = await fetch(
-      `https://code360.pro/api/remove-department-head/${departmentId}`,
+      `http://localhost:50001/api/remove-department-head/${departmentId}`,
       {
         method: "DELETE",
       }

@@ -131,7 +131,7 @@ const AttendanceAllEmployee = () => {
       );
 
       const response = await axios.get(
-        "https://code360.pro/attendance-summary",
+        "http://localhost:50001/attendance-summary",
         {
           params,
           timeout: 10000,
@@ -169,7 +169,7 @@ const AttendanceAllEmployee = () => {
           (key) => params[key] === undefined && delete params[key],
         );
 
-        const response = await axios.get("https://code360.pro/attendance", {
+        const response = await axios.get("http://localhost:50001/attendance", {
           params,
         });
 
@@ -234,7 +234,7 @@ const AttendanceAllEmployee = () => {
           (key) => params[key] === undefined && delete params[key],
         );
 
-        const response = await axios.get("https://code360.pro/attendance", {
+        const response = await axios.get("http://localhost:50001/attendance", {
           params,
         });
 

@@ -27,7 +27,7 @@ export default function VerifyPage() {
   const verify = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`https://code360.pro/api/verify-email-code`, {
+      const res = await fetch(`http://localhost:50001/api/verify-email-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, code }),
@@ -48,7 +48,7 @@ export default function VerifyPage() {
 
   const resend = async () => {
     setCooldown(30);
-    await fetch(`https://code360.pro/api/resend-verification`, {
+    await fetch(`http://localhost:50001/api/resend-verification`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId }),

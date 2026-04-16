@@ -1,6 +1,6 @@
 // lib/api/recruitment-jobs.js
 
-const BASE_URL = "https://code360.pro";
+const BASE_URL = "http://localhost:50001";
 
 export async function createRecruitmentPost(recruitmentData) {
   try {

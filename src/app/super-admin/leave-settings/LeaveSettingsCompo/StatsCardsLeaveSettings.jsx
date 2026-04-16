@@ -11,22 +11,15 @@ import { Card, CardContent } from "@/components/ui/card";
 
 /**
  * StatsCardsLeaveSettings
- * @param {Array} leavePolicies - The array of leave type objects from your API
+ * Uses the useLeavePolicy hook to display synchronized KPI data
  */
-const StatsCardsLeaveSettings = ({ leavePolicies = [] }) => {
-  
-  // Logic based on the boolean flags in your data format
-  const totalTypes = leavePolicies.length;
-  
-  // Counting based on the specific keys you requested
-  const useWorkingDaysCount = leavePolicies.filter(lt => lt.useWorkingDays === true).length;
-  const allowHalfDayCount = leavePolicies.filter(lt => lt.allowHalfDay === true).length;
-  const allowPastLeaveCount = leavePolicies.filter(lt => lt.allowPastLeave === true).length;
+const StatsCardsLeaveSettings = ( { kpiData, loading }) => {
+  // Destructure kpiData and loading from your custom hook
 
   const stats = [
     {
       label: "Leave Types",
-      value: totalTypes,
+      value: kpiData?.totalLeaveType || 0,
       icon: Calendar,
       color: "border-l-blue-500",
       bg: "bg-blue-100",
@@ -34,7 +27,7 @@ const StatsCardsLeaveSettings = ({ leavePolicies = [] }) => {
     },
     {
       label: "Use Working Days",
-      value: useWorkingDaysCount,
+      value: kpiData?.useWorkingDays || 0,
       icon: Clock,
       color: "border-l-green-500",
       bg: "bg-green-100",
@@ -42,7 +35,7 @@ const StatsCardsLeaveSettings = ({ leavePolicies = [] }) => {
     },
     {
       label: "Allow Half Day",
-      value: allowHalfDayCount,
+      value: kpiData?.allowHalfDay || 0,
       icon: Split,
       color: "border-l-orange-500",
       bg: "bg-orange-100",
@@ -50,13 +43,23 @@ const StatsCardsLeaveSettings = ({ leavePolicies = [] }) => {
     },
     {
       label: "Allow Past Leave",
-      value: allowPastLeaveCount,
+      value: kpiData?.allowPastDates || 0,
       icon: History,
       color: "border-l-purple-500",
       bg: "bg-purple-100",
       iconColor: "text-purple-600",
     },
   ];
+
+  if (loading && !kpiData) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-pulse">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-24 bg-slate-100 rounded-lg border-l-4 border-slate-200" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

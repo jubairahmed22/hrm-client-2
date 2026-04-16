@@ -100,7 +100,7 @@ const CandidateCard = ({ person, removeCandidate, job }) => {
                 draggable
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
-                className="group bg-white border border-slate-200 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-grab active:cursor-grabbing relative max-w-sm"
+                className="group bg-white border border-slate-200 rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-200 cursor-grab active:cursor-grabbing relative max-w-sm"
             >
                 {/* Match Score Badge */}
                 <div className="absolute -top-3 -right-2 z-10">
@@ -112,10 +112,10 @@ const CandidateCard = ({ person, removeCandidate, job }) => {
 
                 {/* Profile Header */}
                 <div className="mb-4">
-                    <h3 className="text-[19px] font-bold text-[#1E293B] leading-tight mb-1">
+                    <h3 className="text-md font-bold text-[#1E293B] leading-tight mb-1">
                         {person.fullName || "Unnamed Candidate"}
                     </h3>
-                    <p className="text-[#64748B] text-md font-medium mb-4">
+                    <p className="text-[#64748B] text-sm font-medium mb-3">
                         {person.jobRoleName}
                     </p>
 

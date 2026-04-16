@@ -16,7 +16,8 @@ import {
   submitLeaveRequest, 
   getAllLeaveRequests, 
   getMyLeaveRequests,
-  updateLeaveStatus
+  updateLeaveStatus,
+  getLeaveSettingsKPI
 } from "../api/leavePolicy";
 import { useAuth } from "@/context/AuthContext";
 
@@ -34,7 +35,7 @@ let sharedLeaveLoading = false;
 let sharedRequestLoading = false;
 let sharedLeaveError = null;
 let leaveListeners = [];
-
+let sharedKPI = null; 
 /* ================= NOTIFY SYSTEM ================= */
 const notifyLeave = () => {
   leaveListeners.forEach((listener) => listener());
@@ -51,6 +52,7 @@ export function useLeavePolicy() {
   const [loading, setLoading] = useState(sharedLeaveLoading);
   const [requestLoading, setRequestLoading] = useState(sharedRequestLoading);
   const [error, setError] = useState(sharedLeaveError);
+  const [kpiData, setKpiData] = useState(sharedKPI); // 3. Local state for KPI
   const { UserAllDetails } = useAuth();
   
   /* ================= REGISTER LISTENER ================= */
@@ -66,6 +68,7 @@ export function useLeavePolicy() {
       setLoading(sharedLeaveLoading);
       setRequestLoading(sharedRequestLoading);
       setError(sharedLeaveError);
+      setKpiData(sharedKPI);
     };
 
     leaveListeners.push(listener);
@@ -76,6 +79,34 @@ export function useLeavePolicy() {
     };
   }, []);
 
+/* ================= FETCH KPI DATA ================= */
+  const fetchLeaveKPI = useCallback(async () => {
+    try {
+      // Don't set loading to true if we already have data (optional, for smoother UX)
+      if (!sharedKPI) sharedLeaveLoading = true; 
+      notifyLeave();
+
+      const result = await getLeaveSettingsKPI();
+      if (result.success) {
+        sharedKPI = result.kpi;
+      }
+    } catch (err) {
+      console.error("Failed to fetch KPI:", err);
+    } finally {
+      sharedLeaveLoading = false;
+      notifyLeave();
+    }
+  }, []);
+
+
+  /* ================= AUTO-FETCH ON MOUNT ================= */
+  useEffect(() => {
+    // Only fetch if we don't have data yet to prevent infinite loops
+    if (sharedKPI === null) {
+      fetchLeaveKPI();
+    }
+  }, [fetchLeaveKPI]);
+  
   /* ================= FETCH ALL LEAVE TYPES ================= */
   const fetchAllLeavePolicies = useCallback(async (params = {}) => {
     try {
@@ -307,6 +338,8 @@ const fetchAllRequests = useCallback(async (params = {}) => {
         sharedLeavePolicies = sharedLeavePolicies.map(policy => 
           policy._id === id ? { ...policy, ...newSettings } : policy
         );
+        await fetchLeaveKPI();
+
         notifyLeave();
       }
     } catch (err) {
@@ -362,6 +395,8 @@ const updateRequestStatus = useCallback(async (id, status, hrRemarks = "") => {
     loading,
     requestLoading,
     error,
+    kpiData,
+    fetchLeaveKPI,
     // Methods for Leave Types
     fetchAllLeavePolicies,
     submitLeavePolicy,

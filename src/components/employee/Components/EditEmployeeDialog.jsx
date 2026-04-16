@@ -34,7 +34,7 @@ export default function EditEmployeeDialog({
 
     try {
       const response = await axios.put(
-        `https://code360.pro/api/update-user-data/${editFormData._id}`,
+        `http://localhost:50001/api/update-user-data/${editFormData._id}`,
         editFormData
       );
 

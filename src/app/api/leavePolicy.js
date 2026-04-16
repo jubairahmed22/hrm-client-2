@@ -1,5 +1,5 @@
 /* ================= API BASE URL ================= */
-const BASE_URL = "https://code360.pro";
+const BASE_URL = "http://localhost:50001";
 
 /* ================= LEAVE TYPE SERVICES (Categories) ================= */
 
@@ -257,6 +257,23 @@ export const updateLeaveStatus = async (id, status, hrRemarks, adminEmail) => {
     if (res.ok && data.success) return data;
     throw new Error(data.message || "Failed to update");
   } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Fetch KPI statistics for leave settings
+ * Corresponds to: app.get("/leave-advance-settings-kpi")
+ */
+export const getLeaveSettingsKPI = async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/leave-advance-settings-kpi`);
+    const data = await res.json();
+    
+    if (data.success) return data;
+    throw new Error(data.message || "Failed to fetch KPI data");
+  } catch (error) {
+    console.error("getLeaveSettingsKPI error:", error);
     throw error;
   }
 };

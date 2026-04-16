@@ -1,4 +1,4 @@
-const BASE_URL = "https://code360.pro";
+const BASE_URL = "http://localhost:50001";
 
 // --- CATEGORY APIS (Existing) ---
 
