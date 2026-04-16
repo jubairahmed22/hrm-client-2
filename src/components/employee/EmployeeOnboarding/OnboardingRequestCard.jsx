@@ -94,7 +94,7 @@ const OnboardingRequestCard = ({
       if (!confirmResend) return;
 
       const res = await axios.put(
-        `http://localhost:50001/api/resend-onboard-token/${request._id}`
+        `https://code360.pro/api/resend-onboard-token/${request._id}`
       );
       if (res.data.success) {
         toast.success("Token sent successfully!");
@@ -117,7 +117,7 @@ const OnboardingRequestCard = ({
 
       setLoading(true);
       const res = await axios.put(
-        `http://localhost:50001/api/add-completed/${id}`
+        `https://code360.pro/api/add-completed/${id}`
       );
 
       if (res.data.success) {

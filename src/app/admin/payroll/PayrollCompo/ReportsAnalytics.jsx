@@ -72,7 +72,7 @@ const ReportsAnalytics = () => {
         setLoading(true);
         try {
             // Construct URL based on whether a specific month is selected
-            let url = `http://localhost:50001/payroll-analytics-stats?year=${year}`;
+            let url = `https://code360.pro/payroll-analytics-stats?year=${year}`;
             if (month !== "all") {
                 url += `&month=${month}`;
             }

@@ -73,7 +73,7 @@ const DepartmentCreateDialog = ({ open, setOpen }) => {
     setLoading(true);
     try {
       // Example API call
-      const res = await axios.post("http://localhost:50001/api/add-department", formData);
+      const res = await axios.post("https://code360.pro/api/add-department", formData);
       if (res.data.success) {
         toast.success("Department created successfully!");
         setFormData({

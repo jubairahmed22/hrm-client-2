@@ -31,7 +31,7 @@ const [onboardingRequests, setOnboardingRequests] = useState([]);
 useEffect(() => {
   const fetchEmployees = async () => {
     try {
-      const res = await fetch("http://localhost:50001/api/get-employee");
+      const res = await fetch("https://code360.pro/api/get-employee");
       const data = await res.json();
       if (data.success && data.data) {
         setOnboardingRequests(data.data);
