@@ -56,7 +56,7 @@ const AdminPanelPage = () => {
       >
         <TabsList className="grid w-full  md:grid-cols-6 lg:grid-cols-6">
           <TabsTrigger value="users">
-            <Users className="w-4 h-4" /> User Management
+            <Users className="w-4 h-4" /> User Managemen
           </TabsTrigger>
           <TabsTrigger value="employees">
             <Contact className="w-4 h-4" /> Employee Management
