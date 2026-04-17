@@ -166,13 +166,13 @@ const menuItems = [
     description: "Compliance and document management",
     roles: ["superadmin", "admin"],
   },
-  // {
-  //   id: "admin-panel",
-  //   label: "Admin Panel",
-  //   icon: Settings,
-  //   description: "System administration and settings",
-  //   roles: ["superadmin"],
-  // }, 
+  {
+    id: "admin-panel",
+    label: "Admin Panel",
+    icon: Settings,
+    description: "System administration and settings",
+    roles: ["superadmin"],
+  }, 
 ];
 
 const Sidebar = () => {
