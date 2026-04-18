@@ -16,15 +16,20 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
+import { useMyTeam } from "@/app/hook/useMyTeam";
+// Import the hook to fetch dynamic departments
 
 export default function EditEmployeeDialog({
   open,
   onClose,
   editFormData,
   setEditFormData,
-  departments = [],
   refreshEmployees, // optional: callback to refresh list after update
+  fetchEmployees
 }) {
+  // Fetch departments dynamically from your existing hook
+  const { departments } = useMyTeam();
+
   // ---- HANDLE SAVE ----
   const onSave = async () => {
     if (!editFormData._id) {
@@ -42,6 +47,8 @@ export default function EditEmployeeDialog({
         toast.success("Employee updated successfully!");
         onClose();
         if (refreshEmployees) refreshEmployees();
+        if (fetchEmployees) fetchEmployees();
+        
       } else {
         toast.error(response.data.message || "Failed to update employee.");
       }
@@ -137,9 +144,10 @@ export default function EditEmployeeDialog({
                   <SelectValue placeholder="Select department" />
                 </SelectTrigger>
                 <SelectContent>
-                  {departments.map((dept) => (
-                    <SelectItem key={dept} value={dept}>
-                      {dept}
+                  {/* Mapping through dynamic departments from hook */}
+                  {departments && departments.map((dept) => (
+                    <SelectItem key={dept._id} value={dept.name}>
+                      {dept.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -173,7 +181,7 @@ export default function EditEmployeeDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Employee">Employee</SelectItem>
-                  <SelectItem value="HrAdmin">HR Manager</SelectItem>
+                  <SelectItem value="Admin">Admin</SelectItem>
                   <SelectItem value="SuperAdmin">Super Admin</SelectItem>
                 </SelectContent>
               </Select>
@@ -277,10 +285,10 @@ export default function EditEmployeeDialog({
       </Tabs>
 
       <div className="flex justify-end gap-3 mt-6">
-        <Button variant="outline" onClick={onClose}>
+        <Button variant="outline" onClick={onClose} className="rounded-lg font-bold">
           Cancel
         </Button>
-        <Button onClick={onSave}>
+        <Button onClick={onSave} className="bg-slate-900 hover:bg-slate-800 rounded-lg font-bold">
           <Save className="w-4 h-4 mr-2" />
           Update Employee
         </Button>

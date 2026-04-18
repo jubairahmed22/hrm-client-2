@@ -21,18 +21,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import EmployeeCard from "@/components/employee/Components/EmployeeCard"; // ✅ Make sure this path matches your file structure
+import EmployeeCard from "@/components/employee/Components/EmployeeCard"; 
+import { useMyTeam } from "@/app/hook/useMyTeam";
+// Import your hook to get the dynamic department data
 
 const EmployeeTab = ({
   search,
   setSearch,
   department,
   setDepartment,
-  departments,
   employees,
 }) => {
   const [viewMode, setViewMode] = useState("grid");
   const [filterStatus, setFilterStatus] = useState("all");
+
+  // Fetch departments dynamically from the hook
+  const { departments } = useMyTeam();
 
   return (
     <div className="space-y-6 mt-6">
@@ -66,7 +70,7 @@ const EmployeeTab = ({
 
               <Button
                 onClick={() => console.log("Add Employee")}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 font-semibold"
               >
                 <UserPlus className="w-4 h-4 mr-2" />
                 Add Employee
@@ -97,10 +101,11 @@ const EmployeeTab = ({
                   <SelectValue placeholder="Department" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  {departments.map((dep) => (
-                    <SelectItem key={dep} value={dep}>
-                      {dep}
+                  <SelectItem value="All">All Departments</SelectItem>
+                  {/* Mapping through dynamic departments from hook */}
+                  {departments?.map((dep) => (
+                    <SelectItem key={dep._id} value={dep.name}>
+                      {dep.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -136,11 +141,14 @@ const EmployeeTab = ({
                   viewMode={viewMode}
                   demoMode={true}
                   onView={() => console.log("View employee", emp)}
-                  departments={departments}
+                  departments={departments} // Passing dynamic depts for internal card logic
                 />
               ))
             ) : (
-              <p>No employees found in directory.</p>
+              <div className="col-span-full py-20 text-center border-2 border-dashed rounded-2xl border-slate-100">
+                <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                <p className="text-slate-500 font-medium">No employees found in directory.</p>
+              </div>
             )}
           </div>
         </CardContent>

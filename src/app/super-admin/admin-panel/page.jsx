@@ -31,7 +31,7 @@ const AdminPanelPage = () => {
   const pathname = usePathname();
 
   // Sync active tab with URL (?tab=...)
-  const urlTab = searchParams.get("tab") || "overview";
+  const urlTab = searchParams.get("tab") || "users";
   const [activeTab, setActiveTab] = useState(urlTab);
 
   useEffect(() => {
@@ -45,7 +45,7 @@ const AdminPanelPage = () => {
   };
 
   return (
-    <div className="p-6  space-y-6">
+    <div className="p-6 space-y-6">
       <AdminPanelHeader />
 
       {/* ================= TABS ================= */}
