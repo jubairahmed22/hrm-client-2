@@ -58,13 +58,13 @@ const AttendancePage = () => {
       {/* ================= TABS ================= */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
 
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="today">Today</TabsTrigger>
           <TabsTrigger value="attendance">My Attendance</TabsTrigger>
           <TabsTrigger value="allEmployees">All Employees Attendance</TabsTrigger>
-          <TabsTrigger value="leave">Leave</TabsTrigger>
+          {/* <TabsTrigger value="leave">Leave</TabsTrigger>
           <TabsTrigger value="salary">Salary</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger> */}
         </TabsList>
 
         {/* ================= TODAY TAB ================= */}

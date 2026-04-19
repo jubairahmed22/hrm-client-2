@@ -6,6 +6,8 @@ import {
   Users,
   Loader2,
   Edit3,
+  Eye,
+  Edit,
 } from "lucide-react";
 import { usePayroll } from "@/app/hook/usePayroll";
 import EditEmployeeSalaryDialog from "./EditEmployeeSalaryDialog";
@@ -14,6 +16,7 @@ import EditEmployeeSalaryDialog from "./EditEmployeeSalaryDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner"; // Assuming toast is used for the view details
 
 const EmployeeSalaries = () => {
   const searchParams = useSearchParams();
@@ -42,7 +45,7 @@ const EmployeeSalaries = () => {
   }, [currentPageFromUrl, searchTerm, loadEmployeePayroll]);
 
   const formatCurrency = (amount) => {
-    return `BDT ${Number(amount).toLocaleString("en-BD", {
+    return `BDT ${Number(amount || 0).toLocaleString("en-BD", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
@@ -79,45 +82,135 @@ const EmployeeSalaries = () => {
           <CardTitle>Employee Salaries</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {empLoading && employees.length === 0 ? (
-              <div className="py-24 text-center">
-                <Loader2 className="w-10 h-10 animate-spin text-blue-500 mx-auto mb-4" />
-                <p className="text-sm text-gray-500">Loading salaries...</p>
-              </div>
-            ) : employees.length > 0 ? (
-              employees.map((emp) => (
-                <div key={emp._id} className="p-4 border rounded-lg group">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold">{emp.fullName}</h3>
-                      <p className="text-sm text-gray-600">
-                        {emp.designation || "Executive"} • {emp.department || "N/A"}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <div className="text-right">
-                        <p className="font-semibold">{formatCurrency(emp.grossSalary)}</p>
-                        <p className="text-sm text-gray-600">Grade {emp.matchedPayroll?.grade || "N/A"}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditClick(emp)}
-                        className="text-gray-400 hover:text-blue-600"
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="py-12 text-center border-2 border-dashed rounded-lg">
-                <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No employee salaries found</p>
-              </div>
-            )}
+          {/* Employee Salaries Table */}
+          <div className="border rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Employee
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Department
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Grade
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Basic Salary
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Gross Salary
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {empLoading && employees.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-12 text-center">
+                        <Loader2 className="w-10 h-10 animate-spin text-blue-500 mx-auto mb-4" />
+                        <p className="text-sm text-gray-500">Loading salaries...</p>
+                      </td>
+                    </tr>
+                  ) : employees.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-12 text-center">
+                        <Users className="w-12 h-12 mx-auto text-gray-400 mb-3" />
+                        <p className="text-gray-600 font-medium">No employee salaries found</p>
+                        <p className="text-sm text-gray-500 mt-1">Start by assigning salary structures to employees</p>
+                      </td>
+                    </tr>
+                  ) : (
+                    employees.map((emp) => (
+                      <tr key={emp._id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                              <span className="text-white font-medium uppercase">
+                                {emp.fullName?.split(' ').map(n => n[0]).join('')}
+                              </span>
+                            </div>
+                            <div className="ml-4">
+                              <div className="font-medium text-gray-900">{emp.fullName}</div>
+                              <div className="text-sm text-gray-500">{emp.designation || "N/A"}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{emp.department || "N/A"}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            Grade {emp.matchedPayroll?.grade || "N/A"}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="text-sm font-semibold text-gray-900">
+                            {formatCurrency(emp.basicSalary || 0)}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="text-sm font-bold text-gray-900">
+                            {formatCurrency(emp.grossSalary || 0)}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <Badge 
+                            className={
+                              emp.status === 'active' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-800'
+                            }
+                          >
+                            {emp.status || 'active'}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                toast.info(
+                                  <div className="space-y-2">
+                                    <p className="font-semibold">{emp.fullName} - Salary Details</p>
+                                    <div className="text-sm space-y-1">
+                                      <p>Basic: {formatCurrency(emp.basicSalary)}</p>
+                                      <p>House Rent: {formatCurrency(emp.houseRent)}</p>
+                                      <p>Medical: {formatCurrency(emp.medicalAllowance)}</p>
+                                      <hr className="my-1" />
+                                      <p className="font-semibold">Gross: {formatCurrency(emp.grossSalary)}</p>
+                                    </div>
+                                  </div>,
+                                  { duration: 5000 }
+                                );
+                              }}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEditClick(emp)}
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Pagination */}

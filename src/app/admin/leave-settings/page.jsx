@@ -23,7 +23,8 @@ const LeaveSettingsPage = () => {
     loading,
     fetchAllLeavePolicies,
     updateTypeSettings,
-  } = useLeavePolicy();
+    kpiData
+  } = useLeavePolicy(); 
 
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("");
@@ -76,7 +77,7 @@ const LeaveSettingsPage = () => {
       </Button> */}
       </div>
 
-      {/* <StatsCardsLeaveSettings leavePolicies={leavePolicies} /> */}
+      <StatsCardsLeaveSettings  kpiData={kpiData} loading={loading}  />
       
       <SearchHeaderLeaveSettings
         searchTerm={searchTerm} 

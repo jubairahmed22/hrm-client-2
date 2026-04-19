@@ -126,14 +126,14 @@ const KanbanColumn = ({ stage, searchTerm, job }) => {
       onDragOver={handleDragOver}
       onDragLeave={() => setDragOverColumn(null)}
       onDrop={handleDrop}
-      className={`flex-shrink-0 w-[440px] flex flex-col h-full rounded-[32px] border transition-all duration-300 overflow-hidden relative ${
+      className={`flex-shrink-0 w-[340px] min-h-[1000px] flex flex-col rounded-xl border transition-all duration-300 overflow-hidden relative ${
         dragOverColumn
           ? "bg-indigo-50/50 border-indigo-400 border-dashed ring-4 ring-indigo-100/50"
           : "bg-gray-50/40 border-gray-100"
       }`}
     >
       {/* Column Header */}
-      <div className="p-6 border-b border-gray-100 bg-white/90 backdrop-blur-sm shrink-0">
+      <div className="p-4 border-b border-gray-100 bg-white/90 backdrop-blur-sm shrink-0">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2.5">
             <div className={`w-3 h-3 rounded-full ${getStatusColor(stage)} shadow-sm`} />
@@ -201,7 +201,7 @@ const KanbanColumn = ({ stage, searchTerm, job }) => {
 
       {/* Drag Overlay */}
       {dragOverColumn && (
-        <div className="absolute inset-0 pointer-events-none border-2 border-indigo-400 rounded-[32px] flex items-center justify-center bg-indigo-50/30 backdrop-blur-[2px] z-10">
+        <div className="absolute inset-0 pointer-events-none border-2 border-indigo-400 rounded-xl flex items-center justify-center bg-indigo-50/30 backdrop-blur-[2px] z-10">
           <div className="bg-white px-6 py-3 rounded-2xl shadow-xl border border-indigo-100 flex items-center gap-3 animate-bounce">
             <Sparkles className="w-5 h-5 text-indigo-500" />
             <span className="text-sm font-bold text-indigo-600">Move to {stage}</span>

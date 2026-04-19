@@ -55,7 +55,7 @@ const SelfServiceState = ({ UserAllDetails }) => {
       
       {/* 1. Leave Balance Card (Using userStats.policies) */}
       <Card 
-        className="status-card hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100" 
+        className="status-card  transition-all duration-300 cursor-pointer border border-gray-100" 
         onClick={() => handleAction("Leave")}
       >
         <CardContent className="p-4">
@@ -76,7 +76,7 @@ const SelfServiceState = ({ UserAllDetails }) => {
 
       {/* 2. Last Month Salary Card (Using userStats.payroll) */}
       <Card 
-        className="status-card hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100" 
+        className="status-card  transition-all duration-300 cursor-pointer border border-gray-100" 
         onClick={() => handleAction("Payroll")}
       >
         <CardContent className="p-4">
@@ -96,7 +96,7 @@ const SelfServiceState = ({ UserAllDetails }) => {
 
       {/* 3. Total Gross Earnings (Using userStats.payroll) */}
       <Card 
-        className="status-card hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100" 
+        className="status-card  transition-all duration-300 cursor-pointer border border-gray-100" 
         onClick={() => handleAction("Earnings")}
       >
         <CardContent className="p-4">
@@ -116,7 +116,7 @@ const SelfServiceState = ({ UserAllDetails }) => {
 
       {/* 4. Active Policies (Using userStats.policies) */}
       <Card 
-        className="status-card hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100" 
+        className="status-card  transition-all duration-300 cursor-pointer border border-gray-100" 
         onClick={() => handleAction("Policies")}
       >
         <CardContent className="p-4">
