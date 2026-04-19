@@ -197,7 +197,6 @@ const UserManagementNew = () => {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-24">
               <Loader className="w-10 h-10 animate-spin text-blue-600 mb-4" />
-              <p className="text-slate-500 font-bold">Syncing Directory...</p>
             </div>
           ) : employees.length > 0 ? (
             <div
