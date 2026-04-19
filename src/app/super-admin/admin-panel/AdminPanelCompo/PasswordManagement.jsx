@@ -74,7 +74,7 @@ const PasswordManagement = () => {
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-sm">
-        <CardHeader className="bg-white border-b rounded-t-xl">
+        <CardHeader className="bg-white">
           <CardTitle className="flex items-center gap-2">
             <Users className="w-5 h-5" />
             Password Directory

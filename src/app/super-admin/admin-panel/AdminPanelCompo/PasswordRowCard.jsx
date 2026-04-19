@@ -25,7 +25,7 @@ const PasswordRowCard = ({ employee, fetchEmployees }) => {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 transition-all group shadow-sm mb-3"
+      className="flex items-center justify-between p-4 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 transition-all group mb-3"
     >
       {/* User Info Section */}
       <div className="flex items-center space-x-4">
@@ -77,18 +77,18 @@ const PasswordRowCard = ({ employee, fetchEmployees }) => {
           </div>
 
           <div className="flex items-center border-l border-slate-200 pl-2 gap-1">
-            <button
+            <Button 
               onClick={() => setShowPassword(!showPassword)}
-              className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-slate-500"
+              
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-            <button
+            </Button >
+            <Button 
               onClick={() => copyToClipboard(employee.BDCode, "Password")}
-              className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-slate-500"
+              
             >
               <Copy className="w-4 h-4" />
-            </button>
+            </Button >
           </div>
         </div>
 
@@ -100,7 +100,7 @@ const PasswordRowCard = ({ employee, fetchEmployees }) => {
             <Button 
               variant="outline" 
               size="sm"
-              className="flex items-center gap-2 border-slate-200 hover:bg-white font-bold text-slate-700 shadow-sm"
+              className="flex items-center gap-2 border-slate-200 hover:bg-white font-bold text-slate-700"
             >
               <Edit3 className="w-4 h-4" />
               Change

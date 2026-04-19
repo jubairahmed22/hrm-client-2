@@ -32,13 +32,13 @@ const AdminPanelContent = () => {
       <AdminPanelHeader />
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
         <div className="w-full overflow-x-auto pb-2">
-          <TabsList className="grid w-full sm:grid-cols-2 md:grid-cols-6 lg:grid-cols-6 min-w-[700px]">
-            <TabsTrigger value="users" className="font-bold"><Users className="w-4 h-4 mr-2" /> Users</TabsTrigger>
-            <TabsTrigger value="employees" className="font-bold"><Contact className="w-4 h-4 mr-2" /> Employees</TabsTrigger>
-            <TabsTrigger value="security" className="font-bold"><Lock className="w-4 h-4 mr-2" /> Security</TabsTrigger>
-            <TabsTrigger value="logs" className="font-bold"><History className="w-4 h-4 mr-2" /> Logs</TabsTrigger>
-            <TabsTrigger value="overview" className="font-bold"><LayoutDashboard className="w-4 h-4 mr-2" /> Overview</TabsTrigger>
-            <TabsTrigger value="settings" className="font-bold"><SettingsIcon className="w-4 h-4 mr-2" /> Settings</TabsTrigger>
+          <TabsList className="grid w-full sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 min-w-[700px]">
+            <TabsTrigger value="users" ><Users className="w-4 h-4 mr-2" /> Users</TabsTrigger>
+            {/* <TabsTrigger value="employees" ><Contact className="w-4 h-4 mr-2" /> Employees</TabsTrigger> */}
+            <TabsTrigger value="security" ><Lock className="w-4 h-4 mr-2" /> Security</TabsTrigger>
+            {/* <TabsTrigger value="logs" ><History className="w-4 h-4 mr-2" /> Logs</TabsTrigger>
+            <TabsTrigger value="overview" ><LayoutDashboard className="w-4 h-4 mr-2" /> Overview</TabsTrigger>
+            <TabsTrigger value="settings" ><SettingsIcon className="w-4 h-4 mr-2" /> Settings</TabsTrigger> */}
           </TabsList>
         </div>
 

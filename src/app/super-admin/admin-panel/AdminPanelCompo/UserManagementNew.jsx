@@ -100,7 +100,7 @@ const UserManagementNew = () => {
   return (
     <div className="space-y-6 min-h-screen bg-slate-50/50">
       <Card className="border-none shadow-sm">
-        <CardHeader className="border-b bg-white rounded-t-xl">
+        <CardHeader className=" bg-white rounded-t-xl">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
               <CardTitle className="flex items-center gap-2">

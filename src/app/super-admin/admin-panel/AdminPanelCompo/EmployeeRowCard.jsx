@@ -97,7 +97,7 @@ export default function EmployeeRowCard({ employee, departments, fetchEmployees 
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between p-4 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 transition-all group shadow-sm"
+        className="flex items-center justify-between p-4 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 transition-all group"
       >
         {/* Left Section: Avatar & Basic Info */}
         <div className="flex items-center space-x-4">
@@ -150,7 +150,7 @@ export default function EmployeeRowCard({ employee, departments, fetchEmployees 
           <Button 
             size="sm" 
             variant="outline" 
-            className="rounded-lg font-bold"
+           
             onClick={() => handleOpenDetails(employee)}
           >
             <Eye className="w-4 h-4 mr-1.5 text-slate-500" />
@@ -160,7 +160,7 @@ export default function EmployeeRowCard({ employee, departments, fetchEmployees 
           <Button 
             size="sm" 
             variant="outline" 
-            className="rounded-lg font-bold text-blue-600 hover:text-blue-700"
+            
             onClick={handleEditClick}
           >
             <Edit className="w-4 h-4 mr-1.5" />
@@ -191,17 +191,16 @@ export default function EmployeeRowCard({ employee, departments, fetchEmployees 
             )}
           </Button>
 
-          <Button 
+          {/* <Button 
             size="sm" 
             variant="outline" 
-            className="rounded-lg font-bold text-red-600 hover:bg-red-50 hover:text-red-700 border-red-100"
             onClick={(e) => {
                 e.stopPropagation();
                 // Logic for deletion if needed
             }}
           >
             <Trash2 className="w-4 h-4" />
-          </Button>
+          </Button> */}
         </div>
       </motion.div>
 
