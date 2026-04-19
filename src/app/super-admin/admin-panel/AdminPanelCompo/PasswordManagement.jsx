@@ -4,7 +4,13 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Users, Search, Loader, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useMyTeam } from "@/app/hook/useMyTeam";
 import PasswordRowCard from "./PasswordRowCard";
@@ -35,7 +41,9 @@ const PasswordManagement = () => {
         ...(status !== "all" ? { status } : {}),
       });
 
-      const res = await fetch(`http://localhost:50001/api/get-employee-options-password?${queryParams.toString()}`);
+      const res = await fetch(
+        `http://localhost:50001/api/get-employee-options-password?${queryParams.toString()}`,
+      );
       const data = await res.json();
       if (data.success) {
         setEmployees(data.data);
@@ -67,40 +75,102 @@ const PasswordManagement = () => {
     <div className="space-y-6">
       <Card className="border-none shadow-sm">
         <CardHeader className="bg-white border-b rounded-t-xl">
-          <CardTitle className="flex items-center gap-2 text-xl font-bold">
-            <Users className="text-blue-600" /> Password Directory
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            Password Directory
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <Input
-              placeholder="Search..."
-              defaultValue={search}
-              onKeyDown={(e) => e.key === "Enter" && updateUrl({ search: e.target.value, page: "1" })}
-              className="md:w-1/2"
-            />
-            <Select value={department} onValueChange={(v) => updateUrl({ department: v, page: "1" })}>
-              <SelectTrigger className="w-full md:w-48"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All Departments</SelectItem>
-                {departments?.map(d => <SelectItem key={d._id} value={d.name}>{d.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+          {/* Filters Bar Container */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-wrap gap-4 items-center justify-between mb-8">
+            {/* Search Bar - Flex-1 makes it take up remaining space */}
+            <div className="flex-1 min-w-[200px] relative">
+              {/* <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" /> */}
+              <Input
+                placeholder="Search by ID, Name, or Email..."
+                defaultValue={search}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    updateUrl({ search: e.target.value, page: "1" });
+                  }
+                }}
+              />
+            </div>
+
+            {/* Select Controls Group */}
+            <div className="flex gap-2">
+              {/* Department Filter */}
+              <Select
+                value={department}
+                onValueChange={(val) =>
+                  updateUrl({ department: val, page: "1" })
+                }
+              >
+                <SelectTrigger className="w-[180px] h-10 ">
+                  <SelectValue placeholder="Department" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="All">All Departments</SelectItem>
+                  {departments &&
+                    departments.map((dep) => (
+                      <SelectItem key={dep._id} value={dep.name}>
+                        {dep.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+
+              {/* Status Filter */}
+              <Select
+                value={status}
+                onValueChange={(val) => updateUrl({ status: val, page: "1" })}
+              >
+                <SelectTrigger className="w-[160px] h-10 ">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="Locked" className="text-orange-600">
+                    Locked
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {loading ? (
-            <div className="flex justify-center py-20"><Loader className="animate-spin" /></div>
+            <div className="flex justify-center py-20">
+              <Loader className="animate-spin" />
+            </div>
           ) : (
             <div className="space-y-4">
-              {employees.map(emp => <PasswordRowCard key={emp._id} employee={emp} />)}
+              {employees.map((emp) => (
+                <PasswordRowCard key={emp._id} employee={emp} />
+              ))}
             </div>
           )}
 
           {totalPages > 1 && (
             <div className="flex justify-center gap-2 mt-8">
-              <Button disabled={page === 1} onClick={() => updateUrl({ page: String(page - 1) })} variant="outline"><ChevronLeft /></Button>
-              <span className="flex items-center px-4 font-bold text-sm">Page {page} of {totalPages}</span>
-              <Button disabled={page === totalPages} onClick={() => updateUrl({ page: String(page + 1) })} variant="outline"><ChevronRight /></Button>
+              <Button
+                disabled={page === 1}
+                onClick={() => updateUrl({ page: String(page - 1) })}
+                variant="outline"
+              >
+                <ChevronLeft />
+              </Button>
+              <span className="flex items-center px-4 font-bold text-sm">
+                Page {page} of {totalPages}
+              </span>
+              <Button
+                disabled={page === totalPages}
+                onClick={() => updateUrl({ page: String(page + 1) })}
+                variant="outline"
+              >
+                <ChevronRight />
+              </Button>
             </div>
           )}
         </CardContent>

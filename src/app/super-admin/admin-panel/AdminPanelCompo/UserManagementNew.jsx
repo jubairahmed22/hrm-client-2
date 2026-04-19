@@ -103,13 +103,11 @@ const UserManagementNew = () => {
         <CardHeader className="border-b bg-white rounded-t-xl">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-              <CardTitle className="flex items-center gap-2 text-2xl font-bold text-slate-800">
-                <Users className="w-6 h-6 text-blue-600" />
-                Employee Directory
-              </CardTitle>
-              <p className="text-sm text-slate-500 mt-1">
-                Manage and view all members of your organization
-              </p>
+              <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Employee Directory
+                </CardTitle>
+        
             </div>
 
             <div className="flex items-center gap-3">
@@ -118,17 +116,17 @@ const UserManagementNew = () => {
                   setViewMode(viewMode === "grid" ? "list" : "grid")
                 }
                 variant="outline"
-                className="rounded-xl font-bold"
+               
               >
                 {viewMode === "grid" ? "List View" : "Grid View"}
               </Button>
 
-              <Button variant="outline" className="rounded-xl font-bold">
+              <Button variant="outline">
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </Button>
 
-              <Button className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl px-6 font-bold">
+              <Button >
                 <UserPlus className="w-4 h-4 mr-2" />
                 Add Employee
               </Button>
@@ -137,77 +135,64 @@ const UserManagementNew = () => {
         </CardHeader>
 
         <CardContent className="p-6">
-          {/* Filters Bar */}
-          <div className="flex flex-col lg:flex-row gap-4 mb-8">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <Input
-                placeholder="Search by ID, Name, or Email..."
-                defaultValue={search}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    updateUrl({ search: e.target.value, page: "1" });
-                  }
-                }}
-                className="pl-10 h-11 rounded-xl border-slate-200 focus:ring-blue-500 font-medium"
-              />
-            </div>
+  {/* Filters Bar Container */}
+<div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-wrap gap-4 items-center justify-between mb-8">
+  
+  {/* Search Bar - Flex-1 makes it take up remaining space */}
+  <div className="flex-1 min-w-[200px] relative">
+    {/* <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" /> */}
+    <Input
+      placeholder="Search by ID, Name, or Email..."
+      defaultValue={search}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          updateUrl({ search: e.target.value, page: "1" });
+        }
+      }}
+     
+    />
+  </div>
 
-            <div className="flex gap-3">
-              <Select
-                value={department}
-                onValueChange={(val) =>
-                  updateUrl({ department: val, page: "1" })
-                }
-              >
-                <SelectTrigger className="w-64 h-11 rounded-xl border-slate-200 font-bold">
-                  <SelectValue placeholder="Department" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="All" className="font-bold">
-                    All Departments
-                  </SelectItem>
-                  {departments &&
-                    departments.map((dep) => (
-                      <SelectItem
-                        key={dep._id}
-                        value={dep.name}
-                        className="font-medium"
-                      >
-                        {dep.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+  {/* Select Controls Group */}
+  <div className="flex gap-2">
+    {/* Department Filter */}
+    <Select
+      value={department}
+      onValueChange={(val) => updateUrl({ department: val, page: "1" })}
+    >
+      <SelectTrigger className="w-[180px] h-10 ">
+        <SelectValue placeholder="Department" />
+      </SelectTrigger>
+      <SelectContent className="rounded-xl">
+        <SelectItem value="All">All Departments</SelectItem>
+        {departments &&
+          departments.map((dep) => (
+            <SelectItem key={dep._id} value={dep.name}>
+              {dep.name}
+            </SelectItem>
+          ))}
+      </SelectContent>
+    </Select>
 
-              <Select
-                value={status}
-                onValueChange={(val) => updateUrl({ status: val, page: "1" })}
-              >
-                <SelectTrigger className="w-40 h-11 rounded-xl border-slate-200 font-bold">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="all" className="font-medium">
-                    All Status
-                  </SelectItem>
-                  <SelectItem value="active" className="font-medium">
-                    Active
-                  </SelectItem>
-                  <SelectItem value="inactive" className="font-medium">
-                    Inactive
-                  </SelectItem>
-                  <SelectItem
-                    value="Locked"
-                    className="font-medium text-orange-600"
-                  >
-                    Locked
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
+    {/* Status Filter */}
+    <Select
+      value={status}
+      onValueChange={(val) => updateUrl({ status: val, page: "1" })}
+    >
+      <SelectTrigger className="w-[160px] h-10 ">
+        <SelectValue placeholder="Status" />
+      </SelectTrigger>
+      <SelectContent className="rounded-xl">
+        <SelectItem value="all">All Status</SelectItem>
+        <SelectItem value="active">Active</SelectItem>
+        <SelectItem value="inactive">Inactive</SelectItem>
+        <SelectItem value="Locked" className="text-orange-600">
+          Locked
+        </SelectItem>
+      </SelectContent>
+    </Select>
+  </div>
+</div>
           {/* Employee List Content */}
           {loading ? (
             <div className="flex flex-col items-center justify-center py-24">
