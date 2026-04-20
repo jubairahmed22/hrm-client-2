@@ -36,7 +36,7 @@ const RequestCard = ({ item, isGlobal = false, handleStatusChange }) => {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-slate-900 text-white">
+            <AvatarFallback className="bg-gray-200 text-slate-900">
               {item.fullName ? item.fullName.split(' ').map(n => n[0]).join('') : <User className="h-4 w-4" />}
             </AvatarFallback>
           </Avatar>
