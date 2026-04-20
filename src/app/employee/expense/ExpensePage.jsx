@@ -57,12 +57,19 @@ const ExpensePage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
-  // Sync data when tab or page changes
-  useEffect(() => {
-    if (activeTab === "categories") {
-      fetchAllCategories({ page: currentPage, limit: 10 });
-    }
-  }, [currentPage, fetchAllCategories, activeTab]);
+  // --- Inside ExpensePage Component ---
+
+useEffect(() => {
+  // Fetch categories if we are on the categories tab OR requests tab
+  // since the RequestsTab needs them for the filter dropdown.
+  if (activeTab === "categories" || activeTab === "requests") {
+    // Note: If you want all categories for the dropdown, 
+    // you might want to fetch more than just the first page of 10.
+    fetchAllCategories({ page: 1, limit: 100 }); 
+  }
+}, [fetchAllCategories, activeTab]); 
+// Removed currentPage from dependency here to prevent category 
+// re-fetching when just changing pages inside the requests list.
 
   // Tab change handler using Next.js router
   const handleTabChange = (val) => {
@@ -111,9 +118,9 @@ const ExpensePage = () => {
           <TabsTrigger value="requests">
             <ClipboardList className="w-4 h-4" /> Requests
           </TabsTrigger>
-          <TabsTrigger value="categories">
+          {/* <TabsTrigger value="categories">
             <LayoutGrid className="w-4 h-4" /> Categories
-          </TabsTrigger>
+          </TabsTrigger> */}
           <TabsTrigger value="policies">
             <ShieldAlert className="w-4 h-4" /> Policies
           </TabsTrigger>

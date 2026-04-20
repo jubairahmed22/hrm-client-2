@@ -18,12 +18,15 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useExpense } from "@/app/hook/useExpense";
+import { useAuth } from "@/context/AuthContext";
 import { motion } from "framer-motion";
 
 const RequestsTab = ({ categories = [] }) => {
+  const { UserAllDetails } = useAuth();
   const { 
     expenses, stats, loading, pagination, 
-    fetchAllExpenses, updateStatus, 
+    fetchMyExpenses, // Switched to MyExpenses
+    updateStatus, 
     globalSummary, filterSummary 
   } = useExpense();
 
@@ -33,16 +36,19 @@ const RequestsTab = ({ categories = [] }) => {
   const [activeCategory, setActiveCategory] = useState("all");
   const [dateRange, setDateRange] = useState("all_time");
 
+  // Fetch only My Expenses based on User Email
   useEffect(() => {
-    fetchAllExpenses({ 
-      page: currentPage, 
-      limit: 10, 
-      search: searchTerm,
-      status: activeStatus === "all" ? "" : activeStatus,
-      category: activeCategory === "all" ? "" : activeCategory,
-      dateRange: dateRange
-    });
-  }, [currentPage, searchTerm, activeStatus, activeCategory, dateRange, fetchAllExpenses]);
+    if (UserAllDetails?.email) {
+      fetchMyExpenses(UserAllDetails.email, { 
+        page: currentPage, 
+        limit: 10, 
+        search: searchTerm,
+        status: activeStatus === "all" ? "" : activeStatus,
+        category: activeCategory === "all" ? "" : activeCategory,
+        dateRange: dateRange
+      });
+    }
+  }, [UserAllDetails?.email, currentPage, searchTerm, activeStatus, activeCategory, dateRange, fetchMyExpenses]);
 
   const handleStatusUpdate = async (id, status) => {
     try {
@@ -70,15 +76,15 @@ const RequestsTab = ({ categories = [] }) => {
         {[
           { 
             label: "Total Expenses", 
-            val: stats?.total || 0, 
-            sub: `BDT ${globalSummary?.allTimeTotal?.toLocaleString() || 0}`, 
+            val: pagination?.totalItems || 0, 
+            sub: `BDT ${filterSummary?.totalAmount?.toLocaleString() || 0}`, 
             icon: Receipt, 
             color: "text-blue-600", 
             borderColor: "border-blue-600" 
           },
           { 
             label: "Pending", 
-            val: stats?.pending || 0, 
+            val: expenses.filter(e => e.status === 'pending').length, 
             sub: "Awaiting approval", 
             icon: Clock, 
             color: "text-amber-600", 
@@ -86,7 +92,7 @@ const RequestsTab = ({ categories = [] }) => {
           },
           { 
             label: "Approved", 
-            val: stats?.approved || 0, 
+            val: expenses.filter(e => e.status === 'approved').length, 
             sub: "Ready for payment", 
             icon: CheckCircle2, 
             color: "text-emerald-600", 
@@ -94,7 +100,7 @@ const RequestsTab = ({ categories = [] }) => {
           },
           { 
             label: "Reimbursed", 
-            val: stats?.reimbursed || 0, 
+            val: expenses.filter(e => e.status === 'reimbursed').length, 
             sub: "Completed", 
             icon: Check, 
             color: "text-blue-600", 
@@ -116,53 +122,17 @@ const RequestsTab = ({ categories = [] }) => {
         ))}
       </div>
 
-      {/* 2. SUMMARY DATA CARDS */}
-      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-none bg-[#4F81F4] rounded-[24px] shadow-lg shadow-blue-100 text-white overflow-hidden relative">
-          <CardContent className="p-6">
-            <div className="relative z-10">
-              <p className="text-[10px] font-bold uppercase opacity-80 mb-1">Global All-Time Total</p>
-              <h3 className="text-2xl font-black">BDT {globalSummary?.allTimeTotal?.toLocaleString() || 0}</h3>
-              <p className="text-[10px] mt-4 font-medium opacity-90 flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" /> Based on {globalSummary?.totalCount || 0} total requests
-              </p>
-            </div>
-            <Wallet className="absolute -right-4 -bottom-4 w-24 h-24 opacity-10 rotate-12" />
-          </CardContent>
-        </Card>
 
-        <Card className="border-none bg-white border border-slate-100 rounded-[24px] shadow-sm overflow-hidden relative">
-          <CardContent className="p-6">
-            <p className="text-[10px] font-bold uppercase text-slate-400 mb-1">Total This Month</p>
-            <h3 className="text-2xl font-black text-slate-900">BDT {globalSummary?.thisMonthTotal?.toLocaleString() || 0}</h3>
-            <p className="text-[10px] mt-4 font-bold text-amber-600 uppercase tracking-tight">Current Billing Cycle</p>
-            <CalendarDays className="absolute -right-4 -bottom-4 w-24 h-24 text-slate-50 opacity-5" />
-          </CardContent>
-        </Card>
 
-        <Card className="border-none bg-slate-900 rounded-[24px] shadow-sm overflow-hidden relative">
-          <CardContent className="p-6 text-white">
-            <p className="text-[10px] font-bold uppercase text-slate-400 mb-1 tracking-widest">Filter Results Sum</p>
-            <h3 className="text-2xl font-black text-[#4F81F4]">BDT {filterSummary?.totalAmount?.toLocaleString() || 0}</h3>
-            <div className="flex justify-between items-center mt-4">
-               <p className="text-[10px] font-medium text-slate-400">Avg: BDT {Math.round(filterSummary?.averagePerExpense || 0).toLocaleString()}</p>
-               <span className="bg-white/10 px-2 py-0.5 rounded text-[9px] font-bold uppercase">{filterSummary?.filteredCount || 0} items</span>
-            </div>
-            <BarChart3 className="absolute -right-4 -bottom-4 w-24 h-24 text-white opacity-5" />
-          </CardContent>
-        </Card>
-      </div> */}
      <div className="bg-white rounded-lg p-5 space-y-4">
 
       {/* 3. FILTERS */}
-      {/* 3. FILTERS (Search and Dropdowns) */}
       <div className="flex flex-col lg:flex-row gap-4">
-        {/* Search Input */}
         <div className="flex-1">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
             <Input
-              placeholder="Search expenses by description, merchant, location..."
+              placeholder="Search my expenses by description, merchant..."
               className="pl-10 h-10 border-slate-200 bg-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -170,9 +140,7 @@ const RequestsTab = ({ categories = [] }) => {
           </div>
         </div>
 
-        {/* Dropdown Filters Group */}
         <div className="flex flex-wrap gap-2">
-          {/* Status Filter */}
           <Select value={activeStatus} onValueChange={(val) => { setActiveStatus(val); setCurrentPage(1); }}>
             <SelectTrigger className="w-32 h-10 ">
               <SelectValue placeholder="Status" />
@@ -186,7 +154,7 @@ const RequestsTab = ({ categories = [] }) => {
             </SelectContent>
           </Select>
 
-          {/* Category Filter */}
+          {/* Restored Category Dropdown */}
           <Select value={activeCategory} onValueChange={(val) => { setActiveCategory(val); setCurrentPage(1); }}>
             <SelectTrigger className="w-44 h-10 ">
               <SelectValue placeholder="Category" />
@@ -201,7 +169,6 @@ const RequestsTab = ({ categories = [] }) => {
             </SelectContent>
           </Select>
 
-          {/* Period/Timeline Filter */}
           <Select value={dateRange} onValueChange={(val) => { setDateRange(val); setCurrentPage(1); }}>
             <SelectTrigger className="w-36 h-10 ">
               <SelectValue placeholder="Period" />
@@ -216,7 +183,7 @@ const RequestsTab = ({ categories = [] }) => {
         </div>
       </div>
 
-{/* 4. DATA LIST (Card-based Layout) */}
+{/* 4. DATA LIST */}
       <div className="space-y-4">
         {expenses.length > 0 ? (
           expenses.map((exp) => (
@@ -228,20 +195,18 @@ const RequestsTab = ({ categories = [] }) => {
 >
   <div className="flex items-start justify-between">
     <div className="flex-1">
-      {/* Header Info */}
       <div className="flex items-center gap-3 mb-3">
         <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
           <Receipt className="w-5 h-5 text-gray-600" />
         </div>
         <div>
-          <h3 className="font-semibold text-gray-900">{exp.employeeName || exp.merchant}</h3>
+          <h3 className="font-semibold text-gray-900">{exp.merchant || "Expense Request"}</h3>
           <p className="text-sm text-gray-600">
             {exp.projectCode || "GENERAL"} • {new Date(exp.date).toLocaleDateString()}
           </p>
         </div>
       </div>
 
-      {/* Details Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
         <div>
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Category</p>
@@ -263,75 +228,32 @@ const RequestsTab = ({ categories = [] }) => {
         </div>
       </div>
 
-      {/* Description Section */}
       <div className="mb-4">
         <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Description</p>
         <p className="text-gray-700">{exp.description || "No additional notes provided."}</p>
       </div>
     </div>
 
-    {/* Right Side Status & Actions */}
     <div className="flex flex-col items-end gap-3">
-     
-
-      {/* Pending Actions */}
-      {exp.status === 'pending' && (
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            className="bg-green-600 hover:bg-green-700"
-            onClick={() => handleStatusUpdate(exp._id, "approved")}
-          >
-            <Check className="w-3 h-3 mr-1" />
-            Approve
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-red-600 border-red-200 hover:bg-red-50"
-            onClick={() => {
-              const reason = window.prompt('Please provide a reason for rejection:');
-              if (reason) {
-                handleStatusUpdate(exp._id, "rejected", reason);
-              }
-            }}
-          >
-            <X className="w-3 h-3 mr-1" />
-            Reject
-          </Button>
-        </div>
-      )}
-
-      {/* Status Specific Info */}
-      {exp.status === 'approved' && (
-        <div className="text-xs text-green-600 text-right">
-          Approved
-          <br />
-          on {new Date().toLocaleDateString()}
-        </div>
-      )}
+      {/* Restored Status Badges for User View */}
+      <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusStyle(exp.status)}`}>
+        {exp.status?.toUpperCase()}
+      </span>
 
       {exp.status === 'rejected' && exp.rejectionReason && (
-        <div className="text-xs text-red-600 text-right max-w-48">
-          Rejected: {exp.rejectionReason}
+        <div className="text-xs text-red-600 text-right max-w-48 bg-red-50 p-2 rounded-lg">
+          Reason: {exp.rejectionReason}
         </div>
       )}
 
-      {exp.status === 'reimbursed' && (
-        <div className="text-xs text-blue-600 text-right">
-          Reimbursement Finalized
-        </div>
-      )}
-
-      {/* Attachment Button */}
       {exp.receiptUrl && (
         <Button 
           variant="ghost" 
           size="sm" 
-          className="text-gray-400 hover:text-blue-600 h-auto p-0 text-xs"
+          className="text-gray-400 hover:text-blue-600 h-auto p-0 text-xs flex items-center gap-1"
           onClick={() => window.open(exp.receiptUrl, "_blank")}
         >
-          View Attachment
+          <FileText className="w-3 h-3" /> View Attachment
         </Button>
       )}
     </div>

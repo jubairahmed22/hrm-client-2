@@ -39,6 +39,7 @@ const SubmitLeaveReqDialog = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     email: "",
     designation: "",
+    department: "",
     employeeId: "",
     fullName: "",
     employmentType: "",
@@ -56,6 +57,7 @@ const SubmitLeaveReqDialog = ({ isOpen, onClose }) => {
         ...prev,
         email: UserAllDetails.email || "",
         designation: UserAllDetails.designation || "",
+        department: UserAllDetails.department || "",
         employeeId: UserAllDetails.employeeId || "",
         fullName: UserAllDetails.fullName || "",
         employmentType: UserAllDetails.employmentType || "",

@@ -17,6 +17,7 @@ import {
   getAllLeaveRequests, 
   getMyLeaveRequests,
   updateLeaveStatus,
+  getAllLeaveRequestsByDepartment,
   getLeaveSettingsKPI
 } from "../api/leavePolicy";
 import { useAuth } from "@/context/AuthContext";
@@ -27,6 +28,9 @@ let sharedDetailedPolicies = [];
 let sharedFilteredPolicies = []; 
 let sharedLeaveRequests = []; 
 let sharedMyRequests = [];
+
+let sharedDeptRequests = []; // Add this
+let sharedDeptPagination = { totalItems: 0, totalPages: 1, currentPage: 1 };
 
 let sharedLeavePagination = { totalItems: 0, totalPages: 1, currentPage: 1 };
 let sharedRequestPagination = { totalItems: 0, totalPages: 1, currentPage: 1 }; 
@@ -54,6 +58,9 @@ export function useLeavePolicy() {
   const [error, setError] = useState(sharedLeaveError);
   const [kpiData, setKpiData] = useState(sharedKPI); // 3. Local state for KPI
   const { UserAllDetails } = useAuth();
+
+  const [deptRequests, setDeptRequests] = useState(sharedDeptRequests);
+  const [deptPagination, setDeptPagination] = useState(sharedDeptPagination);
   
   /* ================= REGISTER LISTENER ================= */
   useEffect(() => {
@@ -69,6 +76,8 @@ export function useLeavePolicy() {
       setRequestLoading(sharedRequestLoading);
       setError(sharedLeaveError);
       setKpiData(sharedKPI);
+      setDeptRequests([...sharedDeptRequests]); // Sync dept requests
+      setDeptPagination({ ...sharedDeptPagination }); // Sync dept pagination
     };
 
     leaveListeners.push(listener);
@@ -106,7 +115,7 @@ export function useLeavePolicy() {
       fetchLeaveKPI();
     }
   }, [fetchLeaveKPI]);
-  
+
   /* ================= FETCH ALL LEAVE TYPES ================= */
   const fetchAllLeavePolicies = useCallback(async (params = {}) => {
     try {
@@ -307,6 +316,31 @@ const fetchAllRequests = useCallback(async (params = {}) => {
     }
   }, []);
 
+  /* ================= FETCH BY DEPARTMENT ================= */
+
+  const fetchAllRequestsByDepartment = useCallback(async (department, params = {}) => {
+    if (!department) return;
+    
+    try {
+      sharedRequestLoading = true;
+      notifyLeave();
+
+      // Ensure we import getAllLeaveRequestsByDepartment from your api file
+      const result = await getAllLeaveRequestsByDepartment(department, params);
+
+      sharedDeptRequests = result?.data || [];
+      sharedDeptPagination = result?.pagination || { totalItems: 0, totalPages: 1, currentPage: 1 };
+      sharedLeaveError = null;
+    } catch (err) {
+      console.error("Fetch Dept Error:", err);
+      sharedDeptRequests = [];
+      sharedLeaveError = err.message || "Failed to fetch department requests";
+    } finally {
+      sharedRequestLoading = false;
+      notifyLeave();
+    }
+  }, []);
+
   // 3. Now createRequest can safely reference fetchAllRequests
   const createRequest = useCallback(async (requestData) => {
     try {
@@ -413,6 +447,10 @@ const updateRequestStatus = useCallback(async (id, status, hrRemarks = "") => {
     fetchAllRequests,
     fetchMyRequests,
     updateTypeSettings,
-    updateRequestStatus
+    updateRequestStatus,
+
+    deptRequests,          // New state
+    deptPagination,        // New pagination
+    fetchAllRequestsByDepartment, // New method
   };
 }
