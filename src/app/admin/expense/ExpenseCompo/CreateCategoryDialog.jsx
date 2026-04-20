@@ -96,7 +96,7 @@ const CreateCategoryDialog = ({ isOpen, onClose }) => {
                             <Label className="text-[14px] font-bold text-slate-700 ml-1">Category Name</Label>
                             <Input 
                                 placeholder="e.g. Travel & Transportation"
-                                className="h-12 bg-slate-50 border-none rounded-xl"
+                                
                                 value={formData.categoryName}
                                 onChange={(e) => setFormData({...formData, categoryName: e.target.value})}
                             />
@@ -106,7 +106,7 @@ const CreateCategoryDialog = ({ isOpen, onClose }) => {
                             <Input 
                                 type="number"
                                 placeholder="50,000"
-                                className="h-12 bg-slate-50 border-none rounded-xl"
+                                
                                 value={formData.maxAmount}
                                 onChange={(e) => setFormData({...formData, maxAmount: e.target.value})}
                             />

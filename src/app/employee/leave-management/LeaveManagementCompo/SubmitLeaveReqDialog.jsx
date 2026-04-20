@@ -112,7 +112,7 @@ const SubmitLeaveReqDialog = ({ isOpen, onClose }) => {
         <DialogHeader className="p-8 pb-0">
           <div className="flex justify-between items-start">
             <div>
-              <DialogTitle className="text-[24px] font-bold text-slate-900">
+              <DialogTitle >
                 Submit Leave Request
               </DialogTitle>
               <p className="text-slate-500 text-[12px] mt-1 leading-relaxed">
@@ -125,9 +125,9 @@ const SubmitLeaveReqDialog = ({ isOpen, onClose }) => {
         <div className="p-8 pt-6 space-y-6 overflow-y-auto scrollbar-hide max-h-[70vh]">
           {/* Leave Type */}
           <div className="space-y-2">
-            <Label className="text-[15px] font-semibold text-slate-900">Leave Type</Label>
+            <Label >Leave Type</Label>
             <Select onValueChange={handleTypeSelect}>
-              <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl focus:ring-1 focus:ring-slate-200">
+              <SelectTrigger >
                 <SelectValue placeholder={loading ? "Loading types..." : "Select leave type"} />
               </SelectTrigger>
               <SelectContent>
@@ -155,19 +155,19 @@ const SubmitLeaveReqDialog = ({ isOpen, onClose }) => {
           {/* Dates */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-[15px] font-semibold text-slate-900">Start Date</Label>
+              <Label >Start Date</Label>
               <Input
                 type="date"
-                className="h-12 bg-slate-50 border-none rounded-xl"
+                
                 onChange={(e) => handleChange("startDate", e.target.value)}
                 value={formData.startDate}
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[15px] font-semibold text-slate-900">End Date</Label>
+              <Label >End Date</Label>
               <Input
                 type="date"
-                className="h-12 bg-slate-50 border-none rounded-xl"
+                
                 onChange={(e) => handleChange("endDate", e.target.value)}
                 value={formData.endDate}
               />
@@ -176,7 +176,7 @@ const SubmitLeaveReqDialog = ({ isOpen, onClose }) => {
 
           {/* Reason */}
           <div className="space-y-2">
-            <Label className="text-[15px] font-semibold text-slate-900">Reason</Label>
+            <Label >Reason</Label>
             <Textarea
               placeholder="Please provide a reason for your leave"
               className="min-h-[100px] bg-slate-50 border-none rounded-2xl p-4 resize-none focus-visible:ring-1 focus-visible:ring-slate-200"
@@ -187,7 +187,7 @@ const SubmitLeaveReqDialog = ({ isOpen, onClose }) => {
 
           {/* Emergency Contact */}
           <div className="space-y-2">
-            <Label className="text-[15px] font-semibold text-slate-900">Emergency Contact</Label>
+            <Label >Emergency Contact</Label>
             <Input
               placeholder="Phone number"
               className="h-12 bg-slate-50 border-none rounded-xl px-4"
@@ -218,12 +218,12 @@ const SubmitLeaveReqDialog = ({ isOpen, onClose }) => {
             variant="ghost"
             onClick={onClose}
             disabled={requestLoading}
-            className="text-slate-600 font-bold hover:bg-slate-100 px-6 h-12 rounded-xl"
+            
           >
             Cancel
           </Button>
           <Button
-            className="bg-[#4F81F4] hover:bg-[#3b6edb] text-white font-bold px-8 h-12 rounded-xl transition-all min-w-[140px]"
+            
             onClick={handleSubmit}
             disabled={requestLoading}
           >
