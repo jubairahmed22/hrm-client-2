@@ -222,6 +222,28 @@ export const getAllLeaveRequests = async (params = {}) => {
   }
 };
 
+export const getAllLeaveRequestsByDepartment = async (department, params = {}) => {
+  try {
+    // 1. Convert additional filters (page, status, etc.) to a query string
+    const query = new URLSearchParams(params).toString();
+    
+    // 2. Encode the department name to handle spaces and special characters like '&'
+    const encodedDepartment = encodeURIComponent(department);
+
+    // 3. Construct the URL with the department in the path and filters in the query
+    const url = `${BASE_URL}/get-all-leave-requests-department/${encodedDepartment}?${query}`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.success) return data;
+    throw new Error(data.message || "Failed to fetch department leave requests");
+  } catch (error) {
+    console.error("getAllLeaveRequestsByDepartment error:", error);
+    throw error;
+  }
+};
+
 /**
  * Get personal leave requests by email with pagination/filters
  */
