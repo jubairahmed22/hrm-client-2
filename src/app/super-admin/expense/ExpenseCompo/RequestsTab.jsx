@@ -23,7 +23,8 @@ import { motion } from "framer-motion";
 const RequestsTab = ({ categories = [] }) => {
   const { 
     expenses, stats, loading, pagination, 
-    fetchAllExpenses, updateStatus, 
+    fetchHighTierExpenses, // Changed from fetchAllExpenses
+    updateStatus, 
     globalSummary, filterSummary 
   } = useExpense();
 
@@ -34,7 +35,8 @@ const RequestsTab = ({ categories = [] }) => {
   const [dateRange, setDateRange] = useState("all_time");
 
   useEffect(() => {
-    fetchAllExpenses({ 
+    // Calling the specific Tiered API
+    fetchHighTierExpenses({ 
       page: currentPage, 
       limit: 10, 
       search: searchTerm,
@@ -42,7 +44,7 @@ const RequestsTab = ({ categories = [] }) => {
       category: activeCategory === "all" ? "" : activeCategory,
       dateRange: dateRange
     });
-  }, [currentPage, searchTerm, activeStatus, activeCategory, dateRange, fetchAllExpenses]);
+  }, [currentPage, searchTerm, activeStatus, activeCategory, dateRange, fetchHighTierExpenses]);
 
   const handleStatusUpdate = async (id, status) => {
     try {
@@ -116,48 +118,10 @@ const RequestsTab = ({ categories = [] }) => {
         ))}
       </div>
 
-      {/* 2. SUMMARY DATA CARDS */}
-      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-none bg-[#4F81F4] rounded-[24px] shadow-lg shadow-blue-100 text-white overflow-hidden relative">
-          <CardContent className="p-6">
-            <div className="relative z-10">
-              <p className="text-[10px] font-bold uppercase opacity-80 mb-1">Global All-Time Total</p>
-              <h3 className="text-2xl font-black">BDT {globalSummary?.allTimeTotal?.toLocaleString() || 0}</h3>
-              <p className="text-[10px] mt-4 font-medium opacity-90 flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" /> Based on {globalSummary?.totalCount || 0} total requests
-              </p>
-            </div>
-            <Wallet className="absolute -right-4 -bottom-4 w-24 h-24 opacity-10 rotate-12" />
-          </CardContent>
-        </Card>
-
-        <Card className="border-none bg-white border border-slate-100 rounded-[24px] shadow-sm overflow-hidden relative">
-          <CardContent className="p-6">
-            <p className="text-[10px] font-bold uppercase text-slate-400 mb-1">Total This Month</p>
-            <h3 className="text-2xl font-black text-slate-900">BDT {globalSummary?.thisMonthTotal?.toLocaleString() || 0}</h3>
-            <p className="text-[10px] mt-4 font-bold text-amber-600 uppercase tracking-tight">Current Billing Cycle</p>
-            <CalendarDays className="absolute -right-4 -bottom-4 w-24 h-24 text-slate-50 opacity-5" />
-          </CardContent>
-        </Card>
-
-        <Card className="border-none bg-slate-900 rounded-[24px] shadow-sm overflow-hidden relative">
-          <CardContent className="p-6 text-white">
-            <p className="text-[10px] font-bold uppercase text-slate-400 mb-1 tracking-widest">Filter Results Sum</p>
-            <h3 className="text-2xl font-black text-[#4F81F4]">BDT {filterSummary?.totalAmount?.toLocaleString() || 0}</h3>
-            <div className="flex justify-between items-center mt-4">
-               <p className="text-[10px] font-medium text-slate-400">Avg: BDT {Math.round(filterSummary?.averagePerExpense || 0).toLocaleString()}</p>
-               <span className="bg-white/10 px-2 py-0.5 rounded text-[9px] font-bold uppercase">{filterSummary?.filteredCount || 0} items</span>
-            </div>
-            <BarChart3 className="absolute -right-4 -bottom-4 w-24 h-24 text-white opacity-5" />
-          </CardContent>
-        </Card>
-      </div> */}
      <div className="bg-white rounded-lg p-5 space-y-4">
 
-      {/* 3. FILTERS */}
       {/* 3. FILTERS (Search and Dropdowns) */}
       <div className="flex flex-col lg:flex-row gap-4">
-        {/* Search Input */}
         <div className="flex-1">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
@@ -170,9 +134,7 @@ const RequestsTab = ({ categories = [] }) => {
           </div>
         </div>
 
-        {/* Dropdown Filters Group */}
         <div className="flex flex-wrap gap-2">
-          {/* Status Filter */}
           <Select value={activeStatus} onValueChange={(val) => { setActiveStatus(val); setCurrentPage(1); }}>
             <SelectTrigger className="w-32 h-10 ">
               <SelectValue placeholder="Status" />
@@ -186,7 +148,6 @@ const RequestsTab = ({ categories = [] }) => {
             </SelectContent>
           </Select>
 
-          {/* Category Filter */}
           <Select value={activeCategory} onValueChange={(val) => { setActiveCategory(val); setCurrentPage(1); }}>
             <SelectTrigger className="w-44 h-10 ">
               <SelectValue placeholder="Category" />
@@ -201,7 +162,6 @@ const RequestsTab = ({ categories = [] }) => {
             </SelectContent>
           </Select>
 
-          {/* Period/Timeline Filter */}
           <Select value={dateRange} onValueChange={(val) => { setDateRange(val); setCurrentPage(1); }}>
             <SelectTrigger className="w-36 h-10 ">
               <SelectValue placeholder="Period" />

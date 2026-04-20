@@ -8,16 +8,17 @@ import {
   submitExpenseRequest, 
   getAllExpenses,        
   updateExpenseStatus,
-  getMyExpenses // 1. Import the new API function
+  getMyExpenses,
+  // NEW API IMPORTS
+  getHighTierExpenses,
+  getMidTierExpenses,
+  getLowTierExpenses
 } from "../api/expense";
 
 /* ================= SHARED STATE (Cross-Component Sync) ================= */
-// Using shared variables outside the hook to keep data in sync across multiple components
 let sharedExpenseCategories = [];
 let sharedExpenses = []; 
 let sharedStats = { pending: 0, approved: 0, reimbursed: 0, total: 0 }; 
-
-
 
 // NEW: Injected Summary States for Global and Filtered views
 let sharedGlobalSummary = { 
@@ -47,7 +48,6 @@ export function useExpense() {
   const [expenses, setExpenses] = useState(sharedExpenses);
   const [stats, setStats] = useState(sharedStats);
   
-  // Local States for the injected summaries
   const [globalSummary, setGlobalSummary] = useState(sharedGlobalSummary);
   const [filterSummary, setFilterSummary] = useState(sharedFilterSummary);
 
@@ -55,7 +55,7 @@ export function useExpense() {
   const [loading, setLoading] = useState(sharedLoading);
   const [error, setError] = useState(sharedError);
 
-
+  /* ================= HELPERS ================= */
   const updateSharedStateFromResponse = useCallback((result) => {
     sharedExpenses = result?.data || [];
     sharedPagination = result?.pagination || sharedPagination;
@@ -72,7 +72,6 @@ export function useExpense() {
       setExpenses([...sharedExpenses]);
       setStats({ ...sharedStats });
       
-      // Sync the new summary objects
       setGlobalSummary({ ...sharedGlobalSummary });
       setFilterSummary({ ...sharedFilterSummary });
 
@@ -107,7 +106,6 @@ export function useExpense() {
     }
   }, []);
   
-
   const submitCategory = useCallback(async (categoryData) => {
     try {
       sharedLoading = true;
@@ -145,35 +143,22 @@ export function useExpense() {
       sharedLoading = true;
       notifyExpense();
       const result = await getAllExpenses(params);
-      
-      // Update data and pagination
-      sharedExpenses = result?.data || [];
-      sharedPagination = result?.pagination || sharedPagination;
-
-      // INJECTION: Update the summary parts from the API response
-      sharedStats = result?.stats || sharedStats; 
-      sharedGlobalSummary = result?.globalSummary || sharedGlobalSummary;
-      sharedFilterSummary = result?.filterSummary || sharedFilterSummary;
-
-      sharedError = null;
+      updateSharedStateFromResponse(result);
     } catch (err) {
       sharedError = err.message || "Failed to fetch expenses";
     } finally {
       sharedLoading = false;
       notifyExpense();
     }
-  }, []);
+  }, [updateSharedStateFromResponse]);
 
-  // 2. Add the specific "Get My Expenses" method
   const fetchMyExpenses = useCallback(async (email, params = { page: 1, limit: 10 }) => {
     if (!email) return;
     try {
       sharedLoading = true;
       notifyExpense();
-      
       const result = await getMyExpenses(email, params);
       updateSharedStateFromResponse(result);
-      
     } catch (err) {
       sharedError = err.message || "Failed to fetch your expenses";
     } finally {
@@ -182,13 +167,58 @@ export function useExpense() {
     }
   }, [updateSharedStateFromResponse]);
 
+  /* ================= TIERED EXPENSE METHODS ================= */
+
+  const fetchHighTierExpenses = useCallback(async (params = { page: 1, limit: 10 }) => {
+    try {
+      sharedLoading = true;
+      notifyExpense();
+      const result = await getHighTierExpenses(params);
+      updateSharedStateFromResponse(result);
+    } catch (err) {
+      sharedError = err.message || "Failed to fetch high-tier expenses";
+    } finally {
+      sharedLoading = false;
+      notifyExpense();
+    }
+  }, [updateSharedStateFromResponse]);
+
+  const fetchMidTierExpenses = useCallback(async (params = { page: 1, limit: 10 }) => {
+    try {
+      sharedLoading = true;
+      notifyExpense();
+      const result = await getMidTierExpenses(params);
+      updateSharedStateFromResponse(result);
+    } catch (err) {
+      sharedError = err.message || "Failed to fetch mid-tier expenses";
+    } finally {
+      sharedLoading = false;
+      notifyExpense();
+    }
+  }, [updateSharedStateFromResponse]);
+
+  const fetchLowTierExpenses = useCallback(async (params = { page: 1, limit: 10 }) => {
+    try {
+      sharedLoading = true;
+      notifyExpense();
+      const result = await getLowTierExpenses(params);
+      updateSharedStateFromResponse(result);
+    } catch (err) {
+      sharedError = err.message || "Failed to fetch low-tier expenses";
+    } finally {
+      sharedLoading = false;
+      notifyExpense();
+    }
+  }, [updateSharedStateFromResponse]);
+
+  /* ================= STATUS & SUBMISSION ================= */
+
   const submitExpense = useCallback(async (formData) => {
     try {
       sharedLoading = true;
       notifyExpense();
       const response = await submitExpenseRequest(formData);
       if (response.success) {
-        // Reset to first page to show the new request
         await fetchAllExpenses({ page: 1, limit: 10 });
       }
       return response;
@@ -207,7 +237,6 @@ export function useExpense() {
       notifyExpense();
       const response = await updateExpenseStatus(id, newStatus);
       if (response.success) {
-        // Refresh to update both the list and the summary counts
         await fetchAllExpenses(); 
       }
       return response;
@@ -225,8 +254,8 @@ export function useExpense() {
     categories,
     expenses,
     stats,
-    globalSummary, // Now available for RequestsTab cards
-    filterSummary, // Now available for RequestsTab cards
+    globalSummary,
+    filterSummary,
     pagination,
     loading,
     error,
@@ -235,9 +264,13 @@ export function useExpense() {
     fetchAllCategories,
     submitCategory,
     removeCategory,
-    fetchMyExpenses,
+    
     // Expense Actions
     fetchAllExpenses,
+    fetchMyExpenses,
+    fetchHighTierExpenses,
+    fetchMidTierExpenses,
+    fetchLowTierExpenses,
     submitExpense,
     updateStatus
   };
