@@ -72,6 +72,51 @@ export const getAllExpenses = async (params = {}) => {
   }
 };
 
+// 1. Fetch expenses above 15,000
+export const getHighTierExpenses = async (params = {}) => {
+  try {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`${BASE_URL}/get-all-expenses-above-15k?${query}`);
+    
+    const data = await res.json();
+    if (res.ok && data.success) return data;
+    throw new Error(data.error || "Failed to fetch high-tier expenses");
+  } catch (error) {
+    console.error("getHighTierExpenses error:", error);
+    throw error;
+  }
+};
+
+// 2. Fetch expenses between 7,501 and 15,000
+export const getMidTierExpenses = async (params = {}) => {
+  try {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`${BASE_URL}/get-all-expenses-7501-to-15k?${query}`);
+    
+    const data = await res.json();
+    if (res.ok && data.success) return data;
+    throw new Error(data.error || "Failed to fetch mid-tier expenses");
+  } catch (error) {
+    console.error("getMidTierExpenses error:", error);
+    throw error;
+  }
+};
+
+// 3. Fetch expenses up to 7,500
+export const getLowTierExpenses = async (params = {}) => {
+  try {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`${BASE_URL}/get-all-expenses-upto-7500?${query}`);
+    
+    const data = await res.json();
+    if (res.ok && data.success) return data;
+    throw new Error(data.error || "Failed to fetch low-tier expenses");
+  } catch (error) {
+    console.error("getLowTierExpenses error:", error);
+    throw error;
+  }
+};
+
 /**
  * Fetch expenses for a specific user by email
  * @param {string} email - The user's email address
