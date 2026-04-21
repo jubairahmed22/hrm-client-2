@@ -9,7 +9,6 @@ import {
   getAllExpenses,        
   updateExpenseStatus,
   getMyExpenses,
-  // NEW API IMPORTS
   getHighTierExpenses,
   getMidTierExpenses,
   getLowTierExpenses
@@ -20,7 +19,6 @@ let sharedExpenseCategories = [];
 let sharedExpenses = []; 
 let sharedStats = { pending: 0, approved: 0, reimbursed: 0, total: 0 }; 
 
-// NEW: Injected Summary States for Global and Filtered views
 let sharedGlobalSummary = { 
   allTimeTotal: 0, 
   thisMonthTotal: 0, 
@@ -106,6 +104,7 @@ export function useExpense() {
     }
   }, []);
   
+
   const submitCategory = useCallback(async (categoryData) => {
     try {
       sharedLoading = true;
@@ -213,13 +212,19 @@ export function useExpense() {
 
   /* ================= STATUS & SUBMISSION ================= */
 
-  const submitExpense = useCallback(async (formData) => {
+  /**
+   * Submits a new expense.
+   * @param {Object} formData - The expense data.
+   * @param {Function} refreshFn - The specific fetch function to call after success (e.g. fetchHighTierExpenses).
+   */
+  const submitExpense = useCallback(async (formData, refreshFn = fetchAllExpenses) => {
     try {
       sharedLoading = true;
       notifyExpense();
       const response = await submitExpenseRequest(formData);
       if (response.success) {
-        await fetchAllExpenses({ page: 1, limit: 10 });
+        // Reset to first page of the current tier to show new entry
+        await refreshFn({ page: 1, limit: 10 });
       }
       return response;
     } catch (err) {
@@ -231,13 +236,20 @@ export function useExpense() {
     }
   }, [fetchAllExpenses]);
 
-  const updateStatus = useCallback(async (id, newStatus) => {
+  /**
+   * Updates an expense status.
+   * @param {String} id - Expense ID.
+   * @param {String} newStatus - The new status.
+   * @param {Function} refreshFn - The specific fetch function to call after success.
+   */
+  const updateStatus = useCallback(async (id, newStatus, refreshFn = fetchAllExpenses) => {
     try {
       sharedLoading = true;
       notifyExpense();
       const response = await updateExpenseStatus(id, newStatus);
       if (response.success) {
-        await fetchAllExpenses(); 
+        // Refresh using the tier-specific fetcher provided by the component
+        await refreshFn(); 
       }
       return response;
     } catch (err) {

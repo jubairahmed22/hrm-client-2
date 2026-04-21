@@ -25,12 +25,12 @@ import { useExpense } from "@/app/hook/useExpense";
 import { useAuth } from "@/context/AuthContext";
 
 const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
-  const { submitExpense, loading: hookLoading } = useExpense();
-      const { UserAllDetails } = useAuth();
+  // Destructure fetchHighTierExpenses so we can use it as a refresh callback
+  const { submitExpense, fetchHighTierExpenses, loading: hookLoading } = useExpense();
+  const { UserAllDetails } = useAuth();
   
   const fileInputRef = useRef(null);
   
-
   const [selectedFile, setSelectedFile] = useState(null);
   const [formData, setFormData] = useState({
     categoryId: "",
@@ -42,12 +42,9 @@ const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
     description: "",
     location: "",
     merchant: "",
-
   });
 
-  // Handle Category selection
   const handleCategoryChange = (id) => {
-    // Find the category based on the ID string
     const selected = categories?.find((c) => String(c._id) === String(id));
     if (selected) {
       setFormData((prev) => ({ 
@@ -69,8 +66,7 @@ const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
     }
   };
   
-
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.categoryId) return alert("Please select an expense category");
     
@@ -80,7 +76,7 @@ const handleSubmit = async (e) => {
       // 1. File Attachment
       if (selectedFile) data.append("receipt", selectedFile);
       
-      // 2. Existing Form Data
+      // 2. Form Fields
       data.append("categoryId", formData.categoryId);
       data.append("categoryName", formData.categoryName);
       data.append("amount", formData.amount);
@@ -91,8 +87,7 @@ const handleSubmit = async (e) => {
       data.append("location", formData.location);
       data.append("merchant", formData.merchant);
 
-      // 3. Appending User Details (New Requirement)
-      // Note: Using optional chaining ?. to prevent errors if UserAllDetails is null
+      // 3. User Details
       data.append("fullName", UserAllDetails?.fullName || "");
       data.append("designation", UserAllDetails?.designation || "");
       data.append("email", UserAllDetails?.email || "");
@@ -100,18 +95,23 @@ const handleSubmit = async (e) => {
       data.append("phone", UserAllDetails?.phone || "");
       data.append("employeeId", UserAllDetails?.employeeId || "");
 
-      // 4. Submit to API
-      const response = await submitExpense(data);
+      // 4. Submit to API with the High Tier refresh callback
+      // This solves the issue of the UI showing "All Expenses" after a new submission
+      const response = await submitExpense(data, fetchHighTierExpenses);
       
       if (response.success) {
         // Reset local state
         setSelectedFile(null);
         setFormData({
-          ...formData,
           categoryId: "",
           categoryName: "",
           amount: "",
+          currency: "BDT",
+          date: new Date().toISOString().split('T')[0],
+          projectCode: "PRJ-2025-001",
           description: "",
+          location: "",
+          merchant: "",
         });
         onClose();
       }
@@ -127,7 +127,6 @@ const handleSubmit = async (e) => {
         <DialogHeader className="p-8 pb-0 relative">
           <DialogTitle className="text-2xl font-bold text-slate-900 text-left">Submit New Expense</DialogTitle>
           <p className="text-slate-500 mt-1 text-left">Create a new expense request with all necessary details and receipts.</p>
-          
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-5">
@@ -136,27 +135,21 @@ const handleSubmit = async (e) => {
             <Label className="font-bold text-slate-700">Category *</Label>
             <Select 
               onValueChange={handleCategoryChange} 
-              value={formData.categoryId || undefined} // Fallback to undefined to show placeholder
+              value={formData.categoryId || undefined}
             >
               <SelectTrigger className="h-12 bg-slate-50 border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-100 transition-all">
-                <SelectValue placeholder={categories?.length > 0 ? "Select category" : "Loading categories..."} />
+                <SelectValue placeholder={categories?.length > 0 ? "Select category" : "Loading..."} />
               </SelectTrigger>
               <SelectContent className="rounded-xl border-slate-100 shadow-xl max-h-[250px]">
-                {categories && categories.length > 0 ? (
-                  categories.map((cat) => (
-                    <SelectItem 
-                      key={String(cat._id)} 
-                      value={String(cat._id)} 
-                      className="cursor-pointer py-3"
-                    >
-                      <span className="font-medium text-slate-700">{cat.categoryName}</span>
-                    </SelectItem>
-                  ))
-                ) : (
-                  <div className="p-4 text-center text-sm text-slate-400 italic">
-                    No categories available.
-                  </div>
-                )}
+                {categories.map((cat) => (
+                  <SelectItem 
+                    key={String(cat._id)} 
+                    value={String(cat._id)} 
+                    className="cursor-pointer py-3"
+                  >
+                    <span className="font-medium text-slate-700">{cat.categoryName}</span>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -199,7 +192,7 @@ const handleSubmit = async (e) => {
                 <Input 
                   type="date" 
                   value={formData.date}
-                  className="h-12 bg-slate-50 border-slate-100 rounded-xl pl-4 pr-10"
+                  className="h-12 bg-slate-50 border-slate-100 rounded-xl"
                   onChange={(e) => setFormData({...formData, date: e.target.value})}
                   required
                 />
@@ -269,7 +262,7 @@ const handleSubmit = async (e) => {
             >
               {selectedFile ? (
                 <div className="flex items-center gap-3 w-full justify-center">
-                  {selectedFile.type.includes("image") ? <ImageIcon className="text-blue-500" /> : <FileText className="text-blue-500" />}
+                  {selectedFile.type.includes("image") ? <ImageIcon className="text-blue-500 w-5 h-5" /> : <FileText className="text-blue-500 w-5 h-5" />}
                   <div className="text-left overflow-hidden">
                     <p className="font-bold text-slate-700 text-sm truncate max-w-[200px]">{selectedFile.name}</p>
                     <p className="text-xs text-slate-500">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>

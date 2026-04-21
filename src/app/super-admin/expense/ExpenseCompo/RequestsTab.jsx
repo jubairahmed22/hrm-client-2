@@ -49,6 +49,7 @@ const RequestsTab = ({ categories = [] }) => {
   const handleStatusUpdate = async (id, status) => {
     try {
       await updateStatus(id, status);
+      fetchHighTierExpenses()
     } catch (err) {
       alert("Error: " + err.message);
     }
@@ -145,6 +146,7 @@ const RequestsTab = ({ categories = [] }) => {
               <SelectItem value="approved">Approved</SelectItem>
               <SelectItem value="rejected">Rejected</SelectItem>
               <SelectItem value="reimbursed">Reimbursed</SelectItem>
+              <SelectItem value="disbursed">Disbursed</SelectItem>
             </SelectContent>
           </Select>
 
@@ -261,6 +263,34 @@ const RequestsTab = ({ categories = [] }) => {
           </Button>
         </div>
       )}
+
+     {exp.status === 'approved' && (
+  <div className="flex flex-col items-end gap-2">
+    <div className="text-xs text-green-600 text-right">
+      Approved
+      <br />
+      on {new Date().toLocaleDateString()}
+    </div>
+    <div className="flex gap-2">
+      <Button
+        size="sm"
+        className="bg-blue-600 hover:bg-blue-700 text-white"
+        onClick={() => handleStatusUpdate(exp._id, "reimbursed")}
+      >
+        <Wallet className="w-3 h-3 mr-1" />
+        Reimburse
+      </Button>
+      <Button
+        size="sm"
+        className="bg-purple-600 hover:bg-purple-700 text-white"
+        onClick={() => handleStatusUpdate(exp._id, "disbursed")}
+      >
+        <TrendingUp className="w-3 h-3 mr-1" />
+        Disburse
+      </Button>
+    </div>
+  </div>
+)}
 
       {/* Status Specific Info */}
       {exp.status === 'approved' && (
