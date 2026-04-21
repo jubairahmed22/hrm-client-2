@@ -146,7 +146,7 @@ const RequestsTab = ({ categories = [] }) => {
               <SelectItem value="approved">Approved</SelectItem>
               <SelectItem value="rejected">Rejected</SelectItem>
               <SelectItem value="reimbursed">Reimbursed</SelectItem>
-              <SelectItem value="disbursed">Disbursed</SelectItem>
+              {/* <SelectItem value="disbursed">Disbursed</SelectItem> */}
             </SelectContent>
           </Select>
 
