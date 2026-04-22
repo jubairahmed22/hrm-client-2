@@ -285,7 +285,7 @@ const RecruitmentJobBasedData = ({ job }) => {
           /* Create an AnalyticsView component for this */
           <div className="flex flex-col items-center justify-center h-[400px] bg-white rounded-[32px] border border-gray-100">
             <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">
-              Recruitment Analytics fgs
+              Recruitment Analytics
             </p>
           </div>
         )}
