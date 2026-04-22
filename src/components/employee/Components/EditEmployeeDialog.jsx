@@ -17,20 +17,31 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
 import { useMyTeam } from "@/app/hook/useMyTeam";
-// Import the hook to fetch dynamic departments
+
+const designations = [
+  "CEO",
+  "Head_of_HR",
+  "HR_Manager",
+  "HR_Executive",
+  "CTO",
+  "Technical_Lead",
+  "Senior_Developer",
+  "Head_of_Finance",
+  "Finance_Manager",
+  "Senior_Accountant",
+  "System_Admin",
+];
 
 export default function EditEmployeeDialog({
   open,
   onClose,
   editFormData,
   setEditFormData,
-  refreshEmployees, // optional: callback to refresh list after update
+  refreshEmployees,
   fetchEmployees
 }) {
-  // Fetch departments dynamically from your existing hook
   const { departments } = useMyTeam();
 
-  // ---- HANDLE SAVE ----
   const onSave = async () => {
     if (!editFormData._id) {
       toast.error("Invalid Employee ID");
@@ -48,7 +59,6 @@ export default function EditEmployeeDialog({
         onClose();
         if (refreshEmployees) refreshEmployees();
         if (fetchEmployees) fetchEmployees();
-        
       } else {
         toast.error(response.data.message || "Failed to update employee.");
       }
@@ -144,7 +154,6 @@ export default function EditEmployeeDialog({
                   <SelectValue placeholder="Select department" />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* Mapping through dynamic departments from hook */}
                   {departments && departments.map((dept) => (
                     <SelectItem key={dept._id} value={dept.name}>
                       {dept.name}
@@ -154,18 +163,26 @@ export default function EditEmployeeDialog({
               </Select>
             </div>
 
+            {/* DESIGNATION — now a Select */}
             <div>
               <Label className="mb-2 text-gray-500" htmlFor="edit-designation">Designation</Label>
-              <Input
-                id="edit-designation"
+              <Select
                 value={editFormData.designation || ""}
-                onChange={(e) =>
-                  setEditFormData({
-                    ...editFormData,
-                    designation: e.target.value,
-                  })
+                onValueChange={(value) =>
+                  setEditFormData({ ...editFormData, designation: value })
                 }
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select designation" />
+                </SelectTrigger>
+                <SelectContent>
+                  {designations.map((d) => (
+                    <SelectItem key={d} value={d}>
+                      {d.replace(/_/g, " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>

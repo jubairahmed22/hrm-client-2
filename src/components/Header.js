@@ -29,7 +29,7 @@ import {
 import NotificationBell from "./NotificationBell";
 
 export default function Header() {
-  const { user, setUser } = useAuth();
+  const { user, UserAllDetails, setUser } = useAuth();
   const router = useRouter();
   
   const [showProfile, setShowProfile] = useState(false);
@@ -87,7 +87,7 @@ export default function Header() {
                 <div className="flex items-center gap-2">
                   <roleInfo.icon className={`w-3.5 h-3.5 ${roleInfo.color}`} />
                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {roleInfo.label}
+                    {roleInfo.label} | {UserAllDetails?.designation} | {UserAllDetails?.department}
                   </span>
                 </div>
               </div>

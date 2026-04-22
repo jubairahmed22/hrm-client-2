@@ -11,8 +11,10 @@ import {
   getMyExpenses,
   getHighTierExpenses,
   getMidTierExpenses,
-  getLowTierExpenses
+  getLowTierExpenses,
+  getAllExpensesByDepartment,
 } from "../api/expense";
+import { useAuth } from "@/context/AuthContext";
 
 /* ================= SHARED STATE (Cross-Component Sync) ================= */
 let sharedExpenseCategories = [];
@@ -45,6 +47,10 @@ export function useExpense() {
   const [categories, setCategories] = useState(sharedExpenseCategories);
   const [expenses, setExpenses] = useState(sharedExpenses);
   const [stats, setStats] = useState(sharedStats);
+  const { UserAllDetails } = useAuth();
+
+  const designation = UserAllDetails?.designation;
+  const department = UserAllDetails?.department;
   
   const [globalSummary, setGlobalSummary] = useState(sharedGlobalSummary);
   const [filterSummary, setFilterSummary] = useState(sharedFilterSummary);
@@ -103,7 +109,6 @@ export function useExpense() {
       notifyExpense();
     }
   }, []);
-  
 
   const submitCategory = useCallback(async (categoryData) => {
     try {
@@ -151,6 +156,24 @@ export function useExpense() {
     }
   }, [updateSharedStateFromResponse]);
 
+  const fetchExpensesByDepartment = useCallback(async (dept = null, params = { page: 1, limit: 10 }) => {
+    try {
+      sharedLoading = true;
+      notifyExpense();
+      
+      // Fallback logic: Priority given to passed dept, then user's dept, then "all"
+      const targetDept = dept ?? department ?? "all";
+      
+      const result = await getAllExpensesByDepartment(targetDept, params);
+      updateSharedStateFromResponse(result);
+    } catch (err) {
+      sharedError = err.message || "Failed to fetch department expenses";
+    } finally {
+      sharedLoading = false;
+      notifyExpense();
+    }
+  }, [updateSharedStateFromResponse, department]);
+
   const fetchMyExpenses = useCallback(async (email, params = { page: 1, limit: 10 }) => {
     if (!email) return;
     try {
@@ -182,11 +205,15 @@ export function useExpense() {
     }
   }, [updateSharedStateFromResponse]);
 
-  const fetchMidTierExpenses = useCallback(async (params = { page: 1, limit: 10 }) => {
+  // Department is automatically pulled from logged-in user (UserAllDetails.department)
+  // Pass "all" explicitly if you want to bypass department filtering
+  const fetchMidTierExpenses = useCallback(async (params = { page: 1, limit: 10 }, dept = null) => {
     try {
       sharedLoading = true;
       notifyExpense();
-      const result = await getMidTierExpenses(params);
+      // Use explicitly passed dept, else fall back to user's own department, else "all"
+      const targetDept = dept ?? department ?? "all";
+      const result = await getMidTierExpenses(targetDept, params);
       updateSharedStateFromResponse(result);
     } catch (err) {
       sharedError = err.message || "Failed to fetch mid-tier expenses";
@@ -194,13 +221,15 @@ export function useExpense() {
       sharedLoading = false;
       notifyExpense();
     }
-  }, [updateSharedStateFromResponse]);
+  }, [updateSharedStateFromResponse, department]);
 
-  const fetchLowTierExpenses = useCallback(async (params = { page: 1, limit: 10 }) => {
+  const fetchLowTierExpenses = useCallback(async (params = { page: 1, limit: 10 }, dept = null) => {
     try {
       sharedLoading = true;
       notifyExpense();
-      const result = await getLowTierExpenses(params);
+      // Use explicitly passed dept, else fall back to user's own department, else "all"
+      const targetDept = dept ?? department ?? "all";
+      const result = await getLowTierExpenses(targetDept, params);
       updateSharedStateFromResponse(result);
     } catch (err) {
       sharedError = err.message || "Failed to fetch low-tier expenses";
@@ -208,22 +237,16 @@ export function useExpense() {
       sharedLoading = false;
       notifyExpense();
     }
-  }, [updateSharedStateFromResponse]);
+  }, [updateSharedStateFromResponse, department]);
 
   /* ================= STATUS & SUBMISSION ================= */
 
-  /**
-   * Submits a new expense.
-   * @param {Object} formData - The expense data.
-   * @param {Function} refreshFn - The specific fetch function to call after success (e.g. fetchHighTierExpenses).
-   */
   const submitExpense = useCallback(async (formData, refreshFn = fetchAllExpenses) => {
     try {
       sharedLoading = true;
       notifyExpense();
       const response = await submitExpenseRequest(formData);
       if (response.success) {
-        // Reset to first page of the current tier to show new entry
         await refreshFn({ page: 1, limit: 10 });
       }
       return response;
@@ -236,19 +259,12 @@ export function useExpense() {
     }
   }, [fetchAllExpenses]);
 
-  /**
-   * Updates an expense status.
-   * @param {String} id - Expense ID.
-   * @param {String} newStatus - The new status.
-   * @param {Function} refreshFn - The specific fetch function to call after success.
-   */
   const updateStatus = useCallback(async (id, newStatus, refreshFn = fetchAllExpenses) => {
     try {
       sharedLoading = true;
       notifyExpense();
       const response = await updateExpenseStatus(id, newStatus);
       if (response.success) {
-        // Refresh using the tier-specific fetcher provided by the component
         await refreshFn(); 
       }
       return response;
@@ -271,6 +287,8 @@ export function useExpense() {
     pagination,
     loading,
     error,
+    department,
+    designation,
     
     // Category Actions
     fetchAllCategories,
@@ -283,6 +301,7 @@ export function useExpense() {
     fetchHighTierExpenses,
     fetchMidTierExpenses,
     fetchLowTierExpenses,
+    fetchExpensesByDepartment,
     submitExpense,
     updateStatus
   };

@@ -204,7 +204,7 @@ const RequestsTab = ({ categories = [] }) => {
       </div>
 
       {/* Details Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
         <div>
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Category</p>
           <p className="font-medium">{exp.categoryName}</p>
@@ -223,6 +223,10 @@ const RequestsTab = ({ categories = [] }) => {
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Merchant</p>
           <p className="font-medium">{exp.merchant || 'Not specified'}</p>
         </div>
+        <div>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Merchant</p>
+          <p className="font-medium">{exp.department || 'Not specified'}</p>
+        </div>
       </div>
 
       {/* Description Section */}
@@ -230,6 +234,7 @@ const RequestsTab = ({ categories = [] }) => {
         <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Description</p>
         <p className="text-gray-700">{exp.description || "No additional notes provided."}</p>
       </div>
+     
     </div>
 
     {/* Right Side Status & Actions */}

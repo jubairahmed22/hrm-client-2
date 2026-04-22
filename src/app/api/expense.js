@@ -72,6 +72,20 @@ export const getAllExpenses = async (params = {}) => {
   }
 };
 
+export const getAllExpensesByDepartment = async (department = "all", params = {}) => {
+  try {
+    const query = new URLSearchParams(params).toString();
+    const encodedDept = encodeURIComponent(department);
+    const res = await fetch(`${BASE_URL}/get-all-expenses/${encodedDept}?${query}`);
+    const data = await res.json();
+    if (res.ok && data.success) return data;
+    throw new Error(data.error || "Failed to fetch expenses");
+  } catch (error) {
+    console.error("getAllExpensesByDepartment error:", error);
+    throw error;
+  }
+};
+
 // 1. Fetch expenses above 15,000
 export const getHighTierExpenses = async (params = {}) => {
   try {
@@ -88,10 +102,11 @@ export const getHighTierExpenses = async (params = {}) => {
 };
 
 // 2. Fetch expenses between 7,501 and 15,000
-export const getMidTierExpenses = async (params = {}) => {
+export const getMidTierExpenses = async (department = "all", params = {}) => {
   try {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`${BASE_URL}/get-all-expenses-7501-to-15k?${query}`);
+    const encodedDept = encodeURIComponent(department);
+    const res = await fetch(`${BASE_URL}/get-all-expenses-7501-to-15k/${encodedDept}?${query}`);
     
     const data = await res.json();
     if (res.ok && data.success) return data;
@@ -103,10 +118,11 @@ export const getMidTierExpenses = async (params = {}) => {
 };
 
 // 3. Fetch expenses up to 7,500
-export const getLowTierExpenses = async (params = {}) => {
+export const getLowTierExpenses = async (department = "all", params = {}) => {
   try {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`${BASE_URL}/get-all-expenses-upto-7500?${query}`);
+    const encodedDept = encodeURIComponent(department);
+    const res = await fetch(`${BASE_URL}/get-all-expenses-upto-7500/${encodedDept}?${query}`);
     
     const data = await res.json();
     if (res.ok && data.success) return data;

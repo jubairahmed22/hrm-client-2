@@ -275,7 +275,7 @@ const RecruitmentJobBasedData = ({ job }) => {
           </div>
         )}
 
-        {activeTab === "inventory" && <div>Inventory Data</div>}
+        {activeTab === "inventory" && <InventoryData></InventoryData>}
 
         {activeTab === "list" && (
           <CandidateList job={job} searchTerm={searchTerm}></CandidateList>

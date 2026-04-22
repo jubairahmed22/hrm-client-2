@@ -43,10 +43,13 @@ import AnalyticsTab from "./ExpenseCompo/AnalyticsTab";
 import CategoriesTab from "./ExpenseCompo/CategoriesTab";
 import SubmitExpenseDialog from "./ExpenseCompo/SubmitExpenseDialog";
 import ExpenseHeader from "./ExpenseCompo/ExpenseHeader";
+import { useAuth } from "@/context/AuthContext";
+import RequestsHOD from "./ExpenseCompo/RequestsHOD";
 
 const ExpensePage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { UserAllDetails } = useAuth();
 
   // Get active tab from URL or default to 'categories'
   const activeTab = searchParams.get("tab") || "categories";
@@ -83,7 +86,8 @@ const ExpensePage = () => {
 
   // --- VIEW: Requests ---
   const RenderRequests = () => (
-    <RequestsTab categories={categories}></RequestsTab>
+    // <RequestsTab UserAllDetails={UserAllDetails} categories={categories}></RequestsTab>
+    <RequestsHOD UserAllDetails={UserAllDetails} categories={categories}></RequestsHOD>
   );
 
   // --- VIEW: Policies ---
