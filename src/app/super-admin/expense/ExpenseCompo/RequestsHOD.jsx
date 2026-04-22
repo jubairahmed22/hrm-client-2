@@ -27,8 +27,15 @@ const RequestsHOD = ({ categories = [], UserAllDetails }) => {
   const [activeCategory, setActiveCategory] = useState("all");
   const [dateRange, setDateRange] = useState("all_time");
 
+  console.log(UserAllDetails);
+  
+
   // Get the department from user details
   const userDept = UserAllDetails?.department;
+  const email = UserAllDetails?.email;
+  const employeeId = UserAllDetails?.employeeId;
+  const designation = UserAllDetails?.designation;
+
 
   // Memoized fetch function to prevent unnecessary re-renders
   const loadDepartmentData = useCallback(() => {
@@ -48,14 +55,24 @@ const RequestsHOD = ({ categories = [], UserAllDetails }) => {
     loadDepartmentData();
   }, [loadDepartmentData]);
 
-  const handleStatusUpdate = async (id, status, reason = "") => {
-    try {
-      // Pass the refresh function to updateStatus to keep current view
-      await updateStatus(id, status, loadDepartmentData);
-    } catch (err) {
-      alert("Error: " + err.message);
-    }
-  };
+  const handleStatusUpdate = async (id, status, note = "") => {
+  try {
+    // ✅ Build actor object from UserAllDetails
+    const actorDetails = {
+      name: UserAllDetails?.fullName || "",
+      email: UserAllDetails?.email || "",
+      employeeId: UserAllDetails?.employeeId || "",
+      designation: UserAllDetails?.designation || "",
+      department: UserAllDetails?.department || "",
+      note: note,
+    };
+
+    await updateStatus(id, status, actorDetails, loadDepartmentData);
+    fetchExpensesByDepartment()
+  } catch (err) {
+    alert("Error: " + err.message);
+  }
+};
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

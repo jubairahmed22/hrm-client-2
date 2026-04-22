@@ -177,12 +177,20 @@ export const deleteExpenseCategory = async (id) => {
   }
 };
 
-export const updateExpenseStatus = async (id, status) => {
+export const updateExpenseStatus = async (id, status, actorDetails = {}) => {
   try {
     const res = await fetch(`${BASE_URL}/update-expense-status/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({
+        status,
+        actorName: actorDetails.name || "",
+        actorEmail: actorDetails.email || "",
+        actorEmployeeId: actorDetails.employeeId || "",
+        actorDesignation: actorDetails.designation || "",
+        actorDepartment: actorDetails.department || "",
+        note: actorDetails.note || "",
+      }),
     });
     const data = await res.json();
     if (res.ok && data.success) return data;

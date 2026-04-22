@@ -259,13 +259,15 @@ export function useExpense() {
     }
   }, [fetchAllExpenses]);
 
-  const updateStatus = useCallback(async (id, newStatus, refreshFn = fetchAllExpenses) => {
+ const updateStatus = useCallback(
+  async (id, newStatus, actorDetails = {}, refreshFn = fetchAllExpenses) => {
     try {
       sharedLoading = true;
       notifyExpense();
-      const response = await updateExpenseStatus(id, newStatus);
+      // ✅ Pass actorDetails to the API function
+      const response = await updateExpenseStatus(id, newStatus, actorDetails);
       if (response.success) {
-        await refreshFn(); 
+        await refreshFn();
       }
       return response;
     } catch (err) {
@@ -275,7 +277,9 @@ export function useExpense() {
       sharedLoading = false;
       notifyExpense();
     }
-  }, [fetchAllExpenses]);
+  },
+  [fetchAllExpenses]
+);
 
   return {
     // State
