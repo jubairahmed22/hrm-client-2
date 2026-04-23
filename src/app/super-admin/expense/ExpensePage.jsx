@@ -89,9 +89,9 @@ const ExpensePage = () => {
   // --- VIEW: Requests ---
   const RenderRequests = () => (
     // <RequestsTab UserAllDetails={UserAllDetails} categories={categories}></RequestsTab>
-    // <RequestsHOD UserAllDetails={UserAllDetails} categories={categories}></RequestsHOD>
+    <RequestsHOD UserAllDetails={UserAllDetails} categories={categories}></RequestsHOD>
     // <RequestHr UserAllDetails={UserAllDetails} categories={categories}></RequestHr>
-    <RequestFinance UserAllDetails={UserAllDetails} categories={categories}></RequestFinance>
+    // <RequestFinance UserAllDetails={UserAllDetails} categories={categories}></RequestFinance>
   );
 
   // --- VIEW: Policies ---
