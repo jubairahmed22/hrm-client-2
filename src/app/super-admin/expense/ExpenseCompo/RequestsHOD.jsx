@@ -118,6 +118,7 @@ const RequestsHOD = ({ categories = [], UserAllDetails }) => {
                 <SelectItem value="approved">Approved</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
                 <SelectItem value="reimbursed">Reimbursed</SelectItem>
+                <SelectItem value="sent_to_hr">Sent To Hr</SelectItem>
               </SelectContent>
             </Select>
             <Select value={activeCategory} onValueChange={(v) => { setActiveCategory(v); setCurrentPage(1); }}>
@@ -153,10 +154,11 @@ const RequestsHOD = ({ categories = [], UserAllDetails }) => {
                       <div><p className="text-[10px] text-slate-400 font-bold uppercase">Status</p><span className="text-[10px] font-black uppercase text-blue-500">{exp.status}</span></div>
                     </div>
                   </div>
+                  
                   <div className="flex md:flex-col items-end justify-between gap-2">
-                    {exp.status === 'pending' && (
+                    {exp.status === 'sent_to_hr' && (
                       <div className="flex gap-2">
-                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => handleStatusUpdate(exp._id, "approved")}>Approve</Button>
+                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => handleStatusUpdate(exp._id, "sent_to_hr")}>Sent to hr</Button>
                         <Button size="sm" variant="outline" className="text-red-600" onClick={() => {
                           const r = window.prompt('Reason:');
                           if (r) handleStatusUpdate(exp._id, "rejected", r);
@@ -173,7 +175,6 @@ const RequestsHOD = ({ categories = [], UserAllDetails }) => {
               {loading ? <Loader2 className="animate-spin mx-auto" /> : "No expenses found for this department."}
             </div>
           )}
-
           {/* 4. PAGINATION */}
           <div className="flex justify-between items-center text-[11px] font-bold text-slate-400">
             <p>PAGE {currentPage} OF {pagination.totalPages || 1}</p>
