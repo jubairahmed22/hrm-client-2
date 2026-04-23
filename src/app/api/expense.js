@@ -214,3 +214,17 @@ export const getExpensesSentToHr = async (params = {}) => {
     throw error;
   }
 };
+
+// GET: Fetch all expenses with status = approved (Finance Inbox)
+export const getExpensesApproved = async (params = {}) => {
+  try {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`${BASE_URL}/get-expenses-approved?${query}`);
+    const data = await res.json();
+    if (res.ok && data.success) return data;
+    throw new Error(data.error || "Failed to fetch Finance inbox expenses");
+  } catch (error) {
+    console.error("getExpensesApproved error:", error);
+    throw error;
+  }
+};
