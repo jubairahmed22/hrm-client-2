@@ -81,7 +81,7 @@ const CreateStructureDialog = () => {
 
       <DialogContent className="max-w-2xl bg-white rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-slate-900">
+          <DialogTitle >
             Create Salary Structure
           </DialogTitle>
           <DialogDescription className="text-slate-500">
@@ -93,7 +93,7 @@ const CreateStructureDialog = () => {
           <div className="grid grid-cols-2 gap-4">
             {/* Grade Selection */}
             <div className="space-y-2">
-              <Label htmlFor="grade" className="font-bold text-slate-700">Grade</Label>
+              <Label htmlFor="grade">Grade</Label>
               <Select 
                 value={structureForm.grade} 
                 onValueChange={(value) => setStructureForm(prev => ({ ...prev, grade: value }))}
@@ -112,7 +112,7 @@ const CreateStructureDialog = () => {
 
             {/* Level Selection */}
             <div className="space-y-2">
-              <Label htmlFor="level" className="font-bold text-slate-700">Level</Label>
+              <Label htmlFor="level">Level</Label>
               <Select 
                 value={structureForm.level} 
                 onValueChange={(value) => setStructureForm(prev => ({ ...prev, level: value }))}
@@ -131,10 +131,10 @@ const CreateStructureDialog = () => {
 
             {/* Title Input */}
             <div className="col-span-2 space-y-2">
-              <Label htmlFor="title" className="font-bold text-slate-700">Title</Label>
+              <Label htmlFor="title">Title</Label>
               <Input
                 id="title"
-                className="rounded-xl border-slate-200 h-11"
+                
                 value={structureForm.title}
                 onChange={(e) => setStructureForm(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="e.g., Senior Executive Level"
@@ -144,11 +144,11 @@ const CreateStructureDialog = () => {
 
             {/* Basic Salary Min */}
             <div className="space-y-2">
-              <Label htmlFor="basic_min" className="font-bold text-slate-700">Basic Salary (Min)</Label>
+              <Label htmlFor="basic_min">Basic Salary (Min)</Label>
               <Input
                 id="basic_min"
                 type="number"
-                className="rounded-xl border-slate-200 h-11"
+                
                 value={structureForm.basic_min}
                 onChange={(e) => setStructureForm(prev => ({ ...prev, basic_min: e.target.value }))}
                 placeholder="25000"
@@ -158,11 +158,11 @@ const CreateStructureDialog = () => {
 
             {/* Basic Salary Max */}
             <div className="space-y-2">
-              <Label htmlFor="basic_max" className="font-bold text-slate-700">Basic Salary (Max)</Label>
+              <Label htmlFor="basic_max">Basic Salary (Max)</Label>
               <Input
                 id="basic_max"
                 type="number"
-                className="rounded-xl border-slate-200 h-11"
+                
                 value={structureForm.basic_max}
                 onChange={(e) => setStructureForm(prev => ({ ...prev, basic_max: e.target.value }))}
                 placeholder="35000"
