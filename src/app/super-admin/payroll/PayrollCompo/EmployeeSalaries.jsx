@@ -16,7 +16,11 @@ import EditEmployeeSalaryDialog from "./EditEmployeeSalaryDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner"; // Assuming toast is used for the view details
+import { Input } from "@/components/ui/input";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { toast } from "sonner";
 
 const EmployeeSalaries = () => {
   const searchParams = useSearchParams();
@@ -64,159 +68,176 @@ const EmployeeSalaries = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Search Bar */}
-      <div className="relative w-full md:w-96">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <input
-          type="text"
-          placeholder="Search salary structures..."
-          className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
 
-      <Card className="status-card">
+      {/* Search Bar */}
+      <Card className="border border-slate-100 shadow-sm rounded-xl bg-white">
+        <CardContent className="p-4">
+          <div className="relative w-full md:w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              placeholder="Search salary structures..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Employee Salaries Table Card */}
+      <Card className="border border-slate-100 shadow-sm rounded-xl bg-white">
         <CardHeader>
-          <CardTitle>Employee Salaries</CardTitle>
+          <CardTitle className="text-base font-bold text-slate-900">
+            Employee Salaries
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Employee Salaries Table */}
-          <div className="border rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Employee
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Department
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Grade
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Basic Salary
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Gross Salary
-                    </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {empLoading && employees.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center">
-                        <Loader2 className="w-10 h-10 animate-spin text-blue-500 mx-auto mb-4" />
-                        <p className="text-sm text-gray-500">Loading salaries...</p>
-                      </td>
-                    </tr>
-                  ) : employees.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center">
-                        <Users className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-                        <p className="text-gray-600 font-medium">No employee salaries found</p>
-                        <p className="text-sm text-gray-500 mt-1">Start by assigning salary structures to employees</p>
-                      </td>
-                    </tr>
-                  ) : (
-                    employees.map((emp) => (
-                      <tr key={emp._id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                              <span className="text-white font-medium uppercase">
-                                {emp.fullName?.split(' ').map(n => n[0]).join('')}
-                              </span>
-                            </div>
-                            <div className="ml-4">
-                              <div className="font-medium text-gray-900">{emp.fullName}</div>
-                              <div className="text-sm text-gray-500">{emp.designation || "N/A"}</div>
-                            </div>
+
+          {/* Table */}
+          <div className="border border-slate-100 rounded-lg overflow-hidden">
+            <Table>
+              <TableHeader className="bg-slate-50">
+                <TableRow>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Grade</TableHead>
+                  <TableHead className="text-right">Basic Salary</TableHead>
+                  <TableHead className="text-right">Gross Salary</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {empLoading && employees.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="py-16 text-center">
+                      <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-3" />
+                      <p className="text-sm text-slate-500 font-medium">
+                        Loading salaries...
+                      </p>
+                    </TableCell>
+                  </TableRow>
+                ) : employees.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="py-16 text-center">
+                      <Users className="w-10 h-10 mx-auto text-slate-300 mb-2" />
+                      <p className="text-slate-500 font-semibold text-sm">
+                        No employee salaries found
+                      </p>
+                      <p className="text-xs text-slate-400 mt-1">
+                        Start by assigning salary structures to employees
+                      </p>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  employees.map((emp) => (
+                    <TableRow
+                      key={emp._id}
+                      className="hover:bg-slate-50 transition-colors"
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 bg-slate-50 rounded-full flex items-center justify-center font-bold text-slate-500 text-xs border border-slate-100">
+                            {emp.fullName
+                              ? emp.fullName
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
+                                  .slice(0, 2)
+                                  .toUpperCase()
+                              : "?"}
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{emp.department || "N/A"}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                            Grade {emp.matchedPayroll?.grade || "N/A"}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <div className="text-sm font-semibold text-gray-900">
-                            {formatCurrency(emp.basicSalary || 0)}
+                          <div>
+                            <p className="font-bold text-slate-900 text-sm">
+                              {emp.fullName}
+                            </p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">
+                              {emp.designation || "N/A"}
+                            </p>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <div className="text-sm font-bold text-gray-900">
-                            {formatCurrency(emp.grossSalary || 0)}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <Badge 
-                            className={
-                              emp.status === 'active' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-gray-100 text-gray-800'
-                            }
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="font-semibold text-slate-700 text-sm">
+                        {emp.department || "N/A"}
+                      </TableCell>
+
+                      <TableCell>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-blue-50 text-blue-600 border border-blue-200">
+                          Grade {emp.matchedPayroll?.grade || "N/A"}
+                        </span>
+                      </TableCell>
+
+                      <TableCell className="text-right font-semibold text-slate-700 text-sm">
+                        {formatCurrency(emp.basicSalary || 0)}
+                      </TableCell>
+
+                      <TableCell className="text-right font-bold text-blue-600 text-sm">
+                        {formatCurrency(emp.grossSalary || 0)}
+                      </TableCell>
+
+                      <TableCell className="text-center">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                            emp.status === "active"
+                              ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                              : "bg-slate-50 text-slate-500 border border-slate-200"
+                          }`}
+                        >
+                          {emp.status || "active"}
+                        </span>
+                      </TableCell>
+
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              toast.info(
+                                <div className="space-y-2">
+                                  <p className="font-semibold">
+                                    {emp.fullName} - Salary Details
+                                  </p>
+                                  <div className="text-sm space-y-1">
+                                    <p>Basic: {formatCurrency(emp.basicSalary)}</p>
+                                    <p>House Rent: {formatCurrency(emp.houseRent)}</p>
+                                    <p>Medical: {formatCurrency(emp.medicalAllowance)}</p>
+                                    <hr className="my-1" />
+                                    <p className="font-semibold">
+                                      Gross: {formatCurrency(emp.grossSalary)}
+                                    </p>
+                                  </div>
+                                </div>,
+                                { duration: 5000 }
+                              );
+                            }}
+                            className="text-slate-500 hover:text-slate-700"
                           >
-                            {emp.status || 'active'}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                toast.info(
-                                  <div className="space-y-2">
-                                    <p className="font-semibold">{emp.fullName} - Salary Details</p>
-                                    <div className="text-sm space-y-1">
-                                      <p>Basic: {formatCurrency(emp.basicSalary)}</p>
-                                      <p>House Rent: {formatCurrency(emp.houseRent)}</p>
-                                      <p>Medical: {formatCurrency(emp.medicalAllowance)}</p>
-                                      <hr className="my-1" />
-                                      <p className="font-semibold">Gross: {formatCurrency(emp.grossSalary)}</p>
-                                    </div>
-                                  </div>,
-                                  { duration: 5000 }
-                                );
-                              }}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEditClick(emp)}
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEditClick(emp)}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
 
           {/* Pagination */}
           {employees.length > 0 && (
-            <div className="flex justify-between items-center mt-6 pt-6 border-t">
-              <span className="text-sm text-gray-500">
+            <div className="flex justify-between items-center mt-6 pt-4 border-t border-slate-100">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 Page {empPagination.currentPage} of {empPagination.totalPages || 1}
               </span>
               <div className="flex gap-2">
@@ -231,7 +252,9 @@ const EmployeeSalaries = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={empPagination.currentPage === empPagination.totalPages || empLoading}
+                  disabled={
+                    empPagination.currentPage === empPagination.totalPages || empLoading
+                  }
                   onClick={() => handlePageChange(empPagination.currentPage + 1)}
                 >
                   Next

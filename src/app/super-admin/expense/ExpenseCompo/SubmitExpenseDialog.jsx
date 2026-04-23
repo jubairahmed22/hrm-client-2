@@ -125,29 +125,29 @@ const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl bg-white rounded-[24px] p-0 overflow-hidden border-none shadow-2xl">
         <DialogHeader className="p-8 pb-0 relative">
-          <DialogTitle className="text-2xl font-bold text-slate-900 text-left">Submit New Expense</DialogTitle>
-          <p className="text-slate-500 mt-1 text-left">Create a new expense request with all necessary details and receipts.</p>
+          <DialogTitle >Submit New Expense</DialogTitle>
+          <p className="text-slate-500 ">Create a new expense request with all necessary details and receipts.</p>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-5">
           {/* Category Dropdown */}
           <div className="space-y-2">
-            <Label className="font-bold text-slate-700">Category *</Label>
+            <Label >Category *</Label>
             <Select 
               onValueChange={handleCategoryChange} 
               value={formData.categoryId || undefined}
             >
-              <SelectTrigger className="h-12 bg-slate-50 border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-100 transition-all">
+              <SelectTrigger >
                 <SelectValue placeholder={categories?.length > 0 ? "Select category" : "Loading..."} />
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-slate-100 shadow-xl max-h-[250px]">
+              <SelectContent >
                 {categories.map((cat) => (
                   <SelectItem 
                     key={String(cat._id)} 
                     value={String(cat._id)} 
                     className="cursor-pointer py-3"
                   >
-                    <span className="font-medium text-slate-700">{cat.categoryName}</span>
+                    <span >{cat.categoryName}</span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -157,23 +157,23 @@ const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
           {/* Amount & Currency */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2 space-y-2">
-              <Label className="font-bold text-slate-700">Amount *</Label>
+              <Label >Amount *</Label>
               <Input 
                 type="number" 
                 placeholder="0.00" 
-                className="h-12 bg-slate-50 border-slate-100 rounded-xl"
+                
                 value={formData.amount}
                 onChange={(e) => setFormData({...formData, amount: e.target.value})}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label className="font-bold text-slate-700">Currency</Label>
+              <Label >Currency</Label>
               <Select 
                 value={formData.currency}
                 onValueChange={(v) => setFormData({...formData, currency: v})}
               >
-                <SelectTrigger className="h-12 bg-slate-50 border-slate-100 rounded-xl">
+                <SelectTrigger >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -187,12 +187,12 @@ const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
           {/* Date & Project Code */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="font-bold text-slate-700">Date *</Label>
+              <Label >Date *</Label>
               <div className="relative">
                 <Input 
                   type="date" 
                   value={formData.date}
-                  className="h-12 bg-slate-50 border-slate-100 rounded-xl"
+                  
                   onChange={(e) => setFormData({...formData, date: e.target.value})}
                   required
                 />
@@ -200,11 +200,11 @@ const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="font-bold text-slate-700">Project Code</Label>
+              <Label >Project Code</Label>
               <Input 
                 placeholder="PRJ-2025-001" 
                 value={formData.projectCode}
-                className="h-12 bg-slate-50 border-slate-100 rounded-xl"
+                
                 onChange={(e) => setFormData({...formData, projectCode: e.target.value})}
               />
             </div>
@@ -212,7 +212,7 @@ const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
 
           {/* Description */}
           <div className="space-y-2">
-            <Label className="font-bold text-slate-700">Description *</Label>
+            <Label >Description *</Label>
             <Textarea 
               placeholder="Describe the expense purpose..." 
               className="min-h-[80px] bg-slate-50 border-slate-100 rounded-xl resize-none"
@@ -225,20 +225,20 @@ const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
           {/* Location & Merchant */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="font-bold text-slate-700">Location</Label>
+              <Label >Location</Label>
               <Input 
                 placeholder="City, Country" 
                 value={formData.location}
-                className="h-12 bg-slate-50 border-slate-100 rounded-xl"
+                
                 onChange={(e) => setFormData({...formData, location: e.target.value})}
               />
             </div>
             <div className="space-y-2">
-              <Label className="font-bold text-slate-700">Merchant/Vendor</Label>
+              <Label >Merchant/Vendor</Label>
               <Input 
                 placeholder="Vendor name" 
                 value={formData.merchant}
-                className="h-12 bg-slate-50 border-slate-100 rounded-xl"
+                
                 onChange={(e) => setFormData({...formData, merchant: e.target.value})}
               />
             </div>
@@ -246,7 +246,7 @@ const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
 
           {/* Receipt Section */}
           <div className="space-y-2">
-            <Label className="font-bold text-slate-700">Receipt Attachment</Label>
+            <Label >Receipt Attachment</Label>
             <input 
               type="file" 
               className="hidden" 
@@ -287,7 +287,7 @@ const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
             <Button 
               type="submit" 
               disabled={hookLoading}
-              className="flex-1 h-12 bg-[#4F81F4] hover:bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-100 active:scale-95 transition-all"
+             
             >
               {hookLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -297,7 +297,7 @@ const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
               type="button" 
               onClick={onClose}
               variant="ghost" 
-              className="px-8 h-12 rounded-xl font-bold text-slate-500"
+              
             >
               Cancel
             </Button>
