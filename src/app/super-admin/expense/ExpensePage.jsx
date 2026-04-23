@@ -45,6 +45,7 @@ import SubmitExpenseDialog from "./ExpenseCompo/SubmitExpenseDialog";
 import ExpenseHeader from "./ExpenseCompo/ExpenseHeader";
 import { useAuth } from "@/context/AuthContext";
 import RequestsHOD from "./ExpenseCompo/RequestsHOD";
+import RequestHr from "./ExpenseCompo/RequestHr";
 
 const ExpensePage = () => {
   const router = useRouter();
@@ -87,7 +88,8 @@ const ExpensePage = () => {
   // --- VIEW: Requests ---
   const RenderRequests = () => (
     // <RequestsTab UserAllDetails={UserAllDetails} categories={categories}></RequestsTab>
-    <RequestsHOD UserAllDetails={UserAllDetails} categories={categories}></RequestsHOD>
+    // <RequestsHOD UserAllDetails={UserAllDetails} categories={categories}></RequestsHOD>
+    <RequestHr UserAllDetails={UserAllDetails} categories={categories}></RequestHr>
   );
 
   // --- VIEW: Policies ---
