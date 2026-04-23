@@ -157,6 +157,20 @@ export function useExpense() {
     }
   }, [updateSharedStateFromResponse]);
 
+  const fetchExpensesSentToHr = useCallback(async (params = { page: 1, limit: 10 }) => {
+  try {
+    sharedLoading = true;
+    notifyExpense();
+    const result = await getExpensesSentToHr(params);
+    updateSharedStateFromResponse(result);
+  } catch (err) {
+    sharedError = err.message || "Failed to fetch HR inbox expenses";
+  } finally {
+    sharedLoading = false;
+    notifyExpense();
+  }
+}, [updateSharedStateFromResponse]);
+
   const fetchExpensesByDepartment = useCallback(async (dept = null, params = { page: 1, limit: 10 }) => {
     try {
       sharedLoading = true;
@@ -300,6 +314,7 @@ export function useExpense() {
     submitCategory,
     removeCategory,
     
+    
     // Expense Actions
     fetchAllExpenses,
     fetchMyExpenses,
@@ -307,6 +322,7 @@ export function useExpense() {
     fetchMidTierExpenses,
     fetchLowTierExpenses,
     fetchExpensesByDepartment,
+    fetchExpensesSentToHr,
     submitExpense,
     updateStatus
   };
