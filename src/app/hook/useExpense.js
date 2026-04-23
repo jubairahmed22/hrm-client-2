@@ -13,7 +13,8 @@ import {
   getMidTierExpenses,
   getLowTierExpenses,
   getAllExpensesByDepartment,
-  getExpensesSentToHr
+  getExpensesSentToHr,
+  getExpensesApproved, 
 } from "../api/expense";
 import { useAuth } from "@/context/AuthContext";
 
@@ -165,6 +166,20 @@ export function useExpense() {
     updateSharedStateFromResponse(result);
   } catch (err) {
     sharedError = err.message || "Failed to fetch HR inbox expenses";
+  } finally {
+    sharedLoading = false;
+    notifyExpense();
+  }
+}, [updateSharedStateFromResponse]);
+
+const fetchExpensesApproved = useCallback(async (params = { page: 1, limit: 10 }) => {
+  try {
+    sharedLoading = true;
+    notifyExpense();
+    const result = await getExpensesApproved(params);
+    updateSharedStateFromResponse(result);
+  } catch (err) {
+    sharedError = err.message || "Failed to fetch Finance inbox expenses";
   } finally {
     sharedLoading = false;
     notifyExpense();
@@ -323,6 +338,7 @@ export function useExpense() {
     fetchLowTierExpenses,
     fetchExpensesByDepartment,
     fetchExpensesSentToHr,
+    fetchExpensesApproved,
     submitExpense,
     updateStatus
   };
