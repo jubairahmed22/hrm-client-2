@@ -32,9 +32,7 @@ const RequestsHOD = ({ categories = [], UserAllDetails }) => {
 
   // Get the department from user details
   const userDept = UserAllDetails?.department;
-  const email = UserAllDetails?.email;
-  const employeeId = UserAllDetails?.employeeId;
-  const designation = UserAllDetails?.designation;
+
 
 
   // Memoized fetch function to prevent unnecessary re-renders
@@ -156,7 +154,7 @@ const RequestsHOD = ({ categories = [], UserAllDetails }) => {
                   </div>
                   
                   <div className="flex md:flex-col items-end justify-between gap-2">
-                    {exp.status === 'sent_to_hr' && (
+                    {exp.status === 'approved' && (
                       <div className="flex gap-2">
                         <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => handleStatusUpdate(exp._id, "sent_to_hr")}>Sent to hr</Button>
                         <Button size="sm" variant="outline" className="text-red-600" onClick={() => {

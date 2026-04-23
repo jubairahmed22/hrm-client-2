@@ -13,6 +13,7 @@ import {
   getMidTierExpenses,
   getLowTierExpenses,
   getAllExpensesByDepartment,
+  getExpensesSentToHr
 } from "../api/expense";
 import { useAuth } from "@/context/AuthContext";
 

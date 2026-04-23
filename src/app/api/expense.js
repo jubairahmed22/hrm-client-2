@@ -200,3 +200,17 @@ export const updateExpenseStatus = async (id, status, actorDetails = {}) => {
     throw error;
   }
 };
+
+// GET: Fetch all expenses with status = sent_to_hr (HR Inbox)
+export const getExpensesSentToHr = async (params = {}) => {
+  try {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`${BASE_URL}/get-expenses-sent-to-hr?${query}`);
+    const data = await res.json();
+    if (res.ok && data.success) return data;
+    throw new Error(data.error || "Failed to fetch HR inbox expenses");
+  } catch (error) {
+    console.error("getExpensesSentToHr error:", error);
+    throw error;
+  }
+};
