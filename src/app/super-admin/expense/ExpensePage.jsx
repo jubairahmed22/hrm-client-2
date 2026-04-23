@@ -46,6 +46,7 @@ import ExpenseHeader from "./ExpenseCompo/ExpenseHeader";
 import { useAuth } from "@/context/AuthContext";
 import RequestsHOD from "./ExpenseCompo/RequestsHOD";
 import RequestHr from "./ExpenseCompo/RequestHr";
+import RequestFinance from "./ExpenseCompo/RequestFinance";
 
 const ExpensePage = () => {
   const router = useRouter();
@@ -89,7 +90,8 @@ const ExpensePage = () => {
   const RenderRequests = () => (
     // <RequestsTab UserAllDetails={UserAllDetails} categories={categories}></RequestsTab>
     // <RequestsHOD UserAllDetails={UserAllDetails} categories={categories}></RequestsHOD>
-    <RequestHr UserAllDetails={UserAllDetails} categories={categories}></RequestHr>
+    // <RequestHr UserAllDetails={UserAllDetails} categories={categories}></RequestHr>
+    <RequestFinance UserAllDetails={UserAllDetails} categories={categories}></RequestFinance>
   );
 
   // --- VIEW: Policies ---
