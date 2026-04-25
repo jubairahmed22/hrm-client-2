@@ -157,7 +157,7 @@ const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
           {/* Amount & Currency */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2 space-y-2">
-              <Label >Amount *</Label>
+              <Label >Amount *</Label> yyy
               <Input 
                 type="number" 
                 placeholder="0.00" 
