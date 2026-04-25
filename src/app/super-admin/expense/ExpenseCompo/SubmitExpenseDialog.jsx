@@ -147,7 +147,7 @@ const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
                     value={String(cat._id)} 
                     className="cursor-pointer py-3"
                   >
-                    <span >{cat.categoryName}</span>af
+                    <span >{cat.categoryName}</span>
                   </SelectItem>
                 ))}
               </SelectContent>
