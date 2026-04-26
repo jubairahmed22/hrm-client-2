@@ -95,7 +95,7 @@ const ExpensePage = () => {
   );
 
   // --- VIEW: Policies ---
-  const RenderPolicies = () => <PoliciesTab></PoliciesTab>; adfass
+  const RenderPolicies = () => <PoliciesTab></PoliciesTab>;
 
   // --- VIEW: Analytics ---
   const RenderAnalytics = () => <AnalyticsTab></AnalyticsTab>;
