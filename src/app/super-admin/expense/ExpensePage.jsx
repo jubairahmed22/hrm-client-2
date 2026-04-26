@@ -89,13 +89,13 @@ const ExpensePage = () => {
   // --- VIEW: Requests ---
   const RenderRequests = () => (
     // <RequestsTab UserAllDetails={UserAllDetails} categories={categories}></RequestsTab>
-    <RequestsHOD UserAllDetails={UserAllDetails} categories={categories}></RequestsHOD>
-    // <RequestHr UserAllDetails={UserAllDetails} categories={categories}></RequestHr>
+    // <RequestsHOD UserAllDetails={UserAllDetails} categories={categories}></RequestsHOD>
+    <RequestHr UserAllDetails={UserAllDetails} categories={categories}></RequestHr>
     // <RequestFinance UserAllDetails={UserAllDetails} categories={categories}></RequestFinance>
   );
 
   // --- VIEW: Policies ---
-  const RenderPolicies = () => <PoliciesTab></PoliciesTab>;
+  const RenderPolicies = () => <PoliciesTab></PoliciesTab>; adfass
 
   // --- VIEW: Analytics ---
   const RenderAnalytics = () => <AnalyticsTab></AnalyticsTab>;
