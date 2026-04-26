@@ -95,7 +95,7 @@ const ExpensePage = () => {
   );
 
   // --- VIEW: Policies ---
-  const RenderPolicies = () => <PoliciesTab></PoliciesTab>; sefd
+  const RenderPolicies = () => <PoliciesTab></PoliciesTab>;
 
   // --- VIEW: Analytics ---
   const RenderAnalytics = () => <AnalyticsTab></AnalyticsTab>;
