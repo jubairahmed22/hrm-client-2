@@ -242,7 +242,7 @@ const RequestsTab = ({ categories = [] }) => {
      
 
       {/* Pending Actions */}
-      {exp.status === 'pending' && (
+      {exp.status === 'sent_to_ceo' && (
         <div className="flex gap-2">
           <Button
             size="sm"
@@ -269,7 +269,7 @@ const RequestsTab = ({ categories = [] }) => {
         </div>
       )}
 
-     {exp.status === 'approved' && (
+     {/* {exp.status === 'approved' && (
   <div className="flex flex-col items-end gap-2">
     <div className="text-xs text-green-600 text-right">
       Approved
@@ -295,7 +295,7 @@ const RequestsTab = ({ categories = [] }) => {
       </Button>
     </div>
   </div>
-)}
+)} */}
 
       {/* Status Specific Info */}
       {exp.status === 'approved' && (

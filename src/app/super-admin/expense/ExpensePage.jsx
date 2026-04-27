@@ -2,80 +2,93 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  Search,
-  Loader2,
-  Wallet,
-  Receipt,
-  ShieldCheck,
   ClipboardList,
   LayoutGrid,
   ShieldAlert,
   BarChart3,
   Check,
   Info,
-  SearchX,
-  Plus,
-  ChevronLeft,
-  ChevronRight,
-  Filter,
-  Clock,
-  ArrowRight,
-  TrendingUp,
-  Users,
-  CreditCard,
-  ArrowUpRight,
 } from "lucide-react";
 
-// Hooks & Components (Ensure these paths are correct for your project)
+// Hooks & Components
 import { useExpense } from "@/app/hook/useExpense";
 import CreateCategoryDialog from "./ExpenseCompo/CreateCategoryDialog";
 
 // UI Components
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+
+// Tab content components
 import RequestsTab from "./ExpenseCompo/RequestsTab";
 import PoliciesTab from "./ExpenseCompo/PoliciesTab";
 import AnalyticsTab from "./ExpenseCompo/AnalyticsTab";
 import CategoriesTab from "./ExpenseCompo/CategoriesTab";
 import SubmitExpenseDialog from "./ExpenseCompo/SubmitExpenseDialog";
 import ExpenseHeader from "./ExpenseCompo/ExpenseHeader";
-import { useAuth } from "@/context/AuthContext";
 import RequestsHOD from "./ExpenseCompo/RequestsHOD";
 import RequestHr from "./ExpenseCompo/RequestHr";
 import RequestFinance from "./ExpenseCompo/RequestFinance";
+import MyExpense from "./ExpenseCompo/MyExpense";
+
+import { useAuth } from "@/context/AuthContext";
 
 const ExpensePage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { UserAllDetails } = useAuth();
 
-  // Get active tab from URL or default to 'categories'
   const activeTab = searchParams.get("tab") || "categories";
 
   const { categories, loading, pagination, fetchAllCategories } = useExpense();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
-  // Sync data when tab or page changes
+
+  // Fetch categories when on the categories tab
   useEffect(() => {
     if (activeTab === "categories") {
       fetchAllCategories({ page: currentPage, limit: 10 });
     }
   }, [currentPage, fetchAllCategories, activeTab]);
 
-  // Tab change handler using Next.js router
   const handleTabChange = (val) => {
-    // This updates the URL without a full page reload (preventing 404s)
     router.push(`?tab=${val}`, { scroll: false });
   };
 
-  // --- VIEW: Categories ---
+  // ── ROLE RESOLUTION FROM DESIGNATION ───────────────────────────────────────
+  // Designation strings come like "Head_of_Engineering", "HR_Manager",
+  // "Finance_Manager", "CEO", "Senior_Developer" etc. We split on _ or space
+  // and inspect the FIRST word to decide which expense view to render.
+const resolveRoleFromDesignation = (designation) => {
+  if (!designation) return "employee";
+
+  const normalized = designation.toString().trim();
+  const lower = normalized.toLowerCase();
+
+  // Exact CEO match
+  if (lower === "ceo") return "ceo";
+
+  // First word check
+  const firstWord = lower.split(/[_\s-]+/)[0];
+
+  // ✅ Head of Finance / Head_of_Finance → finance view
+  if (lower === "head_of_finance" || lower === "head of finance") return "finance";
+
+  // ✅ Head of HR / Head_of_HR → hr view
+  if (lower === "head_of_hr" || lower === "head of hr") return "hr";
+
+  // First-word matching for everything else
+  if (firstWord === "head") return "hod";
+  if (firstWord === "hr") return "hr";
+  if (firstWord === "finance") return "finance";
+
+  return "employee";
+};
+
+  const userRole = resolveRoleFromDesignation(UserAllDetails?.designation);
+
+  // ── VIEW: Categories ──────────────────────────────────────────────────────
   const RenderCategories = () => (
     <CategoriesTab
       categories={categories}
@@ -86,22 +99,58 @@ const ExpensePage = () => {
     />
   );
 
-  // --- VIEW: Requests ---
-  const RenderRequests = () => (
-    // <RequestsTab UserAllDetails={UserAllDetails} categories={categories}></RequestsTab>
-    // <RequestsHOD UserAllDetails={UserAllDetails} categories={categories}></RequestsHOD>
-    <RequestHr UserAllDetails={UserAllDetails} categories={categories}></RequestHr>
-    // <RequestFinance UserAllDetails={UserAllDetails} categories={categories}></RequestFinance>
-  );
+  // ── VIEW: Requests (role-routed) ──────────────────────────────────────────
+  const RenderRequests = () => {
+    switch (userRole) {
+      case "ceo":
+        return (
+          <RequestsTab
+            UserAllDetails={UserAllDetails}
+            categories={categories}
+          />
+        );
 
-  // --- VIEW: Policies ---
-  const RenderPolicies = () => <PoliciesTab></PoliciesTab>;
+      case "hod":
+        return (
+          <RequestsHOD
+            UserAllDetails={UserAllDetails}
+            categories={categories}
+          />
+        );
 
-  // --- VIEW: Analytics ---
-  const RenderAnalytics = () => <AnalyticsTab></AnalyticsTab>;
+      case "hr":
+        return (
+          <RequestHr
+            UserAllDetails={UserAllDetails}
+            categories={categories}
+          />
+        );
+
+      case "finance":
+        return (
+          <RequestFinance
+            UserAllDetails={UserAllDetails}
+            categories={categories}
+          />
+        );
+
+      default:
+        return (
+          <MyExpense
+            UserAllDetails={UserAllDetails}
+            categories={categories}
+          />
+        );
+    }
+  };
+
+  // ── VIEW: Policies / Analytics ────────────────────────────────────────────
+  const RenderPolicies = () => <PoliciesTab />;
+  const RenderAnalytics = () => <AnalyticsTab />;
 
   return (
-    <div className="space-y-8 p-6  bg-[#F8FAFC] min-h-screen">
+    <div className="space-y-8 p-6 bg-[#F8FAFC] min-h-screen">
+
       {/* HEADER */}
       <ExpenseHeader
         activeTab={activeTab}
@@ -109,7 +158,7 @@ const ExpensePage = () => {
         setIsExpenseDialogOpen={setIsExpenseDialogOpen}
       />
 
-      {/* TABS NAVIGATION */}
+      {/* TABS */}
       <Tabs
         value={activeTab}
         onValueChange={handleTabChange}
@@ -130,7 +179,6 @@ const ExpensePage = () => {
           </TabsTrigger>
         </TabsList>
 
-        {/* TABS CONTENT MAPPING */}
         <TabsContent value="categories" className="outline-none">
           {RenderCategories()}
         </TabsContent>
@@ -145,12 +193,11 @@ const ExpensePage = () => {
         </TabsContent>
       </Tabs>
 
-      {/* FOOTER INFO CARD */}
+      {/* FOOTER GUIDELINES */}
       <Card className="border-purple-200 bg-purple-50 shadow-none rounded-[32px] mt-10">
         <CardContent className="p-8">
           <h3 className="font-bold text-purple-900 mb-4 flex items-center gap-2 text-lg">
-            <Info className="w-5 h-5 text-purple-600" /> Expense System
-            Guidelines
+            <Info className="w-5 h-5 text-purple-600" /> Expense System Guidelines
           </h3>
           <ul className="space-y-3 text-sm text-purple-800">
             <li className="flex items-start gap-3">
@@ -171,7 +218,7 @@ const ExpensePage = () => {
         </CardContent>
       </Card>
 
-      {/* DIALOG COMPONENT */}
+      {/* DIALOGS */}
       <CreateCategoryDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
@@ -179,7 +226,7 @@ const ExpensePage = () => {
       <SubmitExpenseDialog
         isOpen={isExpenseDialogOpen}
         onClose={() => setIsExpenseDialogOpen(false)}
-        categories={categories} // Passing live categories for the dropdown
+        categories={categories}
       />
     </div>
   );
