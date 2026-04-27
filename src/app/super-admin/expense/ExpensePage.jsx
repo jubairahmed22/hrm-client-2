@@ -37,7 +37,7 @@ const ExpensePage = () => {
   const searchParams = useSearchParams();
   const { UserAllDetails } = useAuth();
 
-  const activeTab = searchParams.get("tab") || "categories";
+  const activeTab = searchParams.get("tab") || "requests";
 
   const { categories, loading, pagination, fetchAllCategories } = useExpense();
 
