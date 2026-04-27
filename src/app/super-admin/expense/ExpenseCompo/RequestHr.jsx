@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import {
   Search, Clock, CheckCircle2, Loader2, Check, X,
-  Receipt, TrendingUp, ShieldCheck,
+  Receipt, TrendingUp, ShieldCheck, Crown,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -60,16 +60,32 @@ const RequestHr = ({ categories = [], UserAllDetails }) => {
 
   const renderActionArea = (exp) => {
     if (exp.status === "sent_to_hr") {
+      // ── Amount-based routing logic ──
+      // ≤ 15,000 → HR can directly approve and send to Finance
+      // > 15,000 → HR must send to CEO for high-value approval
+      const isHighValue = exp.amount > 15000;
+
       return (
         <div className="flex gap-2">
-          <Button
-            size="sm"
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
-            onClick={() => handleStatusUpdate(exp._id, "approved")}
-          >
-            <ShieldCheck className="w-3 h-3 mr-1" />
-            Approve
-          </Button>
+          {isHighValue ? (
+            <Button
+              size="sm"
+              className="bg-violet-600 hover:bg-violet-700 text-white"
+              onClick={() => handleStatusUpdate(exp._id, "sent_to_ceo")}
+            >
+              <Crown className="w-3 h-3 mr-1" />
+              Send to CEO
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              onClick={() => handleStatusUpdate(exp._id, "approved")}
+            >
+              <ShieldCheck className="w-3 h-3 mr-1" />
+              Approve
+            </Button>
+          )}
           <Button
             size="sm"
             variant="outline"
@@ -90,6 +106,14 @@ const RequestHr = ({ categories = [], UserAllDetails }) => {
         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide bg-emerald-50 text-emerald-600 border border-emerald-200">
           <Check className="w-3 h-3" />
           Approved
+        </span>
+      );
+    }
+    if (exp.status === "sent_to_ceo") {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide bg-violet-50 text-violet-600 border border-violet-200">
+          <Crown className="w-3 h-3" />
+          Sent to CEO
         </span>
       );
     }
