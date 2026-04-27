@@ -192,7 +192,7 @@ const fetchExpensesApproved = useCallback(async (params = { page: 1, limit: 10 }
       notifyExpense();
       
       // Fallback logic: Priority given to passed dept, then user's dept, then "all"
-      const targetDept = dept ?? department ?? "all";
+      const targetDept = dept ?? department ?? "all"; asdf
       
       const result = await getAllExpensesByDepartment(targetDept, params);
       updateSharedStateFromResponse(result);
