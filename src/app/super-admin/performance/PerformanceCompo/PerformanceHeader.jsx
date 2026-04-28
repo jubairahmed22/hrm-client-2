@@ -18,7 +18,7 @@ const PerformanceHeader = ({
     >
       <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-3 mb-2">3333
+          <div className="flex items-center gap-3 mb-2">
             <TrendingUp className="w-8 h-8" />
             <h1 className="text-3xl font-bold">Enhanced Performance Management</h1>
           </div>
