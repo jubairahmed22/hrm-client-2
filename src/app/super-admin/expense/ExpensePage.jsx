@@ -8,6 +8,7 @@ import {
   BarChart3,
   Check,
   Info,
+  Users, // Added for Department icon
 } from "lucide-react";
 
 // Hooks & Components
@@ -57,34 +58,31 @@ const ExpensePage = () => {
   };
 
   // ── ROLE RESOLUTION FROM DESIGNATION ───────────────────────────────────────
-  // Designation strings come like "Head_of_Engineering", "HR_Manager",
-  // "Finance_Manager", "CEO", "Senior_Developer" etc. We split on _ or space
-  // and inspect the FIRST word to decide which expense view to render.
-const resolveRoleFromDesignation = (designation) => {
-  if (!designation) return "employee";
+  const resolveRoleFromDesignation = (designation) => {
+    if (!designation) return "employee";
 
-  const normalized = designation.toString().trim();
-  const lower = normalized.toLowerCase();
+    const normalized = designation.toString().trim();
+    const lower = normalized.toLowerCase();
 
-  // Exact CEO match
-  if (lower === "ceo") return "ceo";
+    // Exact CEO match
+    if (lower === "ceo") return "ceo";
 
-  // First word check
-  const firstWord = lower.split(/[_\s-]+/)[0];
+    // First word check
+    const firstWord = lower.split(/[_\s-]+/)[0];
 
-  // ✅ Head of Finance / Head_of_Finance → finance view
-  if (lower === "head_of_finance" || lower === "head of finance") return "finance";
+    // ✅ Head of Finance / Head_of_Finance → finance view
+    if (lower === "head_of_finance" || lower === "head of finance") return "finance";
 
-  // ✅ Head of HR / Head_of_HR → hr view
-  if (lower === "head_of_hr" || lower === "head of hr") return "hr";
+    // ✅ Head of HR / Head_of_HR → hr view
+    if (lower === "head_of_hr" || lower === "head of hr") return "hr";
 
-  // First-word matching for everything else
-  if (firstWord === "head") return "hod";
-  if (firstWord === "hr") return "hr";
-  if (firstWord === "finance") return "finance";
+    // First-word matching for everything else
+    if (firstWord === "head") return "hod";
+    if (firstWord === "hr") return "hr";
+    if (firstWord === "finance") return "finance";
 
-  return "employee";
-};
+    return "employee";
+  };
 
   const userRole = resolveRoleFromDesignation(UserAllDetails?.designation);
 
@@ -164,30 +162,53 @@ const resolveRoleFromDesignation = (designation) => {
         onValueChange={handleTabChange}
         className="space-y-8"
       >
-        <TabsList className="w-full">
+        <TabsList className="w-full flex justify-start">
           <TabsTrigger value="requests">
-            <ClipboardList className="w-4 h-4" /> Requests
+            <ClipboardList className="w-4 h-4 mr-2" /> 
+            {userRole === "finance" ? "Finance Requests" : "Requests"}
           </TabsTrigger>
+
+          {/* Conditional Tab for Head of Finance to see their own department */}
+          {userRole === "finance" && (
+            <TabsTrigger value="my-department">
+              <Users className="w-4 h-4 mr-2" /> My Dept Expenses
+            </TabsTrigger>
+          )}
+
           <TabsTrigger value="categories">
-            <LayoutGrid className="w-4 h-4" /> Categories
+            <LayoutGrid className="w-4 h-4 mr-2" /> Categories
           </TabsTrigger>
           <TabsTrigger value="policies">
-            <ShieldAlert className="w-4 h-4" /> Policies
+            <ShieldAlert className="w-4 h-4 mr-2" /> Policies
           </TabsTrigger>
           <TabsTrigger value="analytics">
-            <BarChart3 className="w-4 h-4" /> Analytics
+            <BarChart3 className="w-4 h-4 mr-2" /> Analytics
           </TabsTrigger>
         </TabsList>
+
+        {/* Requests Content (Standard logic) */}
+        <TabsContent value="requests" className="outline-none">
+          {RenderRequests()}
+        </TabsContent>
+
+        {/* New Tab Content for Finance's Department (HOD View) */}
+        {userRole === "finance" && (
+          <TabsContent value="my-department" className="outline-none">
+            <RequestsHOD
+              UserAllDetails={UserAllDetails}
+              categories={categories}
+            />
+          </TabsContent>
+        )}
 
         <TabsContent value="categories" className="outline-none">
           {RenderCategories()}
         </TabsContent>
-        <TabsContent value="requests" className="outline-none">
-          {RenderRequests()}
-        </TabsContent>
+        
         <TabsContent value="policies" className="outline-none">
           {RenderPolicies()}
         </TabsContent>
+        
         <TabsContent value="analytics" className="outline-none">
           {RenderAnalytics()}
         </TabsContent>
