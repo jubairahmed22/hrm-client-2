@@ -76,3 +76,23 @@ export const deletePerformanceReview = async (id) => {
     throw error;
   }
 };
+
+/**
+ * Fetch employees joined with their performance reviews
+ * Backend route: /get-employee-performance
+ * Supports: page, search, department, employmentType, status (review status)
+ */
+export const getEmployeePerformance = async (params = {}) => {
+  try {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`http://localhost:50001/get-employee-performance?${query}`);
+
+    const data = await res.json();
+    if (data.success) return data;
+
+    throw new Error(data.message || "Failed to fetch employee performance");
+  } catch (error) {
+    console.error("getEmployeePerformance error:", error);
+    throw error;
+  }
+};
