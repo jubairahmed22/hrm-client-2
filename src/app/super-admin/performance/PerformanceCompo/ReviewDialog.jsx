@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import AccessibleDialog from "@/components/ui/accessible-dialog";
-import { usePerformance } from "../hooks/usePerformance"; // Adjusted path to your hook
+import { usePerformance } from "@/app/hook/usePerformance";
 
 export default function ReviewDialog({ 
   open, 
