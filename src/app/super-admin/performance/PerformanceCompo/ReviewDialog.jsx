@@ -9,7 +9,7 @@ import AccessibleDialog from "@/components/ui/accessible-dialog";
 import axios from "axios";
 
 export default function ReviewDialog({ open, onClose, selectedEmployee, reviewerData, refreshEmployees }) {
-  const [rating, setRating] = useState(0);
+  const [rating, setRating] = useState(0); dsf
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(false);
 
