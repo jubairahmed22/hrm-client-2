@@ -5,6 +5,9 @@ import { Target, GitBranch, Trophy } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PerformanceHeader from "./PerformanceCompo/PerformanceHeader";
+import PerformanceAppraisals from "./PerformanceCompo/ PerformanceAppraisals";
+import GoalsObjectives from "./PerformanceCompo/GoalsObjectives";
+import ApprovalWorkflow from "./PerformanceCompo/ApprovalWorkflow";
 
 const Page = () => {
   const router = useRouter();
@@ -20,38 +23,18 @@ const Page = () => {
 
   // ── VIEW: Performance Appraisals ──────────────────────────────────────────
   const RenderAppraisals = () => (
-    <div className="bg-white rounded-lg p-5 shadow-sm border border-slate-100">
-      <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
-        Performance Appraisals
-      </h3>
-      <p className="text-sm text-slate-500 mt-2">
-        Appraisal cycles, reviews, and ratings will appear here.
-      </p>
-    </div>
+        <PerformanceAppraisals></PerformanceAppraisals>
+
   );
 
   // ── VIEW: Approval Workflow ──────────────────────────────────────────────
   const RenderApprovalWorkflow = () => (
-    <div className="bg-white rounded-lg p-5 shadow-sm border border-slate-100">
-      <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
-        Approval Workflow
-      </h3>
-      <p className="text-sm text-slate-500 mt-2">
-        Performance review approval chain and pending approvals will appear here.
-      </p>
-    </div>
+        <ApprovalWorkflow></ApprovalWorkflow>
   );
 
   // ── VIEW: Goals & Objectives ──────────────────────────────────────────────
   const RenderGoals = () => (
-    <div className="bg-white rounded-lg p-5 shadow-sm border border-slate-100">
-      <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
-        Goals & Objectives
-      </h3>
-      <p className="text-sm text-slate-500 mt-2">
-        Employee goals, OKRs, and progress tracking will appear here.
-      </p>
-    </div>
+    <GoalsObjectives></GoalsObjectives>
   );
 
   return (
