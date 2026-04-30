@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Clock,
   LogIn,
@@ -16,16 +16,28 @@ import {
   Bell,
   Loader2,
   AlertTriangle,
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/AuthContext';
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+
+import ApplyLeaveDialog from "./ApplyLeaveDialog";
+import { useDashboardStats } from "@/app/hook/useDashboardState";
 
 const Today = () => {
-  // ── Pull real user from AuthContext (same way AttendanceToday does it) ────
+  // ── Auth + employee context ──────────────────────────────────────────────
   const { UserAllDetails } = useAuth();
   const employeeId = UserAllDetails?.employeeId;
+  const userEmail = UserAllDetails?.email;
   const API = "http://localhost:50001";
+
+  // ── Live dashboard stats ──────────────────────────────────────────────────
+  const {
+    userStats,
+    loading: statsLoading,
+    error: statsError,
+    refresh: refreshStats,
+  } = useDashboardStats(userEmail);
 
   // ── Real attendance state ─────────────────────────────────────────────────
   const [employeeAttendance, setEmployeeAttendance] = useState(null);
@@ -34,16 +46,13 @@ const Today = () => {
   const [error, setError] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // ── Mock data — kept for the cards whose APIs aren't ready yet ───────────
+  // ── Leave dialog state ───────────────────────────────────────────────────
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+
+  // ── Mock data — for cards whose APIs aren't ready yet ────────────────────
   const personalData = {
     employee: {
-      leave: {
-        annual_balance: 14,
-        pending_requests: 2,
-      },
-      salary: {
-        net_salary: 65000,
-      },
+      salary: { net_salary: 65000 },
       performance: {
         current_rating: 4.8,
         goals_completed: 7,
@@ -52,6 +61,26 @@ const Today = () => {
       },
     },
   };
+
+  // ── ✅ FIXED PATH: leaveTypesBreakdown lives directly on userStats ────────
+  // Just like the working LeaveTypeCardsGrid example does it.
+  const leaveBreakdown = userStats?.leaveTypesBreakdown || [];
+
+  // Find the Annual Leave entry
+  const annualLeave = leaveBreakdown.find(
+    (l) => l?.name?.toLowerCase() === "annual leave"
+  );
+
+  const annualTotal = annualLeave?.totalAnnualDays ?? 0;
+  const annualRemaining = annualLeave?.myRemaining ?? 0;
+  const annualUsed = annualLeave?.myLeaveReq ?? 0;
+
+  // 🔍 DEBUG — uncomment if values are still empty so you can see what arrived
+  // useEffect(() => {
+  //   console.log("userStats:", userStats);
+  //   console.log("leaveBreakdown:", leaveBreakdown);
+  //   console.log("annualLeave:", annualLeave);
+  // }, [userStats]);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const formatDateTime = (date) => {
@@ -103,7 +132,6 @@ const Today = () => {
       }
     } catch (err) {
       console.error("Error loading attendance:", err);
-      // Fallback
       try {
         const res = await fetch(`${API}/attendance/${employeeId}`);
         const data = await res.json();
@@ -122,12 +150,9 @@ const Today = () => {
 
   useEffect(() => {
     loadTodayAttendance();
-
-    // Update current time every minute (used for live working hours calc)
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
-
     return () => clearInterval(timer);
   }, [employeeId]);
 
@@ -209,7 +234,7 @@ const Today = () => {
     }
   };
 
-  // ── Live working hours calc ──────────────────────────────────────────────
+  // ── Live working hours ────────────────────────────────────────────────────
   const calculateCurrentWorkingHours = () => {
     if (!todayAttendance || todayAttendance.clockOutDate)
       return todayAttendance?.workingHours || 0;
@@ -247,7 +272,6 @@ const Today = () => {
 
   const attendanceStatus = getAttendanceStatus();
 
-  // Live values for "Today's Activity"
   const liveWorkingHours = hasClockedInToday
     ? calculateCurrentWorkingHours()
     : todayAttendance?.workingHours || "0.00";
@@ -256,10 +280,16 @@ const Today = () => {
     ? formatDateTime(todayAttendance.clockInDate)
     : null;
 
+  // ── Refresh stats after a leave is submitted ──────────────────────────────
+  const handleLeaveDialogClose = () => {
+    setIsLeaveDialogOpen(false);
+    refreshStats();
+  };
+
   return (
     <div className="space-y-6 p-1 w-full">
 
-      {/* Error message (from real API failures) */}
+      {/* Error message */}
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700 shadow-sm">
           <AlertTriangle className="w-5 h-5 flex-shrink-0" />
@@ -270,7 +300,7 @@ const Today = () => {
       {/* Quick Actions Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-        {/* Attendance Card — REAL DATA */}
+        {/* Attendance Card */}
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6 text-center">
             <Clock className="w-12 h-12 text-blue-600 mx-auto mb-4" />
@@ -351,18 +381,37 @@ const Today = () => {
           </CardContent>
         </Card>
 
-        {/* Leave Balance Card — MOCK */}
+        {/* ✅ Annual Leave Card — LIVE DATA */}
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6 text-center">
             <Calendar className="w-12 h-12 text-green-600 mx-auto mb-4" />
-            <h3 className="font-semibold text-green-900 mb-2">Leave Balance</h3>
-            <div className="text-2xl font-bold text-green-800 mb-1">
-              {personalData.employee.leave.annual_balance}
-            </div>
-            <p className="text-sm text-green-700">Annual days left</p>
+            <h3 className="font-semibold text-green-900 mb-2">Annual Leave</h3>
+
+            {statsLoading ? (
+              <div className="flex justify-center items-center h-[60px]">
+                <Loader2 className="w-5 h-5 animate-spin text-green-600" />
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-green-800 mb-1">
+                  {annualRemaining}
+                  {annualTotal > 0 && (
+                    <span className="text-base text-green-600 font-medium">
+                      {" "}/ {annualTotal}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-green-700">
+                  {annualTotal > 0
+                    ? `${annualRemaining} of ${annualTotal} days remaining`
+                    : "Days remaining"}
+                </p>
+              </>
+            )}
+
             <Button
               className="w-full mt-3 bg-green-600 hover:bg-green-700"
-              onClick={() => console.log("Apply Leave Clicked")}
+              onClick={() => setIsLeaveDialogOpen(true)}
             >
               Apply Leave
             </Button>
@@ -414,7 +463,7 @@ const Today = () => {
       {/* Today's Summary Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {/* Today's Activity — REAL DATA for the first row, mock for others */}
+        {/* Today's Activity */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -460,20 +509,26 @@ const Today = () => {
                 </div>
               </div>
 
-              {/* MOCK leave row */}
+              {/* ✅ LIVE Annual Leave row */}
               <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Calendar className="w-5 h-5 text-blue-600" />
                   <div>
-                    <div className="font-medium text-blue-900">Leave Requests</div>
-                    <div className="text-sm text-blue-700">Pending approval</div>
+                    <div className="font-medium text-blue-900">Annual Leave</div>
+                    <div className="text-sm text-blue-700">
+                      {annualUsed} day{annualUsed !== 1 ? "s" : ""} used this year
+                    </div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="font-semibold text-blue-600">
-                    {personalData.employee.leave.pending_requests}
+                    {statsLoading
+                      ? "..."
+                      : annualTotal > 0
+                      ? `${annualRemaining}/${annualTotal}`
+                      : annualRemaining}
                   </div>
-                  <div className="text-sm text-blue-500">Pending</div>
+                  <div className="text-sm text-blue-500">Remaining</div>
                 </div>
               </div>
 
@@ -556,6 +611,12 @@ const Today = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* ✅ Apply Leave Dialog */}
+      <ApplyLeaveDialog
+        isOpen={isLeaveDialogOpen}
+        onClose={handleLeaveDialogClose}
+      />
     </div>
   );
 };
