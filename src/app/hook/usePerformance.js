@@ -16,6 +16,13 @@ let sharedCounts = {
   employmentTypeCounts: {},
   statusCounts: {},
   roleCounts: {},
+  designationCounts: {},
+  departmentCounts: {},
+};
+let sharedFilters = {
+  designations: [],
+  departments: [],
+  appliedFilters: {},
 };
 let sharedPagination = { page: 1, totalPages: 1, totalEmployees: 0 };
 let sharedPerformanceStats = { avgRating: "0.0", totalReviews: 0 };
@@ -31,6 +38,7 @@ export function usePerformance() {
   const [reviews, setReviews] = useState(sharedReviews);
   const [employees, setEmployees] = useState(sharedEmployees);
   const [counts, setCounts] = useState(sharedCounts);
+  const [filters, setFilters] = useState(sharedFilters);
   const [pagination, setPagination] = useState(sharedPagination);
   const [stats, setStats] = useState(sharedPerformanceStats);
   const [loading, setLoading] = useState(sharedPerformanceLoading);
@@ -42,6 +50,7 @@ export function usePerformance() {
       setReviews([...sharedReviews]);
       setEmployees([...sharedEmployees]);
       setCounts({ ...sharedCounts });
+      setFilters({ ...sharedFilters });
       setPagination({ ...sharedPagination });
       setStats({ ...sharedPerformanceStats });
       setLoading(sharedPerformanceLoading);
@@ -97,13 +106,27 @@ export function usePerformance() {
       sharedPerformanceLoading = true;
       notifyPerformance();
 
-      const result = await getEmployeePerformance(params);
+      // Strip empty values so backend doesn't see "department=&designation="
+      const cleanParams = Object.fromEntries(
+        Object.entries(params).filter(
+          ([, v]) => v !== "" && v !== null && v !== undefined
+        )
+      );
+
+      const result = await getEmployeePerformance(cleanParams);
 
       sharedEmployees = result?.data || [];
       sharedCounts = result?.counts || {
         employmentTypeCounts: {},
         statusCounts: {},
         roleCounts: {},
+        designationCounts: {},
+        departmentCounts: {},
+      };
+      sharedFilters = result?.filters || {
+        designations: [],
+        departments: [],
+        appliedFilters: {},
       };
       sharedPagination = {
         page: result?.page || 1,
@@ -147,7 +170,6 @@ export function usePerformance() {
         const response = await addEmployeeReview(reviewData);
 
         if (response.success) {
-          // Refresh joined employee+review list so the new review shows immediately
           await fetchEmployeePerformance();
           window.dispatchEvent(new CustomEvent("refresh-performance-list"));
         }
@@ -189,6 +211,7 @@ export function usePerformance() {
     reviews,
     employees,
     counts,
+    filters,         // ✅ NEW — has designations[] and departments[]
     pagination,
     stats,
     loading,

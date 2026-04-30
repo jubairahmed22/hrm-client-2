@@ -22,11 +22,14 @@ const PerformanceAppraisals = () => {
     employees,
     pagination,
     loading,
+    filters,            // ✅ designations[] + departments[]
     fetchEmployeePerformance,
   } = usePerformance();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [departmentFilter, setDepartmentFilter] = useState("all");      // ✅ NEW
+  const [designationFilter, setDesignationFilter] = useState("all");    // ✅ NEW
   const [currentPage, setCurrentPage] = useState(1);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [selectedEmp, setSelectedEmp] = useState(null);
@@ -37,8 +40,10 @@ const PerformanceAppraisals = () => {
       page: currentPage,
       search: searchTerm,
       status: statusFilter === "all" ? "" : statusFilter,
+      department: departmentFilter === "all" ? "" : departmentFilter,
+      designation: designationFilter === "all" ? "" : designationFilter,
     });
-  }, [currentPage, searchTerm, statusFilter, fetchEmployeePerformance]);
+  }, [currentPage, searchTerm, statusFilter, departmentFilter, designationFilter, fetchEmployeePerformance]);
 
   useEffect(() => {
     loadEmployees();
@@ -144,9 +149,9 @@ const PerformanceAppraisals = () => {
 
         <CardContent>
 
-          {/* Filters */}
-          <div className="flex items-center space-x-4 mb-6">
-            <div className="flex-1">
+          {/* Filters — same row layout, just added 2 more dropdowns */}
+          <div className="flex items-center flex-wrap gap-4 mb-6">
+            <div className="flex-1 min-w-[200px]">
               <Input
                 placeholder="Search appraisals..."
                 value={searchTerm}
@@ -154,7 +159,43 @@ const PerformanceAppraisals = () => {
                 className="max-w-sm"
               />
             </div>
-            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}>
+
+            <Select
+              value={departmentFilter}
+              onValueChange={(v) => { setDepartmentFilter(v); setCurrentPage(1); }}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                {filters?.departments?.map((dept) => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={designationFilter}
+              onValueChange={(v) => { setDesignationFilter(v); setCurrentPage(1); }}
+            >
+              <SelectTrigger className="w-52">
+                <SelectValue placeholder="All Designations" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Designations</SelectItem>
+                {filters?.designations?.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d.replace(/_/g, " ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={statusFilter}
+              onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}
+            >
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
@@ -196,7 +237,6 @@ const PerformanceAppraisals = () => {
                 const period = latestReview?.appraisalPeriod || "2024-Annual";
                 const apprType = latestReview?.appraisalType || "Annual";
 
-                // Pull comments from the review object (adjust field names if your schema differs)
                 const managerComments  = latestReview?.feedback || latestReview?.managerComments;
                 const deptHeadComments = latestReview?.deptHeadComments;
                 const hrComments       = latestReview?.hrComments;
@@ -209,8 +249,6 @@ const PerformanceAppraisals = () => {
 
                         {/* LEFT SECTION */}
                         <div className="flex-1">
-
-                          {/* Avatar + name */}
                           <div className="flex items-center gap-3 mb-2">
                             <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-semibold text-slate-600 text-sm">
                               {emp.fullName
@@ -228,7 +266,6 @@ const PerformanceAppraisals = () => {
                             </div>
                           </div>
 
-                          {/* Meta grid */}
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                             <div>
                               <label className="text-xs text-gray-500">Period</label>
@@ -257,7 +294,6 @@ const PerformanceAppraisals = () => {
                             </div>
                           </div>
 
-                          {/* Workflow Progress */}
                           <div className="mt-4">
                             <label className="text-xs text-gray-500">Workflow Progress</label>
                             <div className="mt-2">
@@ -265,7 +301,6 @@ const PerformanceAppraisals = () => {
                             </div>
                           </div>
 
-                          {/* Manager Assessment (green) */}
                           {managerComments && (
                             <div className="mt-4 p-3 bg-green-50 rounded-lg">
                               <label className="text-xs text-green-700">Manager Assessment</label>
@@ -273,7 +308,6 @@ const PerformanceAppraisals = () => {
                             </div>
                           )}
 
-                          {/* Department Head Review (blue) */}
                           {deptHeadComments && (
                             <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                               <label className="text-xs text-blue-700">Department Head Review</label>
@@ -281,7 +315,6 @@ const PerformanceAppraisals = () => {
                             </div>
                           )}
 
-                          {/* HR Review (purple) */}
                           {hrComments && (
                             <div className="mt-4 p-3 bg-purple-50 rounded-lg">
                               <label className="text-xs text-purple-700">HR Review</label>
@@ -289,7 +322,6 @@ const PerformanceAppraisals = () => {
                             </div>
                           )}
 
-                          {/* CEO Review (orange) */}
                           {ceoComments && (
                             <div className="mt-4 p-3 bg-orange-50 rounded-lg">
                               <label className="text-xs text-orange-700">CEO Review</label>
@@ -314,7 +346,7 @@ const PerformanceAppraisals = () => {
                             className="bg-amber-500 hover:bg-amber-600 text-white"
                           >
                             <Star className="w-4 h-4 mr-1" />
-                           Add Review
+                            Add Review
                           </Button>
                         </div>
                       </div>
@@ -354,7 +386,6 @@ const PerformanceAppraisals = () => {
         </CardContent>
       </Card>
 
-      {/* Review Dialog — opens on Star button click */}
       <ReviewDialog
         open={isReviewOpen}
         onClose={() => setIsReviewOpen(false)}
