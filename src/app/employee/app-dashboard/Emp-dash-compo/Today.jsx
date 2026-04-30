@@ -22,7 +22,9 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
 import ApplyLeaveDialog from "./ApplyLeaveDialog";
+import ViewPayslipDialog from "./ViewPayslipDialog"; // ✅ NEW
 import { useDashboardStats } from "@/app/hook/useDashboardState";
+import { usePayroll } from "@/app/hook/usePayroll"; // ✅ NEW
 
 const Today = () => {
   // ── Auth + employee context ──────────────────────────────────────────────
@@ -35,9 +37,13 @@ const Today = () => {
   const {
     userStats,
     loading: statsLoading,
-    error: statsError,
     refresh: refreshStats,
   } = useDashboardStats(userEmail);
+
+  // ── Payroll hook ──────────────────────────────────────────────────────────
+  const { getRecordsByEmail } = usePayroll();
+  const [salaryRecords, setSalaryRecords] = useState([]);
+  const [salaryLoading, setSalaryLoading] = useState(true);
 
   // ── Real attendance state ─────────────────────────────────────────────────
   const [employeeAttendance, setEmployeeAttendance] = useState(null);
@@ -46,13 +52,13 @@ const Today = () => {
   const [error, setError] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // ── Leave dialog state ───────────────────────────────────────────────────
+  // ── Dialog states ─────────────────────────────────────────────────────────
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+  const [isPayslipDialogOpen, setIsPayslipDialogOpen] = useState(false);
 
   // ── Mock data — for cards whose APIs aren't ready yet ────────────────────
   const personalData = {
     employee: {
-      salary: { net_salary: 65000 },
       performance: {
         current_rating: 4.8,
         goals_completed: 7,
@@ -62,25 +68,74 @@ const Today = () => {
     },
   };
 
-  // ── ✅ FIXED PATH: leaveTypesBreakdown lives directly on userStats ────────
-  // Just like the working LeaveTypeCardsGrid example does it.
+  // ── Annual Leave from live stats ──────────────────────────────────────────
   const leaveBreakdown = userStats?.leaveTypesBreakdown || [];
-
-  // Find the Annual Leave entry
   const annualLeave = leaveBreakdown.find(
     (l) => l?.name?.toLowerCase() === "annual leave"
   );
-
   const annualTotal = annualLeave?.totalAnnualDays ?? 0;
   const annualRemaining = annualLeave?.myRemaining ?? 0;
   const annualUsed = annualLeave?.myLeaveReq ?? 0;
 
-  // 🔍 DEBUG — uncomment if values are still empty so you can see what arrived
-  // useEffect(() => {
-  //   console.log("userStats:", userStats);
-  //   console.log("leaveBreakdown:", leaveBreakdown);
-  //   console.log("annualLeave:", annualLeave);
-  // }, [userStats]);
+  // ── Fetch salary records ─────────────────────────────────────────────────
+  useEffect(() => {
+    const fetchSalary = async () => {
+      if (!userEmail) return;
+      setSalaryLoading(true);
+      try {
+        const result = await getRecordsByEmail(userEmail);
+        if (result.success) {
+          // Sort newest first
+          const sorted = (result.data || []).sort(
+            (a, b) =>
+              new Date(b.processedTimestamp).getTime() -
+              new Date(a.processedTimestamp).getTime()
+          );
+          setSalaryRecords(sorted);
+        }
+      } catch (err) {
+        console.error("Error fetching salary records:", err);
+      } finally {
+        setSalaryLoading(false);
+      }
+    };
+    fetchSalary();
+  }, [userEmail, getRecordsByEmail]);
+
+  // ── Compute current month salary ─────────────────────────────────────────
+  const currentMonthSalary = (() => {
+    if (!salaryRecords.length) return null;
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Try to find a record processed this month
+    const thisMonthRecord = salaryRecords.find((r) => {
+      const d = new Date(r.processedTimestamp);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    });
+
+    // Fall back to the most recent record if no current-month one exists
+    return thisMonthRecord || salaryRecords[0];
+  })();
+
+  const currentNetSalary =
+    currentMonthSalary?.netSalary ??
+    (currentMonthSalary?.grossSalary ?? 0) -
+      (currentMonthSalary?.advanceDeduction ?? 0) -
+      (currentMonthSalary?.otherDeductions ?? 0) -
+      (currentMonthSalary?.epfContribution ?? 0) -
+      (currentMonthSalary?.taxDeduction ?? 0);
+
+  const currentMonthLabel =
+    currentMonthSalary?.config?.payrollPeriod ||
+    (currentMonthSalary?.processedTimestamp
+      ? new Date(currentMonthSalary.processedTimestamp).toLocaleDateString(
+          "en-US",
+          { month: "long", year: "numeric" }
+        )
+      : "Current month");
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const formatDateTime = (date) => {
@@ -102,7 +157,8 @@ const Today = () => {
     );
   };
 
-  const formatCurrency = (amount) => `৳${amount.toLocaleString()}`;
+  const formatCurrency = (amount) =>
+    `৳${Number(amount || 0).toLocaleString()}`;
 
   // ── Load today's attendance ──────────────────────────────────────────────
   const loadTodayAttendance = async () => {
@@ -156,7 +212,7 @@ const Today = () => {
     return () => clearInterval(timer);
   }, [employeeId]);
 
-  // ── Clock In ──────────────────────────────────────────────────────────────
+  // ── Clock In / Break / Clock Out ─────────────────────────────────────────
   const handleClockIn = async () => {
     setLoading(true);
     setError(null);
@@ -182,7 +238,6 @@ const Today = () => {
     }
   };
 
-  // ── Break ─────────────────────────────────────────────────────────────────
   const handleBreak = async (action) => {
     setError(null);
     setLoading(true);
@@ -208,7 +263,6 @@ const Today = () => {
     }
   };
 
-  // ── Clock Out ─────────────────────────────────────────────────────────────
   const handleClockOut = async () => {
     setError(null);
     setLoading(true);
@@ -256,7 +310,6 @@ const Today = () => {
     return (totalMinutes / 60).toFixed(2);
   };
 
-  // ── Status helpers ────────────────────────────────────────────────────────
   const breakRunning = todayAttendance?.breaks?.some(
     (b) => b.startDate && !b.endDate
   );
@@ -280,7 +333,6 @@ const Today = () => {
     ? formatDateTime(todayAttendance.clockInDate)
     : null;
 
-  // ── Refresh stats after a leave is submitted ──────────────────────────────
   const handleLeaveDialogClose = () => {
     setIsLeaveDialogOpen(false);
     refreshStats();
@@ -289,7 +341,6 @@ const Today = () => {
   return (
     <div className="space-y-6 p-1 w-full">
 
-      {/* Error message */}
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700 shadow-sm">
           <AlertTriangle className="w-5 h-5 flex-shrink-0" />
@@ -381,7 +432,7 @@ const Today = () => {
           </CardContent>
         </Card>
 
-        {/* ✅ Annual Leave Card — LIVE DATA */}
+        {/* Annual Leave Card */}
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6 text-center">
             <Calendar className="w-12 h-12 text-green-600 mx-auto mb-4" />
@@ -418,19 +469,36 @@ const Today = () => {
           </CardContent>
         </Card>
 
-        {/* Net Salary Card — MOCK */}
+        {/* ✅ Net Salary Card — REAL DATA */}
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6 text-center">
             <DollarSign className="w-12 h-12 text-purple-600 mx-auto mb-4" />
             <h3 className="font-semibold text-purple-900 mb-2">Net Salary</h3>
-            <div className="text-2xl font-bold text-purple-800 mb-1">
-              {formatCurrency(personalData.employee.salary.net_salary)}
-            </div>
-            <p className="text-sm text-purple-700">Current month</p>
+
+            {salaryLoading ? (
+              <div className="flex justify-center items-center h-[60px]">
+                <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
+              </div>
+            ) : currentMonthSalary ? (
+              <>
+                <div className="text-2xl font-bold text-purple-800 mb-1">
+                  {formatCurrency(currentNetSalary)}
+                </div>
+                <p className="text-sm text-purple-700">{currentMonthLabel}</p>
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-purple-800 mb-1">
+                  {formatCurrency(0)}
+                </div>
+                <p className="text-sm text-purple-700">No payroll yet</p>
+              </>
+            )}
+
             <Button
               variant="outline"
               className="w-full mt-3 bg-white/50 border-purple-200"
-              onClick={() => console.log("View Payslip")}
+              onClick={() => setIsPayslipDialogOpen(true)} /* ✅ opens dialog */
             >
               View Payslip
             </Button>
@@ -474,7 +542,6 @@ const Today = () => {
           <CardContent>
             <div className="space-y-4">
 
-              {/* REAL attendance row */}
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   {attendanceStatus === "in" ? (
@@ -509,7 +576,6 @@ const Today = () => {
                 </div>
               </div>
 
-              {/* ✅ LIVE Annual Leave row */}
               <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Calendar className="w-5 h-5 text-blue-600" />
@@ -532,7 +598,6 @@ const Today = () => {
                 </div>
               </div>
 
-              {/* MOCK goals row */}
               <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Target className="w-5 h-5 text-purple-600" />
@@ -553,7 +618,7 @@ const Today = () => {
           </CardContent>
         </Card>
 
-        {/* Quick Updates — MOCK */}
+        {/* Quick Updates */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -616,6 +681,12 @@ const Today = () => {
       <ApplyLeaveDialog
         isOpen={isLeaveDialogOpen}
         onClose={handleLeaveDialogClose}
+      />
+
+      {/* ✅ Payslip Dialog */}
+      <ViewPayslipDialog
+        isOpen={isPayslipDialogOpen}
+        onClose={() => setIsPayslipDialogOpen(false)}
       />
     </div>
   );
