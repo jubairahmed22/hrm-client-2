@@ -16,15 +16,18 @@ import {
   Bell,
   Loader2,
   AlertTriangle,
+  Star,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
 import ApplyLeaveDialog from "./ApplyLeaveDialog";
-import ViewPayslipDialog from "./ViewPayslipDialog"; // ✅ NEW
+import ViewPayslipDialog from "./ViewPayslipDialog";
+import ViewGoalsDialog from "./ViewGoalsDialog"; // ✅ NEW
 import { useDashboardStats } from "@/app/hook/useDashboardState";
-import { usePayroll } from "@/app/hook/usePayroll"; // ✅ NEW
+import { usePayroll } from "@/app/hook/usePayroll";
+import { usePerformance } from "@/app/hook/usePerformance"; // ✅ NEW
 
 const Today = () => {
   // ── Auth + employee context ──────────────────────────────────────────────
@@ -45,6 +48,15 @@ const Today = () => {
   const [salaryRecords, setSalaryRecords] = useState([]);
   const [salaryLoading, setSalaryLoading] = useState(true);
 
+  // ── Performance hook ──────────────────────────────────────────────────────
+  const { fetchEmployeePerformance } = usePerformance();
+  const [myPerformance, setMyPerformance] = useState({
+    averageRating: 0,
+    totalReviews: 0,
+    latestReview: null,
+  });
+  const [perfLoading, setPerfLoading] = useState(true);
+
   // ── Real attendance state ─────────────────────────────────────────────────
   const [employeeAttendance, setEmployeeAttendance] = useState(null);
   const [todayAttendance, setTodayAttendance] = useState(null);
@@ -55,12 +67,12 @@ const Today = () => {
   // ── Dialog states ─────────────────────────────────────────────────────────
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [isPayslipDialogOpen, setIsPayslipDialogOpen] = useState(false);
+  const [isGoalsDialogOpen, setIsGoalsDialogOpen] = useState(false); // ✅ NEW
 
-  // ── Mock data — for cards whose APIs aren't ready yet ────────────────────
+  // ── Mock data — for sections whose APIs aren't ready ─────────────────────
   const personalData = {
     employee: {
       performance: {
-        current_rating: 4.8,
         goals_completed: 7,
         goals_total: 10,
         next_review: "May 15, 2026",
@@ -85,7 +97,6 @@ const Today = () => {
       try {
         const result = await getRecordsByEmail(userEmail);
         if (result.success) {
-          // Sort newest first
           const sorted = (result.data || []).sort(
             (a, b) =>
               new Date(b.processedTimestamp).getTime() -
@@ -102,21 +113,48 @@ const Today = () => {
     fetchSalary();
   }, [userEmail, getRecordsByEmail]);
 
+  // ── Fetch this user's performance ─────────────────────────────────────────
+  useEffect(() => {
+    const fetchPerf = async () => {
+      if (!userEmail) return;
+      setPerfLoading(true);
+      try {
+        const result = await fetchEmployeePerformance({ search: userEmail });
+        const me = result?.data?.find(
+          (emp) => emp?.email?.toLowerCase() === userEmail.toLowerCase()
+        );
+        if (me) {
+          setMyPerformance({
+            averageRating: me.averageRating ?? 0,
+            totalReviews: me.totalReviews ?? 0,
+            latestReview: me.latestReview ?? null,
+          });
+        } else {
+          setMyPerformance({
+            averageRating: 0,
+            totalReviews: 0,
+            latestReview: null,
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching performance:", err);
+      } finally {
+        setPerfLoading(false);
+      }
+    };
+    fetchPerf();
+  }, [userEmail, fetchEmployeePerformance]);
+
   // ── Compute current month salary ─────────────────────────────────────────
   const currentMonthSalary = (() => {
     if (!salaryRecords.length) return null;
-
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
-
-    // Try to find a record processed this month
     const thisMonthRecord = salaryRecords.find((r) => {
       const d = new Date(r.processedTimestamp);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     });
-
-    // Fall back to the most recent record if no current-month one exists
     return thisMonthRecord || salaryRecords[0];
   })();
 
@@ -163,11 +201,9 @@ const Today = () => {
   // ── Load today's attendance ──────────────────────────────────────────────
   const loadTodayAttendance = async () => {
     if (!employeeId) return;
-
     try {
       const res = await fetch(`${API}/attendance/today/${employeeId}`);
       const data = await res.json();
-
       if (data.success) {
         if (data.data && data.data.attendance) {
           setEmployeeAttendance(data.data);
@@ -222,10 +258,8 @@ const Today = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user: UserAllDetails }),
       });
-
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
-
       setEmployeeAttendance(data.data);
       const todayRecord = data.data.attendance?.find((record) =>
         isToday(record.attendanceDate)
@@ -247,10 +281,8 @@ const Today = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ employeeId, action }),
       });
-
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
-
       setEmployeeAttendance(data.data);
       const todayRecord = data.data.attendance?.find(
         (record) => isToday(record.attendanceDate) && !record.clockOutDate
@@ -272,10 +304,8 @@ const Today = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ employeeId }),
       });
-
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
-
       setEmployeeAttendance(data.data);
       const todayRecord = data.data.attendance?.find((record) =>
         isToday(record.attendanceDate)
@@ -288,15 +318,12 @@ const Today = () => {
     }
   };
 
-  // ── Live working hours ────────────────────────────────────────────────────
   const calculateCurrentWorkingHours = () => {
     if (!todayAttendance || todayAttendance.clockOutDate)
       return todayAttendance?.workingHours || 0;
-
     const now = currentTime;
     const clockIn = new Date(todayAttendance.clockInDate);
     let totalMinutes = (now - clockIn) / (1000 * 60);
-
     if (todayAttendance.breaks) {
       todayAttendance.breaks.forEach((b) => {
         if (b.startDate && b.endDate) {
@@ -313,7 +340,6 @@ const Today = () => {
   const breakRunning = todayAttendance?.breaks?.some(
     (b) => b.startDate && !b.endDate
   );
-
   const hasClockedInToday = todayAttendance && !todayAttendance.clockOutDate;
 
   const getAttendanceStatus = () => {
@@ -324,11 +350,9 @@ const Today = () => {
   };
 
   const attendanceStatus = getAttendanceStatus();
-
   const liveWorkingHours = hasClockedInToday
     ? calculateCurrentWorkingHours()
     : todayAttendance?.workingHours || "0.00";
-
   const liveClockInTime = todayAttendance?.clockInDate
     ? formatDateTime(todayAttendance.clockInDate)
     : null;
@@ -337,6 +361,12 @@ const Today = () => {
     setIsLeaveDialogOpen(false);
     refreshStats();
   };
+
+  // Display rating — fall back to "—" if no reviews yet
+  const ratingDisplay =
+    myPerformance.totalReviews > 0
+      ? Number(myPerformance.averageRating).toFixed(1)
+      : "—";
 
   return (
     <div className="space-y-6 p-1 w-full">
@@ -469,7 +499,7 @@ const Today = () => {
           </CardContent>
         </Card>
 
-        {/* ✅ Net Salary Card — REAL DATA */}
+        {/* Net Salary Card — REAL DATA */}
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6 text-center">
             <DollarSign className="w-12 h-12 text-purple-600 mx-auto mb-4" />
@@ -498,29 +528,50 @@ const Today = () => {
             <Button
               variant="outline"
               className="w-full mt-3 bg-white/50 border-purple-200"
-              onClick={() => setIsPayslipDialogOpen(true)} /* ✅ opens dialog */
+              onClick={() => setIsPayslipDialogOpen(true)}
             >
               View Payslip
             </Button>
           </CardContent>
         </Card>
 
-        {/* Performance Card — MOCK */}
+        {/* ✅ Performance Card — REAL DATA */}
         <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6 text-center">
             <Target className="w-12 h-12 text-orange-600 mx-auto mb-4" />
             <h3 className="font-semibold text-orange-900 mb-2">Performance</h3>
-            <div className="flex items-center justify-center mb-2">
-              <Award className="w-5 h-5 text-yellow-500 mr-1" />
-              <span className="text-2xl font-bold text-orange-800">
-                {personalData.employee.performance.current_rating}/5.0
-              </span>
-            </div>
-            <p className="text-sm text-orange-700">Current rating</p>
+
+            {perfLoading ? (
+              <div className="flex justify-center items-center h-[60px]">
+                <Loader2 className="w-5 h-5 animate-spin text-orange-600" />
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-center mb-2">
+                  <Star className="w-5 h-5 text-yellow-500 fill-yellow-400 mr-1" />
+                  <span className="text-2xl font-bold text-orange-800">
+                    {ratingDisplay}
+                    {myPerformance.totalReviews > 0 && (
+                      <span className="text-base text-orange-600 font-medium">
+                        /5.0
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <p className="text-sm text-orange-700">
+                  {myPerformance.totalReviews > 0
+                    ? `Based on ${myPerformance.totalReviews} review${
+                        myPerformance.totalReviews !== 1 ? "s" : ""
+                      }`
+                    : "No reviews yet"}
+                </p>
+              </>
+            )}
+
             <Button
               variant="outline"
               className="w-full mt-3 bg-white/50 border-orange-200"
-              onClick={() => console.log("View Goals")}
+              onClick={() => setIsGoalsDialogOpen(true)}  /* ✅ opens dialog */
             >
               View Goals
             </Button>
@@ -618,7 +669,7 @@ const Today = () => {
           </CardContent>
         </Card>
 
-        {/* Quick Updates */}
+        {/* Quick Updates — MOCK */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -677,16 +728,20 @@ const Today = () => {
         </Card>
       </div>
 
-      {/* ✅ Apply Leave Dialog */}
+      {/* Dialogs */}
       <ApplyLeaveDialog
         isOpen={isLeaveDialogOpen}
         onClose={handleLeaveDialogClose}
       />
 
-      {/* ✅ Payslip Dialog */}
       <ViewPayslipDialog
         isOpen={isPayslipDialogOpen}
         onClose={() => setIsPayslipDialogOpen(false)}
+      />
+
+      <ViewGoalsDialog
+        isOpen={isGoalsDialogOpen}
+        onClose={() => setIsGoalsDialogOpen(false)}
       />
     </div>
   );
