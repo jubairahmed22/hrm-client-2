@@ -17,6 +17,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Today from "./Emp-dash-compo/Today";
 import Attendance from "./Emp-dash-compo/Attendance";
+import Leave from "./Emp-dash-compo/Leave";
 
 const mockData = {
   user: {
@@ -115,13 +116,7 @@ export default function EmployeeDashboard() {
           </TabsContent>
 
           <TabsContent value="leave">
-            <Card>
-              <CardContent className="p-10 text-center">
-                <Calendar className="w-12 h-12 mx-auto text-orange-500 mb-4" />
-                <h3 className="text-lg font-bold">Leave Management</h3>
-                <p className="text-gray-500">Check your leave status and upcoming holidays.</p>
-              </CardContent>
-            </Card>
+            <Leave></Leave>
           </TabsContent>
 
           <TabsContent value="salary">
