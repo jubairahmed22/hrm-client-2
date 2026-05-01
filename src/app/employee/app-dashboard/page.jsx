@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import Today from "./Emp-dash-compo/Today";
 import Attendance from "./Emp-dash-compo/Attendance";
 import Leave from "./Emp-dash-compo/Leave";
+import Salary from "./Emp-dash-compo/Salary";
 
 const mockData = {
   user: {
@@ -120,13 +121,7 @@ export default function EmployeeDashboard() {
           </TabsContent>
 
           <TabsContent value="salary">
-            <Card>
-              <CardContent className="p-10 text-center">
-                <Wallet className="w-12 h-12 mx-auto text-emerald-500 mb-4" />
-                <h3 className="text-lg font-bold">Salary Slips</h3>
-                <p className="text-gray-500">Download and view your monthly payment breakdowns.</p>
-              </CardContent>
-            </Card>
+            <Salary></Salary>
           </TabsContent>
 
           <TabsContent value="performance">
