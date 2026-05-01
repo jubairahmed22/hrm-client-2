@@ -19,6 +19,7 @@ import Today from "./Emp-dash-compo/Today";
 import Attendance from "./Emp-dash-compo/Attendance";
 import Leave from "./Emp-dash-compo/Leave";
 import Salary from "./Emp-dash-compo/Salary";
+import Performance from "./Emp-dash-compo/Performance";
 
 const mockData = {
   user: {
@@ -125,13 +126,7 @@ export default function EmployeeDashboard() {
           </TabsContent>
 
           <TabsContent value="performance">
-            <Card>
-              <CardContent className="p-10 text-center">
-                <Zap className="w-12 h-12 mx-auto text-purple-500 mb-4" />
-                <h3 className="text-lg font-bold">Performance Appraisal</h3>
-                <p className="text-gray-500">Track your goals and feedback from management.</p>
-              </CardContent>
-            </Card>
+            <Performance></Performance>
           </TabsContent>
         </div>
       </Tabs>
