@@ -96,3 +96,15 @@ export const getEmployeePerformance = async (params = {}) => {
     throw error;
   }
 };
+
+// Fetch single employee's performance by email
+export const getEmployeePerformanceByEmail = async (email, params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE}/get-employee-performance-by-email/${encodeURIComponent(
+    email
+  )}${queryString ? `?${queryString}` : ""}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch employee performance");
+  return res.json();
+};
