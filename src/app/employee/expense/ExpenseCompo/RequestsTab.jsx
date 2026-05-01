@@ -107,7 +107,7 @@ const RequestsTab = ({ categories = [] }) => {
             borderColor: "border-blue-600" 
           },
         ].map((item, i) => (
-          <Card key={i} className="border border-slate-100 shadow-sm rounded-[24px] bg-white overflow-hidden">
+          <Card key={i} >
             <CardContent className="p-8 flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-slate-500">{item.label}</p>

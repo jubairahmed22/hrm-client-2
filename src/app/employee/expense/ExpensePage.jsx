@@ -145,7 +145,7 @@ useEffect(() => {
       </Tabs>
 
       {/* FOOTER INFO CARD */}
-      <Card className="border-purple-200 bg-purple-50 shadow-none rounded-[32px] mt-10">
+      <Card className="border-purple-200 bg-purple-50 shadow-none rounded mt-10">
         <CardContent className="p-8">
           <h3 className="font-bold text-purple-900 mb-4 flex items-center gap-2 text-lg">
             <Info className="w-5 h-5 text-purple-600" /> Expense System
