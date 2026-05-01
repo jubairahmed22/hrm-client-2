@@ -27,7 +27,7 @@ const InventoryData = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
 
-  // ── DATA FETCH ────────────────────────────────────────────────────────────
+  // --- 1. DATA FETCHING LOGIC ---
   const loadInitialData = useCallback(async () => {
     if (!jobId) return;
     setLoading(true);
@@ -45,14 +45,14 @@ const InventoryData = () => {
     loadInitialData();
   }, [loadInitialData]);
 
-  // ── REAL-TIME SYNC ────────────────────────────────────────────────────────
+  // --- 2. REAL-TIME SYNCHRONIZATION ---
   useEffect(() => {
     const handleRefresh = () => loadInitialData();
     window.addEventListener("refresh-kanban-board", handleRefresh);
     return () => window.removeEventListener("refresh-kanban-board", handleRefresh);
   }, [loadInitialData]);
 
-  // ── STATS ─────────────────────────────────────────────────────────────────
+  // --- 3. STATS ---
   const stats = useMemo(() => ({
     all: allInventory.length,
     salary: allInventory.filter(c => c.inventoryDetails?.category === "salary").length,
@@ -65,29 +65,29 @@ const InventoryData = () => {
     other: allInventory.filter(c => c.inventoryDetails?.category === "other").length,
   }), [allInventory]);
 
-  // ── FILTER ────────────────────────────────────────────────────────────────
+  // --- 4. FILTER ---
   const filteredCandidates = useMemo(() => {
     if (activeTab === "all") return allInventory;
     return allInventory.filter(c => c.inventoryDetails?.category === activeTab);
   }, [activeTab, allInventory]);
 
-  // ── TAB DATA ──────────────────────────────────────────────────────────────
+  // --- 5. TAB CONFIG ---
   const tabs = [
-    { key: "all",            label: "Total Qualified",   icon: Users,          color: "text-slate-700" },
-    { key: "salary",         label: "Salary Mismatch",   icon: DollarSign,     color: "text-amber-600" },
-    { key: "location",       label: "Location Issues",   icon: MapPin,         color: "text-blue-600" },
-    { key: "declined",       label: "Declined Offer",    icon: XCircle,        color: "text-red-600" },
-    { key: "timing",         label: "Timing Issues",     icon: Clock,          color: "text-purple-600" },
-    { key: "counter_offer",  label: "Counter Offer",     icon: TrendingDown,   color: "text-emerald-600" },
-    { key: "overqualified",  label: "Overqualified",     icon: Award,          color: "text-orange-600" },
-    { key: "cultural_fit",   label: "Cultural Fit",      icon: Users2,         color: "text-indigo-600" },
-    { key: "other",          label: "Other Reasons",     icon: ClipboardList,  color: "text-slate-600" },
+    { key: "all",            label: "Total Qualified",   sub: "All candidates",    icon: Users,         color: "text-slate-700" },
+    { key: "salary",         label: "Salary Mismatch",   sub: "Compensation gap",  icon: DollarSign,    color: "text-amber-600" },
+    { key: "location",       label: "Location Issues",   sub: "Geographic",        icon: MapPin,        color: "text-blue-600" },
+    { key: "declined",       label: "Declined Offer",    sub: "Rejected by us",    icon: XCircle,       color: "text-red-600" },
+    { key: "timing",         label: "Timing Issues",     sub: "Not available now", icon: Clock,         color: "text-purple-600" },
+    { key: "counter_offer",  label: "Counter Offer",     sub: "Got better offer",  icon: TrendingDown,  color: "text-emerald-600" },
+    { key: "overqualified",  label: "Overqualified",     sub: "Above role level",  icon: Award,         color: "text-orange-600" },
+    { key: "cultural_fit",   label: "Cultural Fit",      sub: "Team mismatch",     icon: Users2,        color: "text-indigo-600" },
+    { key: "other",          label: "Other Reasons",     sub: "Miscellaneous",     icon: ClipboardList, color: "text-slate-600" },
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 mt-5">
 
-      {/* ── STAT CARDS ── */}
+      {/* 1. STAT CARDS — exactly like your HOD/HR/Finance pages */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.key;
@@ -96,23 +96,17 @@ const InventoryData = () => {
             <Card
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`border shadow-sm rounded-xl cursor-pointer transition-all ${
+              className={`border shadow-sm rounded-[24px] bg-white cursor-pointer transition-all ${
                 isActive
-                  ? "border-blue-500 bg-blue-50/50 ring-2 ring-blue-100"
-                  : "border-slate-100 bg-white hover:border-blue-200"
+                  ? "border-blue-500 ring-2 ring-blue-100"
+                  : "border-slate-100 hover:border-blue-200"
               }`}
             >
-              <CardContent className="p-5 flex items-center justify-between">
+              <CardContent className="p-6 flex items-center justify-between">
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                    {tab.label}
-                  </p>
-                  <h4 className="text-2xl font-black text-slate-900">
-                    {stats[tab.key] || 0}
-                  </h4>
-                  <p className={`text-xs font-bold ${tab.color}`}>
-                    {isActive ? "Active filter" : "Click to filter"}
-                  </p>
+                  <p className="text-sm font-semibold text-slate-500">{tab.label}</p>
+                  <h4 className="text-2xl font-black text-slate-900">{stats[tab.key] || 0}</h4>
+                  <p className={`text-xs font-bold ${tab.color}`}>{tab.sub}</p>
                 </div>
                 <Icon className={`w-7 h-7 ${tab.color}`} />
               </CardContent>
@@ -121,22 +115,20 @@ const InventoryData = () => {
         })}
       </div>
 
-      {/* ── LIST AREA ── */}
-      <div className="bg-white rounded-lg p-5 space-y-4 shadow-sm border border-slate-100">
+      {/* 2. LIST CONTAINER — exactly like your HOD/HR/Finance pages */}
+      <div className="bg-white rounded-lg p-5 space-y-4 shadow-sm border">
 
-        {/* Header */}
+        {/* Header row */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 uppercase tracking-wide">
-            {activeTab === "all"
-              ? "All Inventory"
-              : activeTab.split("_").join(" ")}
+            {activeTab === "all" ? "All Inventory" : activeTab.split("_").join(" ")}
             <span className="bg-slate-100 text-slate-500 text-[10px] px-2.5 py-0.5 rounded-full font-bold">
               {filteredCandidates.length} Candidates
             </span>
           </h3>
         </div>
 
-        {/* Body */}
+        {/* List / loading / empty */}
         {loading ? (
           <div className="py-20 text-center text-slate-400 border border-dashed rounded-xl">
             <Loader2 className="animate-spin mx-auto w-6 h-6 text-blue-500" />

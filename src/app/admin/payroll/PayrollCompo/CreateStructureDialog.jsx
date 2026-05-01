@@ -84,7 +84,7 @@ const CreateStructureDialog = () => {
           <DialogTitle >
             Create Salary Structure
           </DialogTitle>
-          <DialogDescription className="text-slate-500">
+          <DialogDescription >
             Define a new salary structure with grades, levels, and allowances.
           </DialogDescription>
         </DialogHeader>
@@ -93,12 +93,12 @@ const CreateStructureDialog = () => {
           <div className="grid grid-cols-2 gap-4">
             {/* Grade Selection */}
             <div className="space-y-2">
-              <Label htmlFor="grade">Grade</Label>
+              <Label htmlFor="grade" >Grade</Label>
               <Select 
                 value={structureForm.grade} 
                 onValueChange={(value) => setStructureForm(prev => ({ ...prev, grade: value }))}
               >
-                <SelectTrigger className="rounded-xl border-slate-200">
+                <SelectTrigger >
                   <SelectValue placeholder="Select grade" />
                 </SelectTrigger>
                 <SelectContent>
@@ -112,12 +112,12 @@ const CreateStructureDialog = () => {
 
             {/* Level Selection */}
             <div className="space-y-2">
-              <Label htmlFor="level">Level</Label>
+              <Label htmlFor="level" >Level</Label>
               <Select 
                 value={structureForm.level} 
                 onValueChange={(value) => setStructureForm(prev => ({ ...prev, level: value }))}
               >
-                <SelectTrigger className="rounded-xl border-slate-200">
+                <SelectTrigger >
                   <SelectValue placeholder="Select level" />
                 </SelectTrigger>
                 <SelectContent>
@@ -131,7 +131,7 @@ const CreateStructureDialog = () => {
 
             {/* Title Input */}
             <div className="col-span-2 space-y-2">
-              <Label htmlFor="title">Title</Label>
+              <Label htmlFor="title" >Title</Label>
               <Input
                 id="title"
                 
@@ -144,7 +144,7 @@ const CreateStructureDialog = () => {
 
             {/* Basic Salary Min */}
             <div className="space-y-2">
-              <Label htmlFor="basic_min">Basic Salary (Min)</Label>
+              <Label htmlFor="basic_min" >Basic Salary (Min)</Label>
               <Input
                 id="basic_min"
                 type="number"
@@ -158,7 +158,7 @@ const CreateStructureDialog = () => {
 
             {/* Basic Salary Max */}
             <div className="space-y-2">
-              <Label htmlFor="basic_max">Basic Salary (Max)</Label>
+              <Label htmlFor="basic_max" >Basic Salary (Max)</Label>
               <Input
                 id="basic_max"
                 type="number"
@@ -176,7 +176,6 @@ const CreateStructureDialog = () => {
             <Button 
               type="button"
               variant="outline" 
-              className="rounded-xl px-6"
               onClick={() => setShowCreateStructure(false)}
               disabled={isSubmitting}
             >
@@ -184,7 +183,6 @@ const CreateStructureDialog = () => {
             </Button>
             <Button 
               type="submit" 
-              className="rounded-xl bg-slate-900 hover:bg-slate-800 px-6 text-white min-w-[140px]"
               disabled={isSubmitting}
             >
               {isSubmitting ? (

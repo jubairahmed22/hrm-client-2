@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useRef } from "react";
-import { 
-  X, Upload, Calendar as CalendarIcon, 
-  Loader2, FileText, ImageIcon
+import {
+  X, Upload, Calendar as CalendarIcon,
+  Loader2, FileText, ImageIcon,
 } from "lucide-react";
 import {
   Dialog,
@@ -21,15 +21,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useExpense } from "@/app/hook/useExpense"; 
+import { useExpense } from "@/app/hook/useExpense";
 import { useAuth } from "@/context/AuthContext";
 
 const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
-  const { submitExpense, loading: hookLoading } = useExpense();
-      const { UserAllDetails } = useAuth();
-  
+  const {
+    submitExpense,
+    fetchHighTierExpenses,
+    fetchMyExpenses,
+    fetchExpensesByDepartment,
+    fetchExpensesSentToHr,
+    fetchExpensesApproved,
+    loading: hookLoading,
+  } = useExpense();
+  const { UserAllDetails } = useAuth();
+
   const fileInputRef = useRef(null);
-  
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [formData, setFormData] = useState({
@@ -37,23 +44,20 @@ const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
     categoryName: "",
     amount: "",
     currency: "BDT",
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split("T")[0],
     projectCode: "PRJ-2025-001",
     description: "",
     location: "",
     merchant: "",
-
   });
 
-  // Handle Category selection
   const handleCategoryChange = (id) => {
-    // Find the category based on the ID string
     const selected = categories?.find((c) => String(c._id) === String(id));
     if (selected) {
-      setFormData((prev) => ({ 
-        ...prev, 
-        categoryId: id, 
-        categoryName: selected.categoryName 
+      setFormData((prev) => ({
+        ...prev,
+        categoryId: id,
+        categoryName: selected.categoryName,
       }));
     }
   };
@@ -68,19 +72,49 @@ const SubmitExpenseDialog = ({ isOpen, onClose, categories = [] }) => {
       setSelectedFile(file);
     }
   };
-  
 
-const handleSubmit = async (e) => {
+  // ── ROLE → REFRESH FUNCTION RESOLVER ──────────────────────────────────────
+  // Same logic as ExpensePage — first word of designation determines which
+  // inbox needs to be refreshed after a new expense is submitted.
+  const getRefreshFn = () => {
+    const designation = UserAllDetails?.designation || "";
+    const lower = designation.toString().trim().toLowerCase();
+    const firstWord = lower.split(/[_\s-]+/)[0];
+
+    // CEO sees the high-tier inbox
+    if (lower === "ceo") return fetchHighTierExpenses;
+
+    // Head of Finance / Head of HR — special cases route to their own inbox
+    if (lower === "head_of_finance" || lower === "head of finance") {
+      return fetchExpensesApproved;
+    }
+    if (lower === "head_of_hr" || lower === "head of hr") {
+      return fetchExpensesSentToHr;
+    }
+
+    // First-word matching
+    if (firstWord === "head") {
+      // Department head — refresh their department's expenses
+      return () => fetchExpensesByDepartment(UserAllDetails?.department);
+    }
+    if (firstWord === "hr") return fetchExpensesSentToHr;
+    if (firstWord === "finance") return fetchExpensesApproved;
+
+    // Regular employee — refresh their own list
+    return () => fetchMyExpenses(UserAllDetails?.email);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.categoryId) return alert("Please select an expense category");
-    
+
     try {
       const data = new FormData();
-      
+
       // 1. File Attachment
       if (selectedFile) data.append("receipt", selectedFile);
-      
-      // 2. Existing Form Data
+
+      // 2. Form Fields
       data.append("categoryId", formData.categoryId);
       data.append("categoryName", formData.categoryName);
       data.append("amount", formData.amount);
@@ -91,8 +125,7 @@ const handleSubmit = async (e) => {
       data.append("location", formData.location);
       data.append("merchant", formData.merchant);
 
-      // 3. Appending User Details (New Requirement)
-      // Note: Using optional chaining ?. to prevent errors if UserAllDetails is null
+      // 3. User Details
       data.append("fullName", UserAllDetails?.fullName || "");
       data.append("designation", UserAllDetails?.designation || "");
       data.append("email", UserAllDetails?.email || "");
@@ -100,18 +133,24 @@ const handleSubmit = async (e) => {
       data.append("phone", UserAllDetails?.phone || "");
       data.append("employeeId", UserAllDetails?.employeeId || "");
 
-      // 4. Submit to API
-      const response = await submitExpense(data);
-      
+      // 4. Pick the correct refresh function for this user's role
+      const refreshFn = getRefreshFn();
+
+      // 5. Submit
+      const response = await submitExpense(data, refreshFn);
+
       if (response.success) {
-        // Reset local state
         setSelectedFile(null);
         setFormData({
-          ...formData,
           categoryId: "",
           categoryName: "",
           amount: "",
+          currency: "BDT",
+          date: new Date().toISOString().split("T")[0],
+          projectCode: "PRJ-2025-001",
           description: "",
+          location: "",
+          merchant: "",
         });
         onClose();
       }
@@ -125,38 +164,36 @@ const handleSubmit = async (e) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl bg-white rounded-[24px] p-0 overflow-hidden border-none shadow-2xl">
         <DialogHeader className="p-8 pb-0 relative">
-          <DialogTitle className="text-2xl font-bold text-slate-900 text-left">Submit New Expense</DialogTitle>
-          <p className="text-slate-500 mt-1 text-left">Create a new expense request with all necessary details and receipts.</p>
-          
+          <DialogTitle>Submit New Expense</DialogTitle>
+          <p className="text-slate-500">
+            Create a new expense request with all necessary details and receipts.
+          </p>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-5">
+
           {/* Category Dropdown */}
           <div className="space-y-2">
-            <Label className="font-bold text-slate-700">Category *</Label>
-            <Select 
-              onValueChange={handleCategoryChange} 
-              value={formData.categoryId || undefined} // Fallback to undefined to show placeholder
+            <Label>Category *</Label>
+            <Select
+              onValueChange={handleCategoryChange}
+              value={formData.categoryId || undefined}
             >
-              <SelectTrigger className="h-12 bg-slate-50 border-slate-100 rounded-xl focus:ring-2 focus:ring-blue-100 transition-all">
-                <SelectValue placeholder={categories?.length > 0 ? "Select category" : "Loading categories..."} />
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={categories?.length > 0 ? "Select category" : "Loading..."}
+                />
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-slate-100 shadow-xl max-h-[250px]">
-                {categories && categories.length > 0 ? (
-                  categories.map((cat) => (
-                    <SelectItem 
-                      key={String(cat._id)} 
-                      value={String(cat._id)} 
-                      className="cursor-pointer py-3"
-                    >
-                      <span className="font-medium text-slate-700">{cat.categoryName}</span>
-                    </SelectItem>
-                  ))
-                ) : (
-                  <div className="p-4 text-center text-sm text-slate-400 italic">
-                    No categories available.
-                  </div>
-                )}
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem
+                    key={String(cat._id)}
+                    value={String(cat._id)}
+                    className="cursor-pointer py-3"
+                  >
+                    <span>{cat.categoryName}</span>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -164,23 +201,22 @@ const handleSubmit = async (e) => {
           {/* Amount & Currency */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2 space-y-2">
-              <Label className="font-bold text-slate-700">Amount *</Label>
-              <Input 
-                type="number" 
-                placeholder="0.00" 
-                className="h-12 bg-slate-50 border-slate-100 rounded-xl"
+              <Label>Amount *</Label>
+              <Input
+                type="number"
+                placeholder="0.00"
                 value={formData.amount}
-                onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label className="font-bold text-slate-700">Currency</Label>
-              <Select 
+              <Label>Currency</Label>
+              <Select
                 value={formData.currency}
-                onValueChange={(v) => setFormData({...formData, currency: v})}
+                onValueChange={(v) => setFormData({ ...formData, currency: v })}
               >
-                <SelectTrigger className="h-12 bg-slate-50 border-slate-100 rounded-xl">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -194,37 +230,35 @@ const handleSubmit = async (e) => {
           {/* Date & Project Code */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="font-bold text-slate-700">Date *</Label>
+              <Label>Date *</Label>
               <div className="relative">
-                <Input 
-                  type="date" 
+                <Input
+                  type="date"
                   value={formData.date}
-                  className="h-12 bg-slate-50 border-slate-100 rounded-xl pl-4 pr-10"
-                  onChange={(e) => setFormData({...formData, date: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                   required
                 />
                 <CalendarIcon className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="font-bold text-slate-700">Project Code</Label>
-              <Input 
-                placeholder="PRJ-2025-001" 
+              <Label>Project Code</Label>
+              <Input
+                placeholder="PRJ-2025-001"
                 value={formData.projectCode}
-                className="h-12 bg-slate-50 border-slate-100 rounded-xl"
-                onChange={(e) => setFormData({...formData, projectCode: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, projectCode: e.target.value })}
               />
             </div>
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <Label className="font-bold text-slate-700">Description *</Label>
-            <Textarea 
-              placeholder="Describe the expense purpose..." 
+            <Label>Description *</Label>
+            <Textarea
+              placeholder="Describe the expense purpose..."
               className="min-h-[80px] bg-slate-50 border-slate-100 rounded-xl resize-none"
               value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               required
             />
           </div>
@@ -232,57 +266,67 @@ const handleSubmit = async (e) => {
           {/* Location & Merchant */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="font-bold text-slate-700">Location</Label>
-              <Input 
-                placeholder="City, Country" 
+              <Label>Location</Label>
+              <Input
+                placeholder="City, Country"
                 value={formData.location}
-                className="h-12 bg-slate-50 border-slate-100 rounded-xl"
-                onChange={(e) => setFormData({...formData, location: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               />
             </div>
             <div className="space-y-2">
-              <Label className="font-bold text-slate-700">Merchant/Vendor</Label>
-              <Input 
-                placeholder="Vendor name" 
+              <Label>Merchant/Vendor</Label>
+              <Input
+                placeholder="Vendor name"
                 value={formData.merchant}
-                className="h-12 bg-slate-50 border-slate-100 rounded-xl"
-                onChange={(e) => setFormData({...formData, merchant: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, merchant: e.target.value })}
               />
             </div>
           </div>
 
           {/* Receipt Section */}
           <div className="space-y-2">
-            <Label className="font-bold text-slate-700">Receipt Attachment</Label>
-            <input 
-              type="file" 
-              className="hidden" 
-              ref={fileInputRef} 
+            <Label>Receipt Attachment</Label>
+            <input
+              type="file"
+              className="hidden"
+              ref={fileInputRef}
               accept="image/*,application/pdf"
               onChange={handleFileChange}
             />
-            <div 
+            <div
               onClick={() => fileInputRef.current.click()}
               className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center transition-all cursor-pointer ${
-                selectedFile ? "border-blue-400 bg-blue-50/20" : "border-slate-200 bg-slate-50/50 hover:bg-slate-50"
+                selectedFile
+                  ? "border-blue-400 bg-blue-50/20"
+                  : "border-slate-200 bg-slate-50/50 hover:bg-slate-50"
               }`}
             >
               {selectedFile ? (
                 <div className="flex items-center gap-3 w-full justify-center">
-                  {selectedFile.type.includes("image") ? <ImageIcon className="text-blue-500" /> : <FileText className="text-blue-500" />}
+                  {selectedFile.type.includes("image") ? (
+                    <ImageIcon className="text-blue-500 w-5 h-5" />
+                  ) : (
+                    <FileText className="text-blue-500 w-5 h-5" />
+                  )}
                   <div className="text-left overflow-hidden">
-                    <p className="font-bold text-slate-700 text-sm truncate max-w-[200px]">{selectedFile.name}</p>
-                    <p className="text-xs text-slate-500">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+                    <p className="font-bold text-slate-700 text-sm truncate max-w-[200px]">
+                      {selectedFile.name}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                    </p>
                   </div>
-                  <X 
-                    className="w-5 h-5 text-slate-400 hover:text-red-500 ml-2" 
+                  <X
+                    className="w-5 h-5 text-slate-400 hover:text-red-500 ml-2"
                     onClick={(e) => { e.stopPropagation(); setSelectedFile(null); }}
                   />
                 </div>
               ) : (
                 <>
                   <Upload className="w-6 h-6 text-blue-500 mb-2" />
-                  <p className="font-bold text-slate-700 text-sm">Upload Receipt (PDF or Image)</p>
+                  <p className="font-bold text-slate-700 text-sm">
+                    Upload Receipt (PDF or Image)
+                  </p>
                   <p className="text-xs text-slate-400">Max size: 5MB</p>
                 </>
               )}
@@ -291,21 +335,14 @@ const handleSubmit = async (e) => {
 
           {/* Footer Actions */}
           <div className="flex items-center gap-4 pt-4">
-            <Button 
-              type="submit" 
-              disabled={hookLoading}
-              className="flex-1 h-12 bg-[#4F81F4] hover:bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-100 active:scale-95 transition-all"
-            >
+            <Button type="submit" disabled={hookLoading}>
               {hookLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
-              ) : "Submit Request"}
+              ) : (
+                "Submit Request"
+              )}
             </Button>
-            <Button 
-              type="button" 
-              onClick={onClose}
-              variant="ghost" 
-              className="px-8 h-12 rounded-xl font-bold text-slate-500"
-            >
+            <Button type="button" onClick={onClose} variant="ghost">
               Cancel
             </Button>
           </div>

@@ -10,7 +10,6 @@ import {
   Loader2,
   XCircle,
   FileText,
-  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,82 +28,66 @@ import LeaveManagementBanner from "./LeaveManagementCompo/LeaveManagementBanner"
 import LeaveTypeCard from "./LeaveManagementCompo/LeaveTypeCard";
 import RequestCard from "./LeaveManagementCompo/RequestCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 const LeaveManagementPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { UserAllDetails } = useAuth();
   
   const {
-    deptRequests,          // New department-wise state from hook
-    deptPagination,        // New department-wise pagination
+    leaveRequests,    
     myRequests,       
-    leavePolicies,    
+    leavePolicies,    // Added to fetch the types for the dropdown
+    requestPagination,
     requestLoading,
     fetchMyRequests,
-    fetchAllRequestsByDepartment, // Use the new department fetcher
+    fetchAllRequests,
     updateRequestStatus,
-    fetchAllLeavePolicies 
+    fetchAllLeavePolicies // Added to ensure types are loaded
   } = useLeavePolicy();
 
-  // Pagination & Filters
   const [myPage, setMyPage] = useState(1);
-  const [deptPage, setDeptPage] = useState(1);
+  const [allPage, setAllPage] = useState(1);
   const [mySearch, setMySearch] = useState("");
-  const [deptSearch, setDeptSearch] = useState("");
+  const [allSearch, setAllSearch] = useState("");
   const [activeStatusFilter, setActiveStatusFilter] = useState("all");
-  const [activeTypeFilter, setActiveTypeFilter] = useState("all");
-  const [currentTab, setCurrentTab] = useState("department-pipeline");
+  const [activeTypeFilter, setActiveTypeFilter] = useState("all"); // New State for Leave Type
+  const [currentTab, setCurrentTab] = useState("global-pipeline");
 
-  // 1. Initial Load: Leave Policies
+  // Fetch Leave Types once on mount
   useEffect(() => {
     fetchAllLeavePolicies();
   }, [fetchAllLeavePolicies]);
 
-  // 2. Fetch "My Requests"
+  // 1. Fetch "My Requests"
   useEffect(() => {
     if (UserAllDetails?.email) {
       fetchMyRequests(UserAllDetails.email, { page: myPage, limit: 10 });
     }
   }, [UserAllDetails?.email, myPage, fetchMyRequests]);
 
-  // 3. Fetch "Department Requests"
+  // 2. Fetch "Global Requests" - Included activeTypeFilter in dependency
   useEffect(() => {
-    if (UserAllDetails?.department) {
-      const status = activeStatusFilter === "all" ? "" : activeStatusFilter;
-      const leaveType = activeTypeFilter === "all" ? "" : activeTypeFilter;
-      
-      fetchAllRequestsByDepartment(UserAllDetails.department, { 
-        page: deptPage, 
-        limit: 10, 
-        status, 
-        leaveType 
-      });
-    }
-  }, [UserAllDetails?.department, deptPage, activeStatusFilter, activeTypeFilter, fetchAllRequestsByDepartment]);
+    const status = activeStatusFilter === "all" ? "" : activeStatusFilter;
+    const leaveType = activeTypeFilter === "all" ? "" : activeTypeFilter;
+    fetchAllRequests({ page: allPage, limit: 10, status, leaveType });
+  }, [allPage, activeStatusFilter, activeTypeFilter, fetchAllRequests]);
 
-  // 4. Memoized Search Filtering
+  // 3. Filter Logic
   const filteredMyRequests = useMemo(() => {
     return (myRequests || []).filter(req => 
-      req.leaveType.toLowerCase().includes(mySearch.toLowerCase()) ||
-      req.fullName?.toLowerCase().includes(mySearch.toLowerCase())
+      req.leaveType.toLowerCase().includes(mySearch.toLowerCase())
     );
   }, [myRequests, mySearch]);
 
-  const filteredDeptRequests = useMemo(() => {
-    return (deptRequests || []).filter(req => 
-      req.leaveType.toLowerCase().includes(deptSearch.toLowerCase()) ||
-      req.fullName?.toLowerCase().includes(deptSearch.toLowerCase())
+  const filteredAllRequests = useMemo(() => {
+    return (leaveRequests || []).filter(req => 
+      req.leaveType.toLowerCase().includes(allSearch.toLowerCase())
     );
-  }, [deptRequests, deptSearch]);
+  }, [leaveRequests, allSearch]);
 
   const handleStatusChange = async (id, status) => {
     try { 
       await updateRequestStatus(id, status); 
-      // Refresh current view after status change
-      if (UserAllDetails?.department) {
-        fetchAllRequestsByDepartment(UserAllDetails.department, { page: deptPage, limit: 10 });
-      }
     } catch (err) { 
       console.error("Status update failed:", err); 
     }
@@ -115,31 +98,30 @@ const LeaveManagementPage = () => {
       <LeaveManagementBanner onClick={() => setIsModalOpen(true)} />
       <LeaveTypeCard />
 
-      <Tabs defaultValue="department-pipeline" onValueChange={setCurrentTab} className="w-full">
+      <Tabs defaultValue="global-pipeline" onValueChange={setCurrentTab} className="w-full">
         <TabsList className="bg-white border border-slate-200 p-1 rounded-xl mb-4">
-          <TabsTrigger value="department-pipeline" className="rounded-lg px-6">
-            <Users className="w-4 h-4 mr-2" /> Department Requests
+          <TabsTrigger value="global-pipeline" className="rounded-lg px-6">
+            <Globe className="w-4 h-4 mr-2" /> All Requests
           </TabsTrigger>
           <TabsTrigger value="my-requests" className="rounded-lg px-6">
             <Mail className="w-4 h-4 mr-2" /> My Requests
           </TabsTrigger>
         </TabsList>
 
-        {/* DEPARTMENT REQUESTS CONTENT */}
-        <TabsContent value="department-pipeline" className="space-y-6 outline-none">
-          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-wrap gap-4 items-center justify-between shadow-sm">
+        <TabsContent value="global-pipeline" className="space-y-6 outline-none">
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-wrap gap-4 items-center justify-between">
             <div className="flex-1 min-w-[200px]">
               <Input
-                placeholder="Search by name or type..."
-                value={deptSearch}
-                onChange={(e) => setDeptSearch(e.target.value)}
-                className="bg-slate-50 border-none"
+                placeholder="Search globally..."
+                value={allSearch}
+                onChange={(e) => setAllSearch(e.target.value)}
               />
             </div>
             
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2">
+              {/* Leave Type Filter */}
               <Select value={activeTypeFilter} onValueChange={setActiveTypeFilter}>
-                <SelectTrigger className="w-[180px] bg-slate-50 border-none">
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Policy Type" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -152,51 +134,45 @@ const LeaveManagementPage = () => {
                 </SelectContent>
               </Select>
 
+              {/* Status Filter */}
               <Select value={activeStatusFilter} onValueChange={setActiveStatusFilter}>
-                <SelectTrigger className="w-[160px] bg-slate-50 border-none">
+                <SelectTrigger className="w-[160px]">
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Approved">Approved</SelectItem>
-                  <SelectItem value="Rejected">Rejected</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <Card className="border-none shadow-sm overflow-hidden">
-            <CardHeader className="bg-white border-b border-slate-100">
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-slate-800">
-                  <FileText className="h-5 w-5 text-blue-500" />
-                  Team Overview
-                </CardTitle>
-                <Badge variant="secondary" className="bg-blue-50 text-blue-600 border-none px-3 py-1">
-                  {UserAllDetails?.department || "General"}
-                </Badge>
-              </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Leave Requests
+              </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 bg-slate-50/30">
+            <CardContent>
               <div className="space-y-4">
                 {requestLoading ? (
                   <div className="flex justify-center py-20">
-                    <Loader2 className="animate-spin text-blue-600 h-10 w-10" />
+                    <Loader2 className="animate-spin text-slate-900 h-8 w-8" />
                   </div>
-                ) : filteredDeptRequests.length === 0 ? (
-                  <div className="text-center py-16 bg-white border-2 border-dashed rounded-2xl border-slate-200">
-                    <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                       <Calendar className="h-8 w-8 text-slate-400" />
-                    </div>
-                    <p className="text-slate-600 font-semibold text-lg">No requests in this department</p>
-                    <p className="text-sm text-slate-400 mt-1">
-                      Try adjusting your filters or search terms
+                ) : filteredAllRequests.length === 0 ? (
+                  <div className="text-center py-12 border-2 border-dashed rounded-xl border-slate-100">
+                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 font-medium">No global requests found</p>
+                    <p className="text-sm text-gray-500 mt-2">
+                      No requests matching the current filters
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-4">
-                    {filteredDeptRequests.map((req) => (
+                  <div className="space-y-4">
+                    {filteredAllRequests.map((req) => (
                       <RequestCard 
                         key={req._id} 
                         item={req} 
@@ -210,69 +186,50 @@ const LeaveManagementPage = () => {
             </CardContent>
           </Card>
 
-          {/* Department Pagination */}
-          <div className="flex items-center justify-center gap-3 pt-4">
-            <Button 
-              disabled={deptPage === 1} 
-              onClick={() => setDeptPage(p => p - 1)} 
-              variant="outline" 
-              className="rounded-xl h-11 bg-white"
-            >
+          {/* Global Pagination */}
+          <div className="flex items-center justify-center gap-3 pt-6">
+            <Button disabled={allPage === 1} onClick={() => setAllPage(p => p - 1)} variant="outline" className="rounded-xl h-11">
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <div className="bg-white border border-slate-200 h-11 px-6 flex items-center rounded-xl font-bold text-slate-700 text-sm shadow-sm">
-              Page {deptPage} of {deptPagination.totalPages || 1}
+            <div className="bg-white border border-slate-200 h-11 px-6 flex items-center rounded-xl font-bold text-slate-700 text-sm">
+              Page {allPage}
             </div>
-            <Button 
-              disabled={!deptPagination.hasNextPage} 
-              onClick={() => setDeptPage(p => p + 1)} 
-              variant="outline" 
-              className="rounded-xl h-11 bg-white"
-            >
+            <Button disabled={!requestPagination.hasNextPage} onClick={() => setAllPage(p => p + 1)} variant="outline" className="rounded-xl h-11">
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
         </TabsContent>
 
-        {/* MY REQUESTS CONTENT */}
         <TabsContent value="my-requests" className="space-y-6 outline-none">
-          <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center shadow-sm">
+          <div className="bg-white border border-slate-200 rounded-[20px] p-2 flex items-center shadow-sm">
             <Input
-              placeholder="Search my request history..."
+              placeholder="Search my history..."
               value={mySearch}
               onChange={(e) => setMySearch(e.target.value)}
-              className="bg-slate-50 border-none h-11 max-w-md"
+              className="border-none bg-slate-50/50 rounded-xl h-11 px-4 focus-visible:ring-0 placeholder:text-slate-400 text-sm max-w-xs"
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="space-y-4">
             {requestLoading ? (
-              <div className="flex justify-center py-20"><Loader2 className="animate-spin text-blue-600 h-10 w-10" /></div>
+              <div className="flex justify-center py-20"><Loader2 className="animate-spin text-slate-900" /></div>
             ) : filteredMyRequests.length === 0 ? (
-              <div className="bg-white border border-slate-200 rounded-2xl p-20 text-center text-slate-400 shadow-sm">
-                <XCircle className="w-16 h-16 mx-auto mb-4 opacity-10" /> 
-                <p className="font-medium text-slate-500">You haven't submitted any requests yet.</p>
+              <div className="bg-white border border-slate-200 rounded-[32px] p-20 text-center text-slate-400">
+                <XCircle className="w-12 h-12 mx-auto mb-4 opacity-20" /> You haven't submitted any requests yet.
               </div>
             ) : (
-              filteredMyRequests.map(req => (
-                <RequestCard key={req._id} item={req} isGlobal={false} />
-              ))
+              filteredMyRequests.map(req => <RequestCard key={req._id} item={req} isGlobal={false} />)
             )}
           </div>
           
-          <div className="flex items-center justify-center gap-3 pt-4">
-            <Button disabled={myPage === 1} onClick={() => setMyPage(p => p - 1)} variant="outline" className="rounded-xl h-11 bg-white">
+          <div className="flex items-center justify-center gap-3 pt-6">
+            <Button disabled={myPage === 1} onClick={() => setMyPage(p => p - 1)} variant="outline" className="rounded-xl h-11">
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <div className="bg-white border border-slate-200 h-11 px-6 flex items-center rounded-xl font-bold text-slate-700 text-sm shadow-sm">
+            <div className="bg-white border border-slate-200 h-11 px-6 flex items-center rounded-xl font-bold text-slate-700 text-sm">
               Page {myPage}
             </div>
-            <Button 
-              disabled={filteredMyRequests.length < 10} // Simple check if pagination object for MyRequests isn't separate
-              onClick={() => setMyPage(p => p + 1)} 
-              variant="outline" 
-              className="rounded-xl h-11 bg-white"
-            >
+            <Button disabled={!requestPagination.hasNextPage} onClick={() => setMyPage(p => p + 1)} variant="outline" className="rounded-xl h-11">
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>

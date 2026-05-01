@@ -1,12 +1,21 @@
+"use client";
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { CheckCircle, Clock, Users, XCircle } from "lucide-react";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../../../../components/ui/card";
+  CheckCircle, Clock, Users, XCircle, Search, Filter, RefreshCw,
+  AlertCircle, Loader2, ChevronUp, ChevronDown,
+} from "lucide-react";
+import {
+  Card, CardContent, CardHeader, CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
 
 const departments = [
   "All Departments",
@@ -24,11 +33,10 @@ const AttendanceAllEmployee = () => {
   const [statusLoading, setStatusLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDepartment, setSelectedDepartment] =
-    useState("All Departments");
+  const [selectedDepartment, setSelectedDepartment] = useState("All Departments");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0],
+    new Date().toISOString().split("T")[0]
   );
   const [pagination, setPagination] = useState({
     page: 1,
@@ -41,7 +49,6 @@ const AttendanceAllEmployee = () => {
     direction: "desc",
   });
 
-  // Status counts state
   const [statusCounts, setStatusCounts] = useState({
     all: 0,
     present: 0,
@@ -52,30 +59,31 @@ const AttendanceAllEmployee = () => {
     leave: 0,
   });
 
-  // Status options with colors
   const statusOptions = [
-    { value: "all", label: "All", color: "#6b7280" },
-    { value: "present", label: "Present", color: "#10b981" },
-    { value: "onTime", label: "On Time", color: "#059669" },
-    { value: "late", label: "Late", color: "#f59e0b" },
-    { value: "absent", label: "Absent", color: "#ef4444" },
-    { value: "halfDay", label: "Half Day", color: "#3b82f6" },
-    { value: "leave", label: "Leave", color: "#8b5cf6" },
+    { value: "all",      label: "All",      color: "text-slate-600",   iconColor: "text-slate-500" },
+    { value: "present",  label: "Present",  color: "text-emerald-600", iconColor: "text-emerald-500" },
+    { value: "onTime",   label: "On Time",  color: "text-emerald-600", iconColor: "text-emerald-500" },
+    { value: "late",     label: "Late",     color: "text-amber-600",   iconColor: "text-amber-500" },
+    { value: "absent",   label: "Absent",   color: "text-red-600",     iconColor: "text-red-500" },
+    { value: "halfDay",  label: "Half Day", color: "text-blue-600",    iconColor: "text-blue-500" },
+    { value: "leave",    label: "Leave",    color: "text-purple-600",  iconColor: "text-purple-500" },
   ];
 
-  const statusColors = {
-    Present: "#10b981",
-    Absent: "#ef4444",
-    Late: "#f59e0b",
-    "On Time": "#10b981",
-    "On-time": "#10b981",
-    "Half Day": "#3b82f6",
-    "Half-day": "#3b82f6",
-    Leave: "#8b5cf6",
-    "Not Marked": "#6b7280",
+  const getStatusBadgeClass = (status) => {
+    const map = {
+      Present:     "bg-emerald-50 text-emerald-600 border-emerald-200",
+      "On Time":   "bg-emerald-50 text-emerald-600 border-emerald-200",
+      "On-time":   "bg-emerald-50 text-emerald-600 border-emerald-200",
+      Late:        "bg-amber-50 text-amber-600 border-amber-200",
+      Absent:      "bg-red-50 text-red-600 border-red-200",
+      "Half Day":  "bg-blue-50 text-blue-600 border-blue-200",
+      "Half-day":  "bg-blue-50 text-blue-600 border-blue-200",
+      Leave:       "bg-purple-50 text-purple-600 border-purple-200",
+      "Not Marked":"bg-slate-50 text-slate-500 border-slate-200",
+    };
+    return map[status] || "bg-slate-50 text-slate-500 border-slate-200";
   };
 
-  // Format time
   const formatTime = (dateString) => {
     if (!dateString) return "--:--";
     try {
@@ -90,7 +98,6 @@ const AttendanceAllEmployee = () => {
     }
   };
 
-  // Format date
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     try {
@@ -105,7 +112,6 @@ const AttendanceAllEmployee = () => {
     }
   };
 
-  // Get working hours
   const getWorkingHours = (hours) => {
     if (!hours) return "0h";
     const wholeHours = Math.floor(hours);
@@ -113,94 +119,61 @@ const AttendanceAllEmployee = () => {
     return `${wholeHours}h ${minutes}m`;
   };
 
-  // Fetch status counts from the new summary endpoint
+  // Fetch status counts
   const fetchStatusCounts = useCallback(async () => {
     setStatusLoading(true);
     try {
       const params = {
         date: selectedDate,
         department:
-          selectedDepartment !== "All Departments"
-            ? selectedDepartment
-            : undefined,
+          selectedDepartment !== "All Departments" ? selectedDepartment : undefined,
       };
 
-      // Remove undefined parameters
       Object.keys(params).forEach(
-        (key) => params[key] === undefined && delete params[key],
+        (key) => params[key] === undefined && delete params[key]
       );
 
       const response = await axios.get(
         "http://localhost:50001/attendance-summary",
-        {
-          params,
-          timeout: 10000,
-        },
+        { params, timeout: 10000 }
       );
-
-      console.log("Status Counts Response:", response.data);
 
       if (response.data.success && response.data.data) {
         setStatusCounts(response.data.data);
-      } else {
-        console.error("Summary API returned unsuccessful:", response.data);
       }
     } catch (err) {
       console.error("Error fetching status counts:", err);
-      console.error("Error details:", {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-      });
-
-      // Fallback: Use the old method
       try {
         const params = {
           date: selectedDate,
           department:
-            selectedDepartment !== "All Departments"
-              ? selectedDepartment
-              : undefined,
+            selectedDepartment !== "All Departments" ? selectedDepartment : undefined,
           limit: 1000,
           page: 1,
         };
-
         Object.keys(params).forEach(
-          (key) => params[key] === undefined && delete params[key],
+          (key) => params[key] === undefined && delete params[key]
         );
-
-        const response = await axios.get("http://localhost:50001/attendance", {
-          params,
-        });
-
+        const response = await axios.get("http://localhost:50001/attendance", { params });
         if (response.data.success && response.data.data) {
           const allData = response.data.data;
           const counts = {
             all: allData.length,
             present: allData.filter((d) =>
-              [
-                "Present",
-                "On Time",
-                "On-time",
-                "Late",
-                "Half Day",
-                "Half-day",
-              ].includes(d.attendance[0]?.status),
+              ["Present", "On Time", "On-time", "Late", "Half Day", "Half-day"].includes(
+                d.attendance[0]?.status
+              )
             ).length,
             onTime: allData.filter((d) =>
-              ["On Time", "On-time"].includes(d.attendance[0]?.status),
+              ["On Time", "On-time"].includes(d.attendance[0]?.status)
             ).length,
-            late: allData.filter((d) => d.attendance[0]?.status === "Late")
-              .length,
-            absent: allData.filter((d) => d.attendance[0]?.status === "Absent")
-              .length,
+            late: allData.filter((d) => d.attendance[0]?.status === "Late").length,
+            absent: allData.filter((d) => d.attendance[0]?.status === "Absent").length,
             halfDay: allData.filter((d) =>
-              ["Half Day", "Half-day"].includes(d.attendance[0]?.status),
+              ["Half Day", "Half-day"].includes(d.attendance[0]?.status)
             ).length,
-            leave: allData.filter((d) => d.attendance[0]?.status === "Leave")
-              .length,
+            leave: allData.filter((d) => d.attendance[0]?.status === "Leave").length,
           };
-
           setStatusCounts(counts);
         }
       } catch (fallbackErr) {
@@ -223,25 +196,19 @@ const AttendanceAllEmployee = () => {
           limit: pagination.limit,
           date: selectedDate,
           department:
-            selectedDepartment !== "All Departments"
-              ? selectedDepartment
-              : undefined,
+            selectedDepartment !== "All Departments" ? selectedDepartment : undefined,
           status: selectedStatus !== "all" ? selectedStatus : undefined,
         };
 
-        // Remove undefined parameters
         Object.keys(params).forEach(
-          (key) => params[key] === undefined && delete params[key],
+          (key) => params[key] === undefined && delete params[key]
         );
 
-        const response = await axios.get("http://localhost:50001/attendance", {
-          params,
-        });
+        const response = await axios.get("http://localhost:50001/attendance", { params });
 
         if (response.data.success) {
           let filteredData = response.data.data;
 
-          // Filter by search term on frontend
           if (searchTerm.trim()) {
             const term = searchTerm.toLowerCase();
             filteredData = filteredData.filter(
@@ -249,11 +216,10 @@ const AttendanceAllEmployee = () => {
                 item.user.fullName?.toLowerCase().includes(term) ||
                 item.user.email?.toLowerCase().includes(term) ||
                 item.employeeId?.toLowerCase().includes(term) ||
-                item.user.employeeId?.toLowerCase().includes(term),
+                item.user.employeeId?.toLowerCase().includes(term)
             );
           }
 
-          // Sort data
           const sortedData = [...filteredData].sort((a, b) => {
             if (sortConfig.key === "name") {
               const nameA = a.user.fullName?.toLowerCase() || "";
@@ -262,7 +228,6 @@ const AttendanceAllEmployee = () => {
                 ? nameA.localeCompare(nameB)
                 : nameB.localeCompare(nameA);
             }
-
             if (sortConfig.key === "attendanceDate") {
               const dateA = a.attendance[0]?.attendanceDate || new Date(0);
               const dateB = b.attendance[0]?.attendanceDate || new Date(0);
@@ -270,7 +235,6 @@ const AttendanceAllEmployee = () => {
                 ? new Date(dateA) - new Date(dateB)
                 : new Date(dateB) - new Date(dateA);
             }
-
             if (sortConfig.key === "status") {
               const statusA = a.attendance[0]?.status || "";
               const statusB = b.attendance[0]?.status || "";
@@ -278,7 +242,6 @@ const AttendanceAllEmployee = () => {
                 ? statusA.localeCompare(statusB)
                 : statusB.localeCompare(statusA);
             }
-
             if (sortConfig.key === "employeeId") {
               const idA = a.employeeId || "";
               const idB = b.employeeId || "";
@@ -286,7 +249,6 @@ const AttendanceAllEmployee = () => {
                 ? idA.localeCompare(idB)
                 : idB.localeCompare(idA);
             }
-
             return 0;
           });
 
@@ -296,45 +258,30 @@ const AttendanceAllEmployee = () => {
           setError("Failed to fetch attendance data");
         }
       } catch (err) {
-        setError(
-          err.response?.data?.message || "Error fetching attendance data",
-        );
+        setError(err.response?.data?.message || "Error fetching attendance data");
         console.error("Error fetching attendance:", err);
       } finally {
         setLoading(false);
       }
     },
-    [
-      searchTerm,
-      selectedDepartment,
-      selectedStatus,
-      selectedDate,
-      pagination.page,
-      pagination.limit,
-      sortConfig,
-    ],
+    [searchTerm, selectedDepartment, selectedStatus, selectedDate, pagination.page, pagination.limit, sortConfig]
   );
 
-  // Fetch status counts when date or department changes
   useEffect(() => {
     fetchStatusCounts();
   }, [selectedDate, selectedDepartment, fetchStatusCounts]);
 
-  // Handle search with debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchAttendanceData(true);
     }, 500);
-
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Fetch filtered data when filters change
   useEffect(() => {
     fetchAttendanceData(true);
   }, [selectedDepartment, selectedStatus, selectedDate]);
 
-  // Fetch filtered data when page changes
   useEffect(() => {
     if (pagination.page > 1) {
       fetchAttendanceData(false);
@@ -346,10 +293,8 @@ const AttendanceAllEmployee = () => {
       sortConfig.key === key && sortConfig.direction === "asc" ? "desc" : "asc";
     setSortConfig({ key, direction: newDirection });
 
-    // Sort local data
     const sortedData = [...attendanceData].sort((a, b) => {
       let aValue, bValue;
-
       if (key === "name") {
         aValue = a.user.fullName?.toLowerCase() || "";
         bValue = b.user.fullName?.toLowerCase() || "";
@@ -366,13 +311,11 @@ const AttendanceAllEmployee = () => {
         aValue = a.employeeId || "";
         bValue = b.employeeId || "";
       }
-
       if (typeof aValue === "string" && typeof bValue === "string") {
         return newDirection === "asc"
           ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
       }
-
       return 0;
     });
 
@@ -392,771 +335,289 @@ const AttendanceAllEmployee = () => {
     setSelectedStatus(status);
   };
 
-  // Sort indicator
   const SortIndicator = ({ column }) =>
     sortConfig.key === column ? (
-      <span className="sort-indicator">
-        {sortConfig.direction === "asc" ? "↑" : "↓"}
-      </span>
+      sortConfig.direction === "asc" ? (
+        <ChevronUp className="inline w-3 h-3 ml-1" />
+      ) : (
+        <ChevronDown className="inline w-3 h-3 ml-1" />
+      )
     ) : null;
 
   const statusIcons = {
     all: Users,
     present: CheckCircle,
+    onTime: CheckCircle,
+    late: Clock,
     absent: XCircle,
+    halfDay: Clock,
     leave: Clock,
   };
 
   return (
-    <div className="">
-      {/* Header */}
-      <div className="header">
-       
-                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">Employee Attendance</h2>
+    <div className="space-y-6 animate-in fade-in duration-500">
 
-        <p >View and manage employee attendance records</p>
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+          Employee Attendance
+        </h2>
+        <p className="text-sm text-slate-500 font-medium mt-1">
+          View and manage employee attendance records
+        </p>
       </div>
-      {/* Status Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 lg:grid-cols-7 gap-4">
+
+      {/* Status Count Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
         {statusOptions.map((status) => {
           const count = statusCounts[status.value] || 0;
           const isActive = selectedStatus === status.value;
-          const Icon = statusIcons[status.value];
+          const Icon = statusIcons[status.value] || Users;
 
           return (
             <Card
               key={status.value}
               onClick={() => handleStatusChange(status.value)}
-              className={`cursor-pointer transition-all hover:shadow-lg mb-5
-          ${isActive ? "ring-2 ring-blue-500" : ""}
-          ${statusLoading ? "opacity-70 pointer-events-none" : ""}
-        `}
+              className={`border shadow-sm rounded-xl bg-white cursor-pointer transition-all ${
+                isActive
+                  ? "border-blue-500 ring-2 ring-blue-100"
+                  : "border-slate-100 hover:border-blue-200"
+              } ${statusLoading ? "opacity-70 pointer-events-none" : ""}`}
             >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  {/* Left Content */}
-                  <div>
-                    <p className="text-sm text-gray-600">{status.label}</p>
-
-                    <p
-                      className="text-2xl font-semibold"
-                      style={{ color: status.color }}
-                    >
-                      {statusLoading ? "..." : count}
-                    </p>
-                  </div>
-
-                  {/* Icon */}
-                  {Icon && (
-                    <Icon className="w-8 h-8" style={{ color: status.color }} />
-                  )}
+              <CardContent className="p-5 flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                    {status.label}
+                  </p>
+                  <h4 className={`text-2xl font-black ${status.color}`}>
+                    {statusLoading ? "..." : count}
+                  </h4>
                 </div>
+                <Icon className={`w-7 h-7 ${status.iconColor}`} />
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      {/* Filters Section */}
-      <div className="filters-card">
-        <div className="filters-grid">
-          {/* Search Input */}
-          <div className="filter-group">
-            <label htmlFor="search">Search by Name, Email or ID</label>
-            <div className="search-input">
-              <svg
-                className="search-icon"
-                viewBox="0 0 24 24"
-                width="20"
-                height="20"
-              >
-                <path
-                  fill="currentColor"
-                  d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
-                />
-              </svg>
-              <input
-                id="search"
-                type="text"
-                placeholder="Search employees..."
+      {/* Filters */}
+      <Card className="border border-slate-100 shadow-sm rounded-xl bg-white">
+        <CardContent className="p-4">
+          <div className="flex flex-row md:flex-row items-stretch md:items-center gap-3">
+                <Input
+                placeholder="Search by name, email or ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-field"
+                className="pl-10 "
               />
-            </div>
-          </div>
 
-          {/* Department Filter */}
-          <div className="filter-group">
-            <label htmlFor="department">Department</label>
-            <div className="select-wrapper">
-              <svg
-                className="filter-icon"
-                viewBox="0 0 24 24"
-                width="20"
-                height="20"
-              >
-                <path
-                  fill="currentColor"
-                  d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"
-                />
-              </svg>
-              <select
-                id="department"
-                value={selectedDepartment}
-                onChange={(e) => setSelectedDepartment(e.target.value)}
-                className="department-select"
-              >
+            {/* Department */}
+            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+              <SelectTrigger className="w-full md:w-52">
+                <SelectValue placeholder="Department" />
+              </SelectTrigger>
+              <SelectContent>
                 {departments.map((dept) => (
-                  <option key={dept} value={dept}>
-                    {dept}
-                  </option>
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                 ))}
-              </select>
-            </div>
-          </div>
+              </SelectContent>
+            </Select>
 
-          {/* Date Filter */}
-          <div className="filter-group">
-            <label htmlFor="date">Date</label>
-            <input
-              id="date"
+            {/* Date */}
+            <Input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="date-input"
+              className="w-full md:w-44"
             />
-          </div>
 
-          {/* Refresh Button */}
-          <div className="filter-group">
-            <label>&nbsp;</label>
-            <button
+            {/* Refresh */}
+            <Button
               onClick={handleRefresh}
               disabled={loading || statusLoading}
-              className="refresh-btn"
+              variant="outline"
+              className="flex items-center gap-2"
             >
-              <svg
-                className="refresh-icon"
-                viewBox="0 0 24 24"
-                width="18"
-                height="18"
-              >
-                <path
-                  fill="currentColor"
-                  d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
-                />
-              </svg>
+              <RefreshCw className={`w-4 h-4 ${loading || statusLoading ? "animate-spin" : ""}`} />
               Refresh
-            </button>
+            </Button>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Error Message */}
+      {/* Error */}
       {error && (
-        <div className="error-alert">
-          <svg
-            className="error-icon"
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-          >
-            <path
-              fill="currentColor"
-              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
-            />
-          </svg>
-          <span>{error}</span>
-        </div>
+        <Card className="border border-red-200 bg-red-50 shadow-sm rounded-xl">
+          <CardContent className="p-4 flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600" />
+            <span className="text-sm text-red-600 font-medium">{error}</span>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Loading Overlay */}
-      {loading && !attendanceData.length && (
-        <div className="loading-overlay">
-          <div className="spinner"></div>
-          <p>Loading attendance data...</p>
-        </div>
-      )}
+      {/* Table */}
+      <Card className="border border-slate-100 shadow-sm rounded-xl bg-white overflow-hidden">
 
-      {/* Attendance Table */}
-      <div className="table-container">
-        <div className="table-header">
-          <div className="table-info">
+        {/* Table info */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/40">
+          <p className="text-xs font-semibold text-slate-500">
             Showing {attendanceData.length} of {pagination.total} records
             {selectedStatus !== "all" && (
-              <span className="status-filter-indicator">
-                • Filtered by:{" "}
-                {statusOptions.find((s) => s.value === selectedStatus)?.label} (
-                {pagination.total} records)
+              <span className="ml-2 text-blue-600 font-bold">
+                • Filtered by {statusOptions.find((s) => s.value === selectedStatus)?.label}
               </span>
             )}
-          </div>
+          </p>
         </div>
-        <div className="table-wrapper">
-          <table className="attendance-table">
-            <thead>
-              <tr>
-                <th onClick={() => handleSort("employeeId")}>
+
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-slate-50">
+              <TableRow>
+                <TableHead onClick={() => handleSort("employeeId")} className="cursor-pointer">
                   Employee ID <SortIndicator column="employeeId" />
-                </th>
-                <th onClick={() => handleSort("name")}>
+                </TableHead>
+                <TableHead onClick={() => handleSort("name")} className="cursor-pointer">
                   Name <SortIndicator column="name" />
-                </th>
-                <th>Email</th>
-                <th>Department</th>
-                <th>Role</th>
-                <th onClick={() => handleSort("attendanceDate")}>
+                </TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Department</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead onClick={() => handleSort("attendanceDate")} className="cursor-pointer">
                   Date <SortIndicator column="attendanceDate" />
-                </th>
-                <th>Clock In</th>
-                <th>Clock Out</th>
-                <th>Working Hours</th>
-                <th onClick={() => handleSort("status")}>
+                </TableHead>
+                <TableHead>Clock In</TableHead>
+                <TableHead>Clock Out</TableHead>
+                <TableHead>Working Hours</TableHead>
+                <TableHead onClick={() => handleSort("status")} className="cursor-pointer text-center">
                   Status <SortIndicator column="status" />
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {attendanceData.length === 0 ? (
-                <tr>
-                  <td colSpan="10" className="no-data">
-                    {loading
-                      ? "Loading..."
-                      : `No ${selectedStatus !== "all" ? statusOptions.find((s) => s.value === selectedStatus)?.label : ""} attendance records found for ${formatDate(selectedDate)}`}
-                  </td>
-                </tr>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading && attendanceData.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={10} className="py-16 text-center">
+                    <Loader2 className="animate-spin mx-auto text-blue-500 w-8 h-8 mb-2" />
+                    <p className="text-sm text-slate-500 font-medium">
+                      Loading attendance data...
+                    </p>
+                  </TableCell>
+                </TableRow>
+              ) : attendanceData.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={10} className="py-16 text-center">
+                    <Users className="w-10 h-10 mx-auto text-slate-300 mb-2" />
+                    <p className="text-sm text-slate-500 font-semibold">
+                      {loading
+                        ? "Loading..."
+                        : `No ${
+                            selectedStatus !== "all"
+                              ? statusOptions.find((s) => s.value === selectedStatus)?.label
+                              : ""
+                          } attendance records for ${formatDate(selectedDate)}`}
+                    </p>
+                  </TableCell>
+                </TableRow>
               ) : (
                 attendanceData.map((employee) => {
                   const latestAttendance = employee.attendance[0] || {};
-                  const statusColor =
-                    statusColors[latestAttendance.status] || "#6b7280";
+                  const statusClass = getStatusBadgeClass(latestAttendance.status);
 
                   return (
-                    <tr key={employee.employeeId}>
-                      <td>
-                        <div className="employee-id">{employee.employeeId}</div>
-                      </td>
-                      <td>
-                        <div className="employee-name">
-                          <div className="avatar-placeholder">
-                            {employee.user.fullName?.charAt(0) || "U"}
+                    <TableRow
+                      key={employee.employeeId}
+                      className="hover:bg-slate-50 transition-colors"
+                    >
+                      <TableCell className="font-semibold text-slate-700 text-sm">
+                        {employee.employeeId}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 bg-slate-50 rounded-full flex items-center justify-center font-bold text-slate-500 text-xs border border-slate-100">
+                            {employee.user.fullName?.charAt(0)?.toUpperCase() || "U"}
                           </div>
-                          {employee.user.fullName || "N/A"}
+                          <p className="font-bold text-slate-900 text-sm">
+                            {employee.user.fullName || "N/A"}
+                          </p>
                         </div>
-                      </td>
-                      <td>
-                        <div className="employee-email">
-                          {employee.user.email || "N/A"}
-                        </div>
-                      </td>
-                      <td>
-                        <span className="department-badge">
+                      </TableCell>
+                      <TableCell className="text-slate-600 text-sm">
+                        {employee.user.email || "N/A"}
+                      </TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-blue-50 text-blue-600 border border-blue-200">
                           {employee.user.department || "N/A"}
                         </span>
-                      </td>
-                      <td>
-                        <div className="employee-role">
-                          {employee.user.role || "N/A"}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="attendance-date">
-                          {formatDate(latestAttendance.attendanceDate)}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="time-in">
-                          {formatTime(latestAttendance.clockInDate)}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="time-out">
-                          {formatTime(latestAttendance.clockOutDate)}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="working-hours">
-                          {getWorkingHours(latestAttendance.workingHours)}
-                          {latestAttendance.workingHours > 8 && (
-                            <span className="overtime-indicator"> OT</span>
-                          )}
-                        </div>
-                      </td>
-                      <td>
+                      </TableCell>
+                      <TableCell className="text-slate-600 text-sm">
+                        {employee.user.role || "N/A"}
+                      </TableCell>
+                      <TableCell className="text-slate-600 text-sm">
+                        {formatDate(latestAttendance.attendanceDate)}
+                      </TableCell>
+                      <TableCell className="text-emerald-600 font-semibold text-sm">
+                        {formatTime(latestAttendance.clockInDate)}
+                      </TableCell>
+                      <TableCell className="text-red-500 font-semibold text-sm">
+                        {formatTime(latestAttendance.clockOutDate)}
+                      </TableCell>
+                      <TableCell className="text-slate-700 font-semibold text-sm">
+                        {getWorkingHours(latestAttendance.workingHours)}
+                        {latestAttendance.workingHours > 8 && (
+                          <span className="ml-1 text-amber-600 font-bold text-[10px]">OT</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
                         <span
-                          className="status-badge"
-                          style={{ backgroundColor: statusColor }}
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${statusClass}`}
                         >
                           {latestAttendance.status || "Not Marked"}
                         </span>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
-      </div>
 
-      {/* Pagination */}
-      {attendanceData.length > 0 && (
-        <div className="pagination">
-          <button
-            onClick={() => handlePageChange(pagination.page - 1)}
-            disabled={pagination.page === 1 || loading}
-            className="pagination-btn"
-          >
-            Previous
-          </button>
-
-          <div className="page-info">
-            Page {pagination.page} of {pagination.pages}
-            <span className="total-info">
-              {" "}
-              ({pagination.total} total records)
-            </span>
+        {/* Pagination */}
+        {attendanceData.length > 0 && (
+          <div className="flex justify-between items-center px-4 py-3 border-t border-slate-100 bg-slate-50/40">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+              Page {pagination.page} of {pagination.pages} • {pagination.total} total
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagination.page === 1 || loading}
+                onClick={() => handlePageChange(pagination.page - 1)}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagination.page === pagination.pages || loading}
+                onClick={() => handlePageChange(pagination.page + 1)}
+              >
+                Next
+              </Button>
+            </div>
           </div>
+        )}
+      </Card>
 
-          <button
-            onClick={() => handlePageChange(pagination.page + 1)}
-            disabled={pagination.page === pagination.pages || loading}
-            className="pagination-btn"
-          >
-            Next
-          </button>
-        </div>
-      )}
-
-      {/* Loading indicator for existing data */}
+      {/* Inline update indicator */}
       {loading && attendanceData.length > 0 && (
-        <div className="loading-indicator">
-          <div className="small-spinner"></div>
+        <div className="flex items-center justify-center gap-2 text-slate-500 text-sm">
+          <Loader2 className="w-4 h-4 animate-spin" />
           Updating...
         </div>
       )}
-
-      <style jsx>{`
-        .attendance-container {
-         
-          background: #f9fafb;
-          min-height: 100vh;
-        }
-
-        .header {
-          margin-bottom: 24px;
-        }
-
-        .header h1 {
-          font-size: 28px;
-          font-weight: 700;
-          color: #111827;
-          margin: 0;
-        }
-
-        .subtitle {
-          color: #6b7280;
-          margin: 8px 0 0;
-          font-size: 14px;
-        }
-
-        .filters-card {
-          background: white;
-          border-radius: 12px;
-          padding: 20px;
-          margin-bottom: 24px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .filters-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 20px;
-          align-items: end;
-        }
-
-        .filter-group {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .filter-group label {
-          font-size: 14px;
-          font-weight: 500;
-          color: #374151;
-          margin-bottom: 8px;
-        }
-
-        .search-input {
-          position: relative;
-        }
-
-        .search-icon {
-          position: absolute;
-          left: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #9ca3af;
-        }
-
-        .search-field {
-          width: 100%;
-          padding: 10px 12px 10px 40px;
-          border: 1px solid #d1d5db;
-          border-radius: 8px;
-          font-size: 14px;
-          transition: all 0.2s;
-        }
-
-        .search-field:focus {
-          outline: none;
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .select-wrapper {
-          position: relative;
-        }
-
-        .filter-icon {
-          position: absolute;
-          left: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #9ca3af;
-        }
-
-        .department-select,
-        .date-input {
-          width: 100%;
-          padding: 10px 12px 10px 40px;
-          border: 1px solid #d1d5db;
-          border-radius: 8px;
-          font-size: 14px;
-          background: white;
-          cursor: pointer;
-        }
-
-        .refresh-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          padding: 10px 16px;
-          background: #3b82f6;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .refresh-btn:hover:not(:disabled) {
-          background: #2563eb;
-        }
-
-        .refresh-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .status-tabs-container {
-          background: white;
-          border-radius: 12px;
-          padding: 20px;
-          margin-bottom: 24px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .status-tabs {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          margin-bottom: 16px;
-        }
-
-        .status-tab {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 16px;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s;
-          border: 1px solid #e5e7eb;
-        }
-
-        .status-tab:hover:not(.active):not(:disabled) {
-          background: #f9fafb;
-        }
-
-        .status-tab.active {
-          color: white;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          transform: translateY(-1px);
-        }
-
-        .status-tab:disabled {
-          cursor: not-allowed;
-        }
-
-        .status-label {
-          white-space: nowrap;
-        }
-
-        .status-count {
-          padding: 2px 8px;
-          border-radius: 12px;
-          font-size: 12px;
-          font-weight: 600;
-          min-width: 24px;
-          text-align: center;
-        }
-
-        .summary-info {
-          display: flex;
-          gap: 24px;
-          padding: 12px 16px;
-          background: #f8fafc;
-          border-radius: 8px;
-          font-size: 14px;
-          flex-wrap: wrap;
-        }
-
-        .summary-item {
-          display: flex;
-          gap: 6px;
-          align-items: center;
-        }
-
-        .summary-item span {
-          color: #64748b;
-        }
-
-        .summary-item strong {
-          font-size: 16px;
-        }
-
-        .error-alert {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 16px;
-          background: #fee2e2;
-          border: 1px solid #fecaca;
-          border-radius: 8px;
-          color: #dc2626;
-          margin-bottom: 24px;
-        }
-
-        .table-container {
-          background: white;
-          border-radius: 12px;
-          overflow: hidden;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          margin-bottom: 24px;
-        }
-
-        .table-header {
-          padding: 16px 24px;
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .table-info {
-          font-size: 14px;
-          color: #6b7280;
-        }
-
-        .status-filter-indicator {
-          margin-left: 12px;
-          color: #3b82f6;
-          font-weight: 500;
-        }
-
-        .table-wrapper {
-          overflow-x: auto;
-        }
-
-        .attendance-table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        .attendance-table th {
-          padding: 16px 24px;
-          text-align: left;
-          font-size: 14px;
-          font-weight: 600;
-          color: #374151;
-          background: #f9fafb;
-          border-bottom: 1px solid #e5e7eb;
-          cursor: pointer;
-          user-select: none;
-          white-space: nowrap;
-        }
-
-        .attendance-table th:hover {
-          background: #f3f4f6;
-        }
-
-        .sort-indicator {
-          margin-left: 4px;
-        }
-
-        .attendance-table td {
-          padding: 16px 24px;
-          border-bottom: 1px solid #e5e7eb;
-          white-space: nowrap;
-        }
-
-        .attendance-table tr:hover {
-          background: #f9fafb;
-        }
-
-        .employee-name {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .avatar-placeholder {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background: #3b82f6;
-          color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 600;
-          flex-shrink: 0;
-        }
-
-        .department-badge {
-          display: inline-block;
-          padding: 4px 12px;
-          background: #e0f2fe;
-          color: #0369a1;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: 500;
-        }
-
-        .status-badge {
-          display: inline-block;
-          padding: 6px 12px;
-          color: white;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: 500;
-        }
-
-        .overtime-indicator {
-          color: #f59e0b;
-          font-weight: 600;
-          margin-left: 4px;
-        }
-
-        .no-data {
-          text-align: center;
-          padding: 48px;
-          color: #6b7280;
-        }
-
-        .loading-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(255, 255, 255, 0.9);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-        }
-
-        .spinner {
-          width: 40px;
-          height: 40px;
-          border: 4px solid #e5e7eb;
-          border-top-color: #3b82f6;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin-bottom: 16px;
-        }
-
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .loading-indicator {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          padding: 16px;
-          background: #f9fafb;
-          border-radius: 8px;
-          color: #6b7280;
-          margin: 16px 0;
-        }
-
-        .small-spinner {
-          width: 16px;
-          height: 16px;
-          border: 2px solid #e5e7eb;
-          border-top-color: #3b82f6;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
-
-        .pagination {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 24px;
-          padding: 20px;
-        }
-
-        .pagination-btn {
-          padding: 10px 20px;
-          background: #3b82f6;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .pagination-btn:hover:not(:disabled) {
-          background: #2563eb;
-        }
-
-        .pagination-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .page-info {
-          font-size: 14px;
-          color: #374151;
-        }
-
-        .total-info {
-          color: #6b7280;
-        }
-      `}</style>
     </div>
   );
 };
