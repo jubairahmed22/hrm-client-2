@@ -108,3 +108,15 @@ export const getEmployeePerformanceByEmail = async (email, params = {}) => {
   if (!res.ok) throw new Error("Failed to fetch employee performance");
   return res.json();
 };
+
+// Fetch this user's reviews only (by email)
+export const getAllPerformanceReviewsByEmail = async (email, params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `http://localhost:50001/all-performance-reviews-by-email/${encodeURIComponent(
+    email
+  )}${queryString ? `?${queryString}` : ""}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch user reviews");
+  return res.json();
+};
