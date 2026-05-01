@@ -36,6 +36,7 @@ const Attendance = () => {
   };
 
   const isToday = (date) => {
+    if (!date) return false;
     const today = new Date();
     const checkDate = new Date(date);
     return (
@@ -45,37 +46,97 @@ const Attendance = () => {
     );
   };
 
+  // ── ✅ Defensive normalizer — handles every shape your API might return ──
+  const normalizeAttendanceData = (responseData) => {
+    if (!responseData) return { records: [], today: null };
+
+    // Case 1: response.data is an array of attendance records directly
+    if (Array.isArray(responseData)) {
+      return {
+        records: responseData,
+        today: responseData.find((r) => isToday(r.attendanceDate)) || null,
+      };
+    }
+
+    // Case 2: response.data.attendance is the array (most common)
+    if (Array.isArray(responseData.attendance)) {
+      return {
+        records: responseData.attendance,
+        today:
+          responseData.attendance.find((r) => isToday(r.attendanceDate)) ||
+          null,
+      };
+    }
+
+    // Case 3: response.data.attendance is a single object (today-only endpoint)
+    if (
+      responseData.attendance &&
+      typeof responseData.attendance === "object" &&
+      !Array.isArray(responseData.attendance)
+    ) {
+      const single = responseData.attendance;
+      return {
+        records: [single],
+        today: isToday(single.attendanceDate) ? single : null,
+      };
+    }
+
+    // Case 4: response.data IS the single attendance record
+    if (responseData.attendanceDate || responseData.clockInDate) {
+      return {
+        records: [responseData],
+        today: isToday(responseData.attendanceDate) ? responseData : null,
+      };
+    }
+
+    // Nothing usable
+    return { records: [], today: null };
+  };
+
   // ── Fetch full attendance history ─────────────────────────────────────────
   const loadAttendanceData = async () => {
-    if (!employeeId) return;
+    if (!employeeId) {
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setError(null);
 
     try {
-      // Try today's endpoint first (returns the user with attendance array)
+      // Try today's endpoint first
+      let records = [];
+      let today = null;
+
       const res = await fetch(`${API}/attendance/today/${employeeId}`);
       const data = await res.json();
 
       if (data.success && data.data) {
-        const records = data.data.attendance || [];
-        setAllAttendance(records);
+        const norm = normalizeAttendanceData(data.data);
+        records = norm.records;
+        today = norm.today;
+      }
 
-        // Find today's record
-        const todayRecord = records.find((r) => isToday(r.attendanceDate));
-        setTodayAttendance(todayRecord || null);
-      } else {
-        // Fallback to full history endpoint
-        const fallbackRes = await fetch(`${API}/attendance/${employeeId}`);
-        const fallbackData = await fallbackRes.json();
-
-        if (fallbackData.success && fallbackData.data) {
-          const records = fallbackData.data.attendance || [];
-          setAllAttendance(records);
-          const todayRecord = records.find((r) => isToday(r.attendanceDate));
-          setTodayAttendance(todayRecord || null);
+      // If today endpoint didn't give us a full history, fetch the full list
+      if (records.length <= 1) {
+        try {
+          const fallbackRes = await fetch(`${API}/attendance/${employeeId}`);
+          const fallbackData = await fallbackRes.json();
+          if (fallbackData.success && fallbackData.data) {
+            const norm = normalizeAttendanceData(fallbackData.data);
+            if (norm.records.length > records.length) {
+              records = norm.records;
+              today = norm.today || today;
+            }
+          }
+        } catch (fallbackErr) {
+          // Silent — primary endpoint already gave us something
+          console.warn("Full history fallback failed:", fallbackErr);
         }
       }
+
+      setAllAttendance(records);
+      setTodayAttendance(today);
     } catch (err) {
       console.error("Error loading attendance:", err);
       setError(err.message || "Failed to load attendance data");
@@ -87,7 +148,6 @@ const Attendance = () => {
   useEffect(() => {
     loadAttendanceData();
 
-    // Live clock for today's running hours
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
@@ -100,12 +160,13 @@ const Attendance = () => {
     if (!todayAttendance) return 0;
     if (todayAttendance.clockOutDate)
       return Number(todayAttendance.workingHours || 0);
+    if (!todayAttendance.clockInDate) return 0;
 
     const now = currentTime;
     const clockIn = new Date(todayAttendance.clockInDate);
     let totalMinutes = (now - clockIn) / (1000 * 60);
 
-    if (todayAttendance.breaks) {
+    if (Array.isArray(todayAttendance.breaks)) {
       todayAttendance.breaks.forEach((b) => {
         if (b.startDate && b.endDate) {
           totalMinutes -=
@@ -115,103 +176,90 @@ const Attendance = () => {
         }
       });
     }
-    return Number((totalMinutes / 60).toFixed(2));
+    return Number(Math.max(0, totalMinutes / 60).toFixed(2));
   };
 
   const todayHours = calculateCurrentWorkingHours();
 
-  // ── Compute weekly and monthly totals ─────────────────────────────────────
-  const { weeklyHours, monthlyHours, regularHours, overtimeHours } =
-    (() => {
-      if (!allAttendance.length) {
-        return {
-          weeklyHours: todayHours, // include live today
-          monthlyHours: todayHours,
-          regularHours: 0,
-          overtimeHours: 0,
-        };
-      }
+  // ── Compute weekly and monthly totals (defensive) ─────────────────────────
+  const { weeklyHours, monthlyHours, regularHours, overtimeHours } = (() => {
+    // Always work with an array
+    const records = Array.isArray(allAttendance) ? allAttendance : [];
 
-      const now = new Date();
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
-
-      // Start of current week (Sunday-based)
-      const dayOfWeek = now.getDay();
-      const weekStart = new Date(now);
-      weekStart.setDate(now.getDate() - dayOfWeek);
-      weekStart.setHours(0, 0, 0, 0);
-
-      let weekly = 0;
-      let monthly = 0;
-
-      allAttendance.forEach((record) => {
-        const recordDate = new Date(record.attendanceDate);
-        const hours = Number(record.workingHours || 0);
-
-        // Skip today from history sum if it's still in progress — we'll add live value
-        if (isToday(recordDate) && !record.clockOutDate) return;
-
-        // Weekly: from week-start to today
-        if (recordDate >= weekStart && recordDate <= now) {
-          weekly += hours;
-        }
-
-        // Monthly: same month + year
-        if (
-          recordDate.getMonth() === currentMonth &&
-          recordDate.getFullYear() === currentYear
-        ) {
-          monthly += hours;
-        }
-      });
-
-      // Add live today hours if currently clocked in
-      if (todayAttendance && !todayAttendance.clockOutDate) {
-        weekly += todayHours;
-        monthly += todayHours;
-      }
-
-      // Overtime = anything above 8h per day for this month
-      let regular = 0;
-      let overtime = 0;
-
-      allAttendance.forEach((record) => {
-        const recordDate = new Date(record.attendanceDate);
-        if (
-          recordDate.getMonth() === currentMonth &&
-          recordDate.getFullYear() === currentYear
-        ) {
-          // skip in-progress today; we'll handle it separately
-          if (isToday(recordDate) && !record.clockOutDate) return;
-
-          const hours = Number(record.workingHours || 0);
-          if (hours > 8) {
-            regular += 8;
-            overtime += hours - 8;
-          } else {
-            regular += hours;
-          }
-        }
-      });
-
-      // Add live today's split
-      if (todayAttendance && !todayAttendance.clockOutDate) {
-        if (todayHours > 8) {
-          regular += 8;
-          overtime += todayHours - 8;
-        } else {
-          regular += todayHours;
-        }
-      }
-
+    if (records.length === 0) {
       return {
-        weeklyHours: Number(weekly.toFixed(2)),
-        monthlyHours: Number(monthly.toFixed(2)),
-        regularHours: Number(regular.toFixed(2)),
-        overtimeHours: Number(overtime.toFixed(2)),
+        weeklyHours: todayHours,
+        monthlyHours: todayHours,
+        regularHours: todayHours <= 8 ? todayHours : 8,
+        overtimeHours: todayHours > 8 ? todayHours - 8 : 0,
       };
-    })();
+    }
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Sunday-based week start
+    const dayOfWeek = now.getDay();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - dayOfWeek);
+    weekStart.setHours(0, 0, 0, 0);
+
+    let weekly = 0;
+    let monthly = 0;
+    let regular = 0;
+    let overtime = 0;
+
+    records.forEach((record) => {
+      if (!record || !record.attendanceDate) return;
+
+      const recordDate = new Date(record.attendanceDate);
+      if (isNaN(recordDate.getTime())) return;
+
+      const hours = Number(record.workingHours || 0);
+
+      // Skip in-progress today record from history sum
+      if (isToday(recordDate) && !record.clockOutDate) return;
+
+      // Weekly window
+      if (recordDate >= weekStart && recordDate <= now) {
+        weekly += hours;
+      }
+
+      // Monthly window + regular/overtime split
+      if (
+        recordDate.getMonth() === currentMonth &&
+        recordDate.getFullYear() === currentYear
+      ) {
+        monthly += hours;
+        if (hours > 8) {
+          regular += 8;
+          overtime += hours - 8;
+        } else {
+          regular += hours;
+        }
+      }
+    });
+
+    // Add live today hours
+    if (todayAttendance && !todayAttendance.clockOutDate) {
+      weekly += todayHours;
+      monthly += todayHours;
+      if (todayHours > 8) {
+        regular += 8;
+        overtime += todayHours - 8;
+      } else {
+        regular += todayHours;
+      }
+    }
+
+    return {
+      weeklyHours: Number(weekly.toFixed(2)),
+      monthlyHours: Number(monthly.toFixed(2)),
+      regularHours: Number(regular.toFixed(2)),
+      overtimeHours: Number(overtime.toFixed(2)),
+    };
+  })();
 
   // ── Loading state ─────────────────────────────────────────────────────────
   if (loading) {
@@ -266,14 +314,15 @@ const Attendance = () => {
                     </span>
                   </div>
                 )}
-                {todayAttendance.breaks?.length > 0 && (
-                  <div className="flex justify-between">
-                    <span>Breaks:</span>
-                    <span className="font-medium">
-                      {todayAttendance.breaks.length} taken
-                    </span>
-                  </div>
-                )}
+                {Array.isArray(todayAttendance.breaks) &&
+                  todayAttendance.breaks.length > 0 && (
+                    <div className="flex justify-between">
+                      <span>Breaks:</span>
+                      <span className="font-medium">
+                        {todayAttendance.breaks.length} taken
+                      </span>
+                    </div>
+                  )}
                 {!todayAttendance.clockOutDate && (
                   <div className="flex items-center gap-2 mt-3 text-emerald-700 text-xs font-medium">
                     <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
@@ -313,7 +362,7 @@ const Attendance = () => {
               <div className="flex justify-between text-xs text-gray-500 mt-1">
                 <span>Target: 40h per week</span>
                 <span className="font-medium">
-                  {Math.min(((weeklyHours / 40) * 100).toFixed(0), 100)}%
+                  {Math.min(Math.round((weeklyHours / 40) * 100), 100)}%
                 </span>
               </div>
             </div>
