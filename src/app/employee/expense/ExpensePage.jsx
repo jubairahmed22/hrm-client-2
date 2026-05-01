@@ -49,7 +49,7 @@ const ExpensePage = () => {
   const searchParams = useSearchParams();
 
   // Get active tab from URL or default to 'categories'
-  const activeTab = searchParams.get("tab") || "categories";
+  const activeTab = searchParams.get("tab") || "requests";
 
   const { categories, loading, pagination, fetchAllCategories } = useExpense();
 
