@@ -3,10 +3,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { usePerformance } from "@/app/hook/usePerformance";
 import {
-  Search, Users, Loader2, Star, Eye, ChevronRight,
+  Users, Loader2, Star, Eye, ChevronRight,
   Clock, AlertCircle, CheckCircle, TrendingUp,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,68 +16,62 @@ import ReviewDialog from "./ReviewDialog";
 
 const PerformanceAppraisals = () => {
   const { UserAllDetails } = useAuth();
+  const userEmail = UserAllDetails?.email;
 
   const {
-    employees,
-    pagination,
+    myPerformance,         // ✅ single-employee data from fetchByEmail
     loading,
-    filters,            // ✅ designations[] + departments[]
-    fetchEmployeePerformance,
+    fetchByEmail,
   } = usePerformance();
 
-  const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [departmentFilter, setDepartmentFilter] = useState("all");      // ✅ NEW
-  const [designationFilter, setDesignationFilter] = useState("all");    // ✅ NEW
-  const [currentPage, setCurrentPage] = useState(1);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [selectedEmp, setSelectedEmp] = useState(null);
 
-  // ── data load ──────────────────────────────────────────────────────────────
-  const loadEmployees = useCallback(() => {
-    fetchEmployeePerformance({
-      page: currentPage,
-      search: searchTerm,
+  // ── Load this user's performance ──────────────────────────────────────────
+  const loadMyPerformance = useCallback(() => {
+    if (!userEmail) return;
+    fetchByEmail(userEmail, {
       status: statusFilter === "all" ? "" : statusFilter,
-      department: departmentFilter === "all" ? "" : departmentFilter,
-      designation: designationFilter === "all" ? "" : designationFilter,
     });
-  }, [currentPage, searchTerm, statusFilter, departmentFilter, designationFilter, fetchEmployeePerformance]);
+  }, [userEmail, statusFilter, fetchByEmail]);
 
   useEffect(() => {
-    loadEmployees();
-  }, [loadEmployees]);
+    loadMyPerformance();
+  }, [loadMyPerformance]);
 
+  // ── Refresh when reviews are added/deleted elsewhere ─────────────────────
   useEffect(() => {
-    const handleRefresh = () => loadEmployees();
+    const handleRefresh = () => loadMyPerformance();
     window.addEventListener("refresh-performance-list", handleRefresh);
-    return () => window.removeEventListener("refresh-performance-list", handleRefresh);
-  }, [loadEmployees]);
+    return () =>
+      window.removeEventListener("refresh-performance-list", handleRefresh);
+  }, [loadMyPerformance]);
 
   const handleOpenReview = (emp) => {
     setSelectedEmp(emp);
     setIsReviewOpen(true);
   };
 
-  // ── status badge helper ───────────────────────────────────────────────────
+  // ── Status badge helper ───────────────────────────────────────────────────
   const getStatusBadge = (status) => {
     const map = {
-      pending:    { cls: "bg-amber-50 text-amber-700",    icon: Clock,         text: "Manager Review" },
-      in_review:  { cls: "bg-blue-50 text-blue-700",      icon: AlertCircle,   text: "Dept Head Review" },
-      hr_review:  { cls: "bg-purple-50 text-purple-700",  icon: AlertCircle,   text: "HR Review" },
-      ceo_review: { cls: "bg-orange-50 text-orange-700",  icon: AlertCircle,   text: "CEO Review" },
-      approved:   { cls: "bg-emerald-50 text-emerald-700",icon: CheckCircle,   text: "Approved" },
-      rejected:   { cls: "bg-red-50 text-red-700",        icon: AlertCircle,   text: "Rejected" },
+      pending:    { cls: "bg-amber-50 text-amber-700",     icon: Clock,       text: "Manager Review" },
+      in_review:  { cls: "bg-blue-50 text-blue-700",       icon: AlertCircle, text: "Dept Head Review" },
+      hr_review:  { cls: "bg-purple-50 text-purple-700",   icon: AlertCircle, text: "HR Review" },
+      ceo_review: { cls: "bg-orange-50 text-orange-700",   icon: AlertCircle, text: "CEO Review" },
+      approved:   { cls: "bg-emerald-50 text-emerald-700", icon: CheckCircle, text: "Approved" },
+      rejected:   { cls: "bg-red-50 text-red-700",         icon: AlertCircle, text: "Rejected" },
     };
     return map[status] || { cls: "bg-slate-50 text-slate-600", icon: Clock, text: status || "—" };
   };
 
-  // ── workflow strip ────────────────────────────────────────────────────────
+  // ── Workflow strip ────────────────────────────────────────────────────────
   const WorkflowStrip = ({ latestReview }) => {
     const stages = [
-      { key: "manager",   label: "Manager",   reviewerName: latestReview?.reviewer?.name || "—" },
-      { key: "dept_head", label: "Dept. Head",reviewerName: "—" },
-      { key: "hr_head",   label: "HR Head",   reviewerName: "—" },
+      { key: "manager",   label: "Manager",    reviewerName: latestReview?.reviewer?.name || "—" },
+      { key: "dept_head", label: "Dept. Head", reviewerName: "—" },
+      { key: "hr_head",   label: "HR Head",    reviewerName: "—" },
     ];
 
     const status = latestReview?.status;
@@ -130,6 +123,10 @@ const PerformanceAppraisals = () => {
     );
   };
 
+  // ── Build a list of "appraisal entries" — one card per review ─────────────
+  // myPerformance has performanceReviews[]; we render a card per review using the user's identity.
+  const reviews = myPerformance?.performanceReviews || [];
+
   return (
     <div className="space-y-6">
 
@@ -139,9 +136,9 @@ const PerformanceAppraisals = () => {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-base font-semibold text-slate-900">
               <Users className="w-5 h-5" />
-              Performance Appraisals
+              My Performance Appraisals
               <Badge variant="outline" className="ml-2">
-                Management Authority
+                Self View
               </Badge>
             </CardTitle>
           </div>
@@ -149,52 +146,11 @@ const PerformanceAppraisals = () => {
 
         <CardContent>
 
-          {/* Filters — same row layout, just added 2 more dropdowns */}
+          {/* Filters — only status remains, since we're viewing just our own data */}
           <div className="flex items-center flex-wrap gap-4 mb-6">
-            <div className="flex-1 min-w-[200px]">
-              <Input
-                placeholder="Search appraisals..."
-                value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="max-w-sm"
-              />
-            </div>
-
-            <Select
-              value={departmentFilter}
-              onValueChange={(v) => { setDepartmentFilter(v); setCurrentPage(1); }}
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="All Departments" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
-                {filters?.departments?.map((dept) => (
-                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={designationFilter}
-              onValueChange={(v) => { setDesignationFilter(v); setCurrentPage(1); }}
-            >
-              <SelectTrigger className="w-52">
-                <SelectValue placeholder="All Designations" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Designations</SelectItem>
-                {filters?.designations?.map((d) => (
-                  <SelectItem key={d} value={d}>
-                    {d.replace(/_/g, " ")}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
             <Select
               value={statusFilter}
-              onValueChange={(v) => { setStatusFilter(v); setCurrentPage(1); }}
+              onValueChange={(v) => setStatusFilter(v)}
             >
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="All Statuses" />
@@ -208,42 +164,71 @@ const PerformanceAppraisals = () => {
                 <SelectItem value="approved">Completed</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* Summary stats from myPerformance */}
+            {myPerformance && (
+              <div className="flex items-center gap-4 ml-auto text-sm">
+                <div className="flex items-center gap-1">
+                  <Star className="w-4 h-4 text-yellow-500 fill-yellow-400" />
+                  <span className="font-semibold text-slate-700">
+                    {Number(myPerformance.averageRating || 0).toFixed(1)}/5.0
+                  </span>
+                  <span className="text-slate-500 text-xs">avg</span>
+                </div>
+                <div className="text-slate-300">|</div>
+                <div className="text-slate-700">
+                  <span className="font-semibold">{myPerformance.totalReviews || 0}</span>{" "}
+                  <span className="text-xs text-slate-500">reviews</span>
+                </div>
+                {myPerformance.achievements > 0 && (
+                  <>
+                    <div className="text-slate-300">|</div>
+                    <Badge className="bg-yellow-100 text-yellow-700">
+                      🏆 {myPerformance.achievements} achievement
+                      {myPerformance.achievements !== 1 ? "s" : ""}
+                    </Badge>
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Appraisals List */}
           <div className="space-y-4">
-            {loading && employees.length === 0 ? (
+            {loading && reviews.length === 0 ? (
               <div className="text-center py-8">
                 <Loader2 className="animate-spin mx-auto text-blue-500 w-8 h-8 mb-2" />
                 <p className="text-gray-500">Loading appraisals...</p>
               </div>
-            ) : employees.length === 0 ? (
-              <div className="text-center py-8">
+            ) : !myPerformance || reviews.length === 0 ? (
+              <div className="text-center py-12">
                 <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">No performance appraisals found</p>
+                <p className="text-gray-500 font-semibold">
+                  No performance appraisals found
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {statusFilter === "all"
+                    ? "Your reviews will appear here once managers add them."
+                    : "No reviews match the selected status."}
+                </p>
               </div>
             ) : (
-              employees.map((emp) => {
-                const reviewCount = emp.totalReviews || 0;
-                const avgRating = emp.averageRating
-                  ? Number(emp.averageRating).toFixed(1)
-                  : "0.0";
-                const latestReview = emp.latestReview;
-                const statusBadge = getStatusBadge(latestReview?.status);
+              reviews.map((review) => {
+                const statusBadge = getStatusBadge(review.status);
                 const StatusIcon = statusBadge.icon;
-                const createdDate = latestReview?.createdAt
-                  ? new Date(latestReview.createdAt).toLocaleDateString("en-CA")
+                const createdDate = review?.createdAt
+                  ? new Date(review.createdAt).toLocaleDateString("en-CA")
                   : "—";
-                const period = latestReview?.appraisalPeriod || "2024-Annual";
-                const apprType = latestReview?.appraisalType || "Annual";
+                const period = review?.appraisalPeriod || "2024-Annual";
+                const apprType = review?.appraisalType || "Annual";
 
-                const managerComments  = latestReview?.feedback || latestReview?.managerComments;
-                const deptHeadComments = latestReview?.deptHeadComments;
-                const hrComments       = latestReview?.hrComments;
-                const ceoComments      = latestReview?.ceoComments;
+                const managerComments  = review?.feedback || review?.managerComments;
+                const deptHeadComments = review?.deptHeadComments;
+                const hrComments       = review?.hrComments;
+                const ceoComments      = review?.ceoComments;
 
                 return (
-                  <Card key={emp._id} className="border-l-4 border-l-indigo-500">
+                  <Card key={review._id} className="border-l-4 border-l-indigo-500">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
 
@@ -251,7 +236,7 @@ const PerformanceAppraisals = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-semibold text-slate-600 text-sm">
-                              {emp.fullName
+                              {myPerformance.fullName
                                 ?.split(" ")
                                 .map((n) => n[0])
                                 .join("")
@@ -259,9 +244,10 @@ const PerformanceAppraisals = () => {
                                 .slice(0, 2) || "U"}
                             </div>
                             <div>
-                              <h3 className="font-semibold">{emp.fullName}</h3>
+                              <h3 className="font-semibold">{myPerformance.fullName}</h3>
                               <p className="text-sm text-gray-600">
-                                {emp.designation?.replace(/_/g, " ") || "—"} • {emp.department || "—"}
+                                {myPerformance.designation?.replace(/_/g, " ") || "—"} •{" "}
+                                {myPerformance.department || "—"}
                               </p>
                             </div>
                           </div>
@@ -273,15 +259,25 @@ const PerformanceAppraisals = () => {
                               <p className="text-xs text-gray-600 capitalize">{apprType}</p>
                             </div>
                             <div>
-                              <label className="text-xs text-gray-500">Current Rating</label>
+                              <label className="text-xs text-gray-500">Rating</label>
                               <div className="flex items-center gap-1 mt-1">
-                                <Star className="w-4 h-4 text-yellow-500" />
-                                <span className="text-sm font-medium">{avgRating}/5.0</span>
+                                <Star className="w-4 h-4 text-yellow-500 fill-yellow-400" />
+                                <span className="text-sm font-medium">
+                                  {review.rating || 0}/5.0
+                                </span>
                               </div>
+                              {review.score !== undefined && (
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                  Score: {review.score}
+                                </p>
+                              )}
                             </div>
                             <div>
                               <label className="text-xs text-gray-500">Created</label>
                               <p className="text-sm font-medium mt-1">{createdDate}</p>
+                              <p className="text-xs text-gray-600 truncate max-w-[140px]">
+                                By {review.reviewer?.name || "—"}
+                              </p>
                             </div>
                             <div>
                               <label className="text-xs text-gray-500">Status</label>
@@ -297,7 +293,7 @@ const PerformanceAppraisals = () => {
                           <div className="mt-4">
                             <label className="text-xs text-gray-500">Workflow Progress</label>
                             <div className="mt-2">
-                              <WorkflowStrip latestReview={latestReview} />
+                              <WorkflowStrip latestReview={review} />
                             </div>
                           </div>
 
@@ -330,23 +326,15 @@ const PerformanceAppraisals = () => {
                           )}
                         </div>
 
-                        {/* RIGHT SECTION — Action Buttons */}
+                        {/* RIGHT SECTION — single Details button (Add Review removed for self-view) */}
                         <div className="flex flex-row gap-2 ml-4">
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleOpenReview(emp)}
+                            onClick={() => handleOpenReview(myPerformance)}
                           >
                             <Eye className="w-4 h-4 mr-1" />
                             Details
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleOpenReview(emp)}
-                            className="bg-amber-500 hover:bg-amber-600 text-white"
-                          >
-                            <Star className="w-4 h-4 mr-1" />
-                            Add Review
                           </Button>
                         </div>
                       </div>
@@ -356,33 +344,6 @@ const PerformanceAppraisals = () => {
               })
             )}
           </div>
-
-          {/* Pagination */}
-          {employees.length > 0 && (
-            <div className="flex justify-between items-center mt-6 pt-4 border-t">
-              <p className="text-sm text-slate-500">
-                Page {pagination?.page || 1} of {pagination?.totalPages || 1} • {pagination?.totalEmployees || 0} total
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={currentPage === 1 || loading}
-                  onClick={() => setCurrentPage((p) => p - 1)}
-                >
-                  Prev
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={currentPage === pagination?.totalPages || loading}
-                  onClick={() => setCurrentPage((p) => p + 1)}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -391,7 +352,7 @@ const PerformanceAppraisals = () => {
         onClose={() => setIsReviewOpen(false)}
         selectedEmployee={selectedEmp}
         reviewerData={UserAllDetails}
-        refreshEmployees={loadEmployees}
+        refreshEmployees={loadMyPerformance}
       />
     </div>
   );

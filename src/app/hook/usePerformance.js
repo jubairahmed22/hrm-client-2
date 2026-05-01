@@ -7,6 +7,7 @@ import {
   getEmployeePerformanceHistory,
   deletePerformanceReview,
   getEmployeePerformance,
+  getEmployeePerformanceByEmail,
 } from "../api/performance";
 
 /* ================= SHARED STATE ================= */
@@ -28,6 +29,10 @@ let sharedPagination = { page: 1, totalPages: 1, totalEmployees: 0 };
 let sharedPerformanceStats = { avgRating: "0.0", totalReviews: 0 };
 let sharedPerformanceLoading = false;
 let sharedPerformanceError = null;
+
+// ✅ NEW — shared state for the single-employee-by-email lookup
+let sharedMyPerformance = null;
+
 let performanceListeners = [];
 
 const notifyPerformance = () => {
@@ -41,6 +46,7 @@ export function usePerformance() {
   const [filters, setFilters] = useState(sharedFilters);
   const [pagination, setPagination] = useState(sharedPagination);
   const [stats, setStats] = useState(sharedPerformanceStats);
+  const [myPerformance, setMyPerformance] = useState(sharedMyPerformance); // ✅ NEW
   const [loading, setLoading] = useState(sharedPerformanceLoading);
   const [error, setError] = useState(sharedPerformanceError);
 
@@ -53,6 +59,7 @@ export function usePerformance() {
       setFilters({ ...sharedFilters });
       setPagination({ ...sharedPagination });
       setStats({ ...sharedPerformanceStats });
+      setMyPerformance(sharedMyPerformance ? { ...sharedMyPerformance } : null); // ✅ NEW
       setLoading(sharedPerformanceLoading);
       setError(sharedPerformanceError);
     };
@@ -160,6 +167,39 @@ export function usePerformance() {
     }
   }, []);
 
+  /* ================= ✅ FETCH BY EMAIL (single employee) ================= */
+  const fetchByEmail = useCallback(async (email, params = {}) => {
+    if (!email) return null;
+    try {
+      sharedPerformanceLoading = true;
+      notifyPerformance();
+
+      // Strip empty values from params
+      const cleanParams = Object.fromEntries(
+        Object.entries(params).filter(
+          ([, v]) => v !== "" && v !== null && v !== undefined
+        )
+      );
+
+      const result = await getEmployeePerformanceByEmail(email, cleanParams);
+
+      if (result?.success) {
+        sharedMyPerformance = result.data;
+      } else {
+        sharedMyPerformance = null;
+      }
+      sharedPerformanceError = null;
+
+      return result;
+    } catch (err) {
+      sharedPerformanceError = err.message || "Failed to fetch performance";
+      throw err;
+    } finally {
+      sharedPerformanceLoading = false;
+      notifyPerformance();
+    }
+  }, []);
+
   /* ================= SUBMIT REVIEW ================= */
   const submitReview = useCallback(
     async (reviewData) => {
@@ -211,9 +251,10 @@ export function usePerformance() {
     reviews,
     employees,
     counts,
-    filters,         // ✅ NEW — has designations[] and departments[]
+    filters,         // designations[] and departments[]
     pagination,
     stats,
+    myPerformance,   // ✅ NEW — single-employee data from fetchByEmail
     loading,
     error,
 
@@ -221,6 +262,7 @@ export function usePerformance() {
     fetchAllReviews,
     fetchEmployeeHistory,
     fetchEmployeePerformance,
+    fetchByEmail,    // ✅ NEW
     submitReview,
     removeReview,
   };
