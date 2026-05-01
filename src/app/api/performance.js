@@ -100,7 +100,7 @@ export const getEmployeePerformance = async (params = {}) => {
 // Fetch single employee's performance by email
 export const getEmployeePerformanceByEmail = async (email, params = {}) => {
   const queryString = new URLSearchParams(params).toString();
-  const url = `${API_BASE}/get-employee-performance-by-email/${encodeURIComponent(
+  const url = `http://localhost:50001/get-employee-performance-by-email/${encodeURIComponent(
     email
   )}${queryString ? `?${queryString}` : ""}`;
 
