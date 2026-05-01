@@ -6,9 +6,11 @@ import {
   AlertCircle,
   CheckCircle,
   Loader2,
+  Star,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/context/AuthContext";
 import { usePerformance } from "@/app/hook/usePerformance";
 
 // 4 workflow stages
@@ -68,24 +70,35 @@ const getStatusInfo = (status) => {
 };
 
 const ApprovalWorkflow = () => {
-  const { reviews, loading, fetchAllReviews } = usePerformance();
+  const { UserAllDetails } = useAuth();
+  const userEmail = UserAllDetails?.email;
 
-  // ── Fetch all reviews on mount ────────────────────────────────────────────
+  const {
+    myReviews,
+    myReviewsStats,
+    loading,
+    fetchMyReviews,
+  } = usePerformance();
+
+  // ── Fetch this user's reviews on mount ────────────────────────────────────
   useEffect(() => {
-    fetchAllReviews();
-  }, [fetchAllReviews]);
+    if (userEmail) fetchMyReviews(userEmail);
+  }, [userEmail, fetchMyReviews]);
 
   // ── Auto-refresh on global event (after submit/delete) ───────────────────
   useEffect(() => {
-    const handleRefresh = () => fetchAllReviews();
+    const handleRefresh = () => {
+      if (userEmail) fetchMyReviews(userEmail);
+    };
     window.addEventListener("refresh-performance-list", handleRefresh);
-    return () => window.removeEventListener("refresh-performance-list", handleRefresh);
-  }, [fetchAllReviews]);
+    return () =>
+      window.removeEventListener("refresh-performance-list", handleRefresh);
+  }, [userEmail, fetchMyReviews]);
 
   // ── Format date helper ────────────────────────────────────────────────────
   const formatDate = (date) => {
     if (!date) return "—";
-    return new Date(date).toLocaleDateString("en-CA"); // YYYY-MM-DD
+    return new Date(date).toLocaleDateString("en-CA");
   };
 
   return (
@@ -94,7 +107,7 @@ const ApprovalWorkflow = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5" />
-            Performance Appraisal Workflow
+            My Performance Appraisal Workflow
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -143,14 +156,67 @@ const ApprovalWorkflow = () => {
               </div>
             </div>
 
-            {/* Pending Reviews by Role — counts driven from real reviews */}
+            {/* Quick Stats from myReviewsStats */}
+            {myReviewsStats?.totalReviews > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="bg-amber-50 border-amber-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs uppercase font-semibold tracking-wider text-amber-700">
+                          Total Reviews
+                        </p>
+                        <p className="text-2xl font-bold text-amber-800 mt-1">
+                          {myReviewsStats.totalReviews}
+                        </p>
+                      </div>
+                      <Settings className="w-8 h-8 text-amber-600 opacity-60" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-yellow-50 border-yellow-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs uppercase font-semibold tracking-wider text-yellow-700">
+                          Avg Rating
+                        </p>
+                        <p className="text-2xl font-bold text-yellow-800 mt-1 flex items-center gap-1">
+                          <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                          {Number(myReviewsStats.avgRating).toFixed(1)}/5
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-blue-50 border-blue-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs uppercase font-semibold tracking-wider text-blue-700">
+                          Avg Score
+                        </p>
+                        <p className="text-2xl font-bold text-blue-800 mt-1">
+                          {Number(myReviewsStats.avgScore).toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Pending Reviews by Stage — counts from MY reviews only */}
             <div>
-              <h3 className="font-semibold mb-4">Pending Reviews by Role</h3>
+              <h3 className="font-semibold mb-4">My Reviews by Stage</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {Object.entries(STATUS_LABELS).map(([status, label]) => {
-                  const pendingCount = reviews.filter(
-                    (r) => r.status === status
-                  ).length;
+                  // Use the API-computed statusBreakdown if available, else compute client-side
+                  const count =
+                    myReviewsStats?.statusBreakdown?.[status] ??
+                    myReviews.filter((r) => r.status === status).length;
 
                   return (
                     <Card
@@ -161,7 +227,7 @@ const ApprovalWorkflow = () => {
                         <div className="text-center">
                           <h4 className="font-medium text-sm">{label}</h4>
                           <p className="text-2xl font-bold text-yellow-600 mt-2">
-                            {loading ? "..." : pendingCount}
+                            {loading ? "..." : count}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">Pending</p>
                         </div>
@@ -172,24 +238,24 @@ const ApprovalWorkflow = () => {
               </div>
             </div>
 
-            {/* Recent Activity — REAL DATA from fetchAllReviews */}
+            {/* Recent Activity — only my reviews */}
             <div>
-              <h3 className="font-semibold mb-4">Recent Appraisal Activity</h3>
+              <h3 className="font-semibold mb-4">My Recent Appraisal Activity</h3>
 
-              {loading && reviews.length === 0 ? (
+              {loading && myReviews.length === 0 ? (
                 <div className="py-8 text-center">
                   <Loader2 className="animate-spin mx-auto text-blue-500 w-6 h-6 mb-2" />
                   <p className="text-sm text-slate-500">Loading recent activity...</p>
                 </div>
-              ) : reviews.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">
-                  No recent activity
+              ) : myReviews.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">
+                  No reviews for you yet
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {reviews
+                  {myReviews
                     .filter((r) => r.status !== "draft")
-                    .slice() // copy before sort to avoid mutating shared state
+                    .slice()
                     .sort(
                       (a, b) =>
                         new Date(b.createdAt).getTime() -
@@ -203,7 +269,7 @@ const ApprovalWorkflow = () => {
                           key={review._id}
                           className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                         >
-                          <div>
+                          <div className="flex-1 min-w-0">
                             <p className="font-medium">
                               {review.reviewee?.name || "Unknown"}
                             </p>
@@ -217,7 +283,7 @@ const ApprovalWorkflow = () => {
                               </p>
                             )}
                           </div>
-                          <div className="text-right">
+                          <div className="text-right ml-4">
                             <p className="text-xs text-gray-500">
                               Created: {formatDate(review.createdAt)}
                             </p>
