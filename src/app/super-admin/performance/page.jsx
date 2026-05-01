@@ -14,7 +14,7 @@ const Page = () => {
   const searchParams = useSearchParams();
 
   // Get active tab from URL or default to 'appraisals'
-  const activeTab = searchParams.get("tab") || "appraisals"; safa
+  const activeTab = searchParams.get("tab") || "appraisals";
 
   // Tab change handler — updates URL without page reload
   const handleTabChange = (val) => {
