@@ -16,6 +16,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Today from "./Emp-dash-compo/Today";
+import Attendance from "./Emp-dash-compo/Attendance";
 
 const mockData = {
   user: {
@@ -110,13 +111,7 @@ export default function EmployeeDashboard() {
           </TabsContent>
 
           <TabsContent value="attendance">
-            <Card>
-              <CardContent className="p-10 text-center">
-                <Clock className="w-12 h-12 mx-auto text-blue-500 mb-4" />
-                <h3 className="text-lg font-bold">Attendance History</h3>
-                <p className="text-gray-500">View your detailed punch-in and punch-out logs here.</p>
-              </CardContent>
-            </Card>
+            <Attendance></Attendance>
           </TabsContent>
 
           <TabsContent value="leave">
