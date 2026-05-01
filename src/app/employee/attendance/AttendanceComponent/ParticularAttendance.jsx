@@ -1,36 +1,48 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card';
-import { Badge } from '../../../../components/ui/badge';
+import {
+  Card, CardContent, CardHeader, CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import {
+  Clock, Calendar, Users, CheckCircle, FilterIcon, Loader2, AlertCircle,
+} from "lucide-react";
 
-import { Clock, Calendar, Users, MapPin, CheckCircle, User, FilterIcon } from 'lucide-react';
 // ---------------------------
-// Small reusable components
+// Reusable Stat Card
 // ---------------------------
-const StatCard = ({ 
-  title, 
-  value, 
-  icon: Icon, 
-  extraClass = "", 
-  isActive = false, 
-  onClick 
-}) => (
-  <Card 
-    className={`cursor-pointer transition-all hover:shadow-lg ${isActive ? 'ring-2 ring-blue-500' : ''}`}
+const StatCard = ({ title, value, icon: Icon, iconColor = "text-blue-600", isActive = false, onClick }) => (
+  <Card
     onClick={onClick}
+    className={`border shadow-sm rounded-xl bg-white cursor-pointer transition-all ${
+      isActive
+        ? "border-blue-500 ring-2 ring-blue-100"
+        : "border-slate-100 hover:border-blue-200"
+    }`}
   >
-    <CardContent className="p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-gray-600">{title}</p>
-          <p className={`text-2xl font-semibold ${extraClass}`}>{value}</p>
-        </div>
-        {Icon && <Icon className="w-8 h-8 text-red-600" />}
+    <CardContent className="p-5 flex items-center justify-between">
+      <div className="space-y-1">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+          {title}
+        </p>
+        <h4 className={`text-2xl font-black ${iconColor}`}>{value}</h4>
       </div>
+      {Icon && <Icon className={`w-7 h-7 ${iconColor}`} />}
     </CardContent>
   </Card>
 );
 
+// ---------------------------
+// Reusable Attendance Row
+// ---------------------------
 const AttendanceRow = ({ record }) => {
   const formatDate = (date) =>
     new Date(date).toLocaleDateString("en-US", {
@@ -46,46 +58,46 @@ const AttendanceRow = ({ record }) => {
     });
 
   const getStatusBadgeClass = (status) => {
-    switch (status) {
-      case "On-time":
-        return "bg-green-100 text-green-700";
-      case "Late":
-        return "bg-red-100 text-red-700";
-      case "Absent":
-        return "bg-yellow-100 text-yellow-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
+    const map = {
+      "On-time": "bg-emerald-50 text-emerald-600 border-emerald-200",
+      Late: "bg-red-50 text-red-600 border-red-200",
+      Absent: "bg-amber-50 text-amber-600 border-amber-200",
+    };
+    return map[status] || "bg-slate-50 text-slate-500 border-slate-200";
   };
 
   return (
-    <tr className="border-b border-gray-100 hover:bg-gray-50">
-      <td className="py-3 px-4">{formatDate(record.attendanceDate)}</td>
-      <td className="py-3 px-4">
+    <TableRow className="hover:bg-slate-50 transition-colors">
+      <TableCell className="text-slate-700 text-sm">
+        {formatDate(record.attendanceDate)}
+      </TableCell>
+      <TableCell className="text-slate-600 text-sm">
         {new Date(record.attendanceDate).toLocaleDateString("en-US", {
           weekday: "short",
         })}
-      </td>
-      <td className="py-3 px-4">{formatTime(record.clockInDate)}</td>
-      <td className="py-3 px-4">
+      </TableCell>
+      <TableCell className="text-emerald-600 font-semibold text-sm">
+        {record.clockInDate ? formatTime(record.clockInDate) : "N/A"}
+      </TableCell>
+      <TableCell className="text-red-500 font-semibold text-sm">
         {record.clockOutDate ? formatTime(record.clockOutDate) : "N/A"}
-      </td>
-      <td className="py-3 px-4">
+      </TableCell>
+      <TableCell className="text-slate-700 font-semibold text-sm">
         {record.workingHours ? `${record.workingHours.toFixed(2)}h` : "N/A"}
-      </td>
-      <td className="py-3 px-4">
+      </TableCell>
+      <TableCell className="text-slate-600 text-sm">
         {record.breaks?.length ? `${record.breaks.length} break(s)` : "No breaks"}
-      </td>
-      <td className="py-3 px-4">
+      </TableCell>
+      <TableCell>
         <span
-          className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(
+          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${getStatusBadgeClass(
             record.status
           )}`}
         >
           {record.status}
         </span>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 };
 
@@ -100,33 +112,32 @@ const ParticularAttendance = ({ employeeId }) => {
   const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
   const [limit, setLimit] = useState(30);
   const [activeTab, setActiveTab] = useState("all");
-  
-  // Calculate absent days (working days without attendance record, excluding Sundays)
-  // Calculate absent days (working days without attendance record, excluding Sundays)
+
+  // Calculate absent days (excluding Sundays)
   const calculateAbsentDays = (attendanceRecords, startDate, endDate) => {
     if (!attendanceRecords || !attendanceRecords.length) return [];
-    
+
     const absentDays = [];
     const attendedDates = new Set(
-      attendanceRecords.map(record => 
+      attendanceRecords.map((record) =>
         new Date(record.attendanceDate).toDateString()
       )
     );
-    
-    // SOLVED: Changed from 'const' to 'let' to allow reassignment/swapping
-    let currentDate = startDate ? new Date(startDate) : new Date(attendanceRecords[attendanceRecords.length - 1].attendanceDate);
-    let endDateObj = endDate ? new Date(endDate) : new Date(attendanceRecords[0].attendanceDate);
-    
-    // Now this destructuring swap works because the variables are 'let'
+
+    let currentDate = startDate
+      ? new Date(startDate)
+      : new Date(attendanceRecords[attendanceRecords.length - 1].attendanceDate);
+    let endDateObj = endDate
+      ? new Date(endDate)
+      : new Date(attendanceRecords[0].attendanceDate);
+
     if (currentDate > endDateObj) {
       [currentDate, endDateObj] = [endDateObj, currentDate];
     }
-    
-    // Use a fresh instance for the loop to avoid side effects
+
     let loopDate = new Date(currentDate);
 
     while (loopDate <= endDateObj) {
-      // Skip Sundays (day 0)
       if (loopDate.getDay() !== 0) {
         const dateStr = loopDate.toDateString();
         if (!attendedDates.has(dateStr)) {
@@ -136,19 +147,18 @@ const ParticularAttendance = ({ employeeId }) => {
             clockInDate: null,
             clockOutDate: null,
             workingHours: 0,
-            day: loopDate.toLocaleDateString("en-US", { weekday: "long" })
+            day: loopDate.toLocaleDateString("en-US", { weekday: "long" }),
           });
         }
       }
-      // Increment the date
       loopDate.setDate(loopDate.getDate() + 1);
     }
-    
+
     return absentDays;
   };
 
   // ---------------------------
-  // Fetch Attendance Data
+  // Fetch Attendance
   // ---------------------------
   const fetchAttendanceData = async () => {
     try {
@@ -164,20 +174,25 @@ const ParticularAttendance = ({ employeeId }) => {
       if (response.data.success) {
         const data = response.data.data;
         setOriginalData(data);
-        
-        // Calculate absent days
-        const startDate = dateRange.startDate || (data.attendance.length > 0 ? data.attendance[data.attendance.length - 1].attendanceDate : null);
-        const endDate = dateRange.endDate || (data.attendance.length > 0 ? data.attendance[0].attendanceDate : null);
-        
+
+        const startDate =
+          dateRange.startDate ||
+          (data.attendance.length > 0
+            ? data.attendance[data.attendance.length - 1].attendanceDate
+            : null);
+        const endDate =
+          dateRange.endDate ||
+          (data.attendance.length > 0 ? data.attendance[0].attendanceDate : null);
+
         const absentDays = calculateAbsentDays(data.attendance, startDate, endDate);
-        
-        // Combine attendance with absent days
-        const allRecords = [...data.attendance, ...absentDays]
-          .sort((a, b) => new Date(b.attendanceDate) - new Date(a.attendanceDate));
-        
+
+        const allRecords = [...data.attendance, ...absentDays].sort(
+          (a, b) => new Date(b.attendanceDate) - new Date(a.attendanceDate)
+        );
+
         setAttendanceData({
           ...data,
-          attendance: allRecords
+          attendance: allRecords,
         });
       } else {
         setError(response.data.message || "Failed to fetch data");
@@ -194,7 +209,7 @@ const ParticularAttendance = ({ employeeId }) => {
   }, [employeeId]);
 
   // ---------------------------
-  // Filters
+  // Filter handlers
   // ---------------------------
   const handleDateChange = (e) => {
     const { name, value } = e.target;
@@ -202,7 +217,11 @@ const ParticularAttendance = ({ employeeId }) => {
   };
 
   const handleFilter = () => {
-    if (dateRange.startDate && dateRange.endDate && new Date(dateRange.startDate) > new Date(dateRange.endDate)) {
+    if (
+      dateRange.startDate &&
+      dateRange.endDate &&
+      new Date(dateRange.startDate) > new Date(dateRange.endDate)
+    ) {
       setError("Start date cannot be after end date");
       return;
     }
@@ -217,21 +236,21 @@ const ParticularAttendance = ({ employeeId }) => {
   };
 
   // ---------------------------
-  // Statistics & Filtered Data
+  // Stats
   // ---------------------------
   const calculateStats = () => {
     if (!attendanceData?.attendance?.length) return null;
-    
-    const stats = { 
-      totalRecords: 0, 
-      onTimeCount: 0, 
-      lateCount: 0, 
+
+    const stats = {
+      totalRecords: 0,
+      onTimeCount: 0,
+      lateCount: 0,
       absentCount: 0,
-      totalWorkingHours: 0, 
+      totalWorkingHours: 0,
       averageWorkingHours: 0,
-      presentCount: 0
+      presentCount: 0,
     };
-    
+
     attendanceData.attendance.forEach((r) => {
       if (r.status === "On-time") {
         stats.onTimeCount++;
@@ -245,27 +264,29 @@ const ParticularAttendance = ({ employeeId }) => {
         stats.absentCount++;
       }
     });
-    
+
     stats.totalRecords = attendanceData.attendance.length;
-    stats.averageWorkingHours = stats.presentCount > 0 ? (stats.totalWorkingHours / stats.presentCount).toFixed(2) : 0;
+    stats.averageWorkingHours =
+      stats.presentCount > 0
+        ? (stats.totalWorkingHours / stats.presentCount).toFixed(2)
+        : 0;
     stats.totalWorkingHours = stats.totalWorkingHours.toFixed(2);
-    
+
     return stats;
   };
 
   const stats = calculateStats();
 
-  // Filter records based on active tab
   const getFilteredRecords = () => {
     if (!attendanceData?.attendance?.length) return [];
-    
-    switch(activeTab) {
+
+    switch (activeTab) {
       case "onTime":
-        return attendanceData.attendance.filter(record => record.status === "On-time");
+        return attendanceData.attendance.filter((record) => record.status === "On-time");
       case "late":
-        return attendanceData.attendance.filter(record => record.status === "Late");
+        return attendanceData.attendance.filter((record) => record.status === "Late");
       case "absent":
-        return attendanceData.attendance.filter(record => record.status === "Absent");
+        return attendanceData.attendance.filter((record) => record.status === "Absent");
       default:
         return attendanceData.attendance;
     }
@@ -274,191 +295,231 @@ const ParticularAttendance = ({ employeeId }) => {
   const filteredRecords = getFilteredRecords();
 
   // ---------------------------
-  // Loading / Error / No Data
+  // Loading / Error / Empty
   // ---------------------------
-  if (loading) return <p className="text-center text-gray-500">Loading attendance data...</p>;
-  if (error) return (
-    <div className="text-center text-red-600">
-      <p>{error}</p>
-      <button onClick={fetchAttendanceData} className="mt-2 px-4 py-1 bg-blue-500 text-white rounded">Retry</button>
-    </div>
-  );
-  if (!attendanceData?.attendance?.length) return <p className="text-center text-gray-500">No attendance records found.</p>;
+  if (loading) {
+    return (
+      <div className="py-20 text-center">
+        <Loader2 className="animate-spin mx-auto text-blue-500 w-8 h-8 mb-2" />
+        <p className="text-sm text-slate-500 font-medium">
+          Loading attendance data...
+        </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="border border-red-200 bg-red-50 shadow-sm rounded-xl">
+        <CardContent className="p-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600" />
+            <span className="text-sm text-red-600 font-medium">{error}</span>
+          </div>
+          <Button
+            onClick={fetchAttendanceData}
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!attendanceData?.attendance?.length) {
+    return (
+      <div className="py-16 text-center">
+        <Calendar className="w-10 h-10 mx-auto text-slate-300 mb-2" />
+        <p className="text-slate-500 font-semibold text-sm">
+          No attendance records found.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-8 w-full">
-      <div className="flex flex-col md:flex-row lg:flex-row justify-between items-start md:items-center mb-8">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">My Attendance</h2>
-           
-          </div>
-         
-        </div>
-      {/* Employee Info */}
+    <div className="space-y-6 animate-in fade-in duration-500">
 
-      {/* Statistics Tabs */}
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+          My Attendance
+        </h2>
+        <p className="text-sm text-slate-500 font-medium mt-1">
+          Personal attendance history and statistics
+        </p>
+      </div>
+
+      {/* Statistics Cards */}
       {stats && (
-       <div className="grid sm:grid-cols-1 grid-cols-5 gap-4">
-  <StatCard 
-    title="Total Records" 
-    value={stats.totalRecords} 
-    icon={Users}  // Using MapPin icon
-    iconColor="text-blue-600"
-    isActive={activeTab === "all"}
-    onClick={() => setActiveTab("all")}
-  />
-  <StatCard 
-    title="On Time" 
-    value={stats.onTimeCount} 
-    icon={CheckCircle}
-    iconColor="text-green-600"
-    isActive={activeTab === "onTime"}
-    onClick={() => setActiveTab("onTime")}
-  />
-  <StatCard 
-    title="Late Arrivals" 
-    value={stats.lateCount} 
-    icon={Clock}
-    iconColor="text-red-600"
-    isActive={activeTab === "late"}
-    onClick={() => setActiveTab("late")}
-  />
-  <StatCard 
-    title="Absent Days" 
-    value={stats.absentCount} 
-    icon={Calendar}
-    iconColor="text-yellow-600"
-    isActive={activeTab === "absent"}
-    onClick={() => setActiveTab("absent")}
-  />
-  <StatCard 
-    title="Avg Working Hours" 
-    value={`${stats.averageWorkingHours} hrs`}
-    icon={Clock}
-    iconColor="text-purple-600"
-  />
-</div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <StatCard
+            title="Total Records"
+            value={stats.totalRecords}
+            icon={Users}
+            iconColor="text-blue-600"
+            isActive={activeTab === "all"}
+            onClick={() => setActiveTab("all")}
+          />
+          <StatCard
+            title="On Time"
+            value={stats.onTimeCount}
+            icon={CheckCircle}
+            iconColor="text-emerald-600"
+            isActive={activeTab === "onTime"}
+            onClick={() => setActiveTab("onTime")}
+          />
+          <StatCard
+            title="Late Arrivals"
+            value={stats.lateCount}
+            icon={Clock}
+            iconColor="text-red-600"
+            isActive={activeTab === "late"}
+            onClick={() => setActiveTab("late")}
+          />
+          <StatCard
+            title="Absent Days"
+            value={stats.absentCount}
+            icon={Calendar}
+            iconColor="text-amber-600"
+            isActive={activeTab === "absent"}
+            onClick={() => setActiveTab("absent")}
+          />
+          <StatCard
+            title="Avg Working Hours"
+            value={`${stats.averageWorkingHours}h`}
+            icon={Clock}
+            iconColor="text-purple-600"
+          />
+        </div>
       )}
 
       {/* Filters */}
-<div className="bg-white shadow-sm rounded-xl p-6 border border-blue-50">
-  <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-    <FilterIcon className="w-8 h-8 text-red-400"></FilterIcon> Filter Records
-  </h3>
+      <Card className="border border-slate-100 shadow-sm rounded-xl bg-white">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <FilterIcon className="w-4 h-4 text-blue-600" />
+            Filter Records
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
 
-  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                Start Date
+              </label>
+              <Input
+                type="date"
+                name="startDate"
+                value={dateRange.startDate}
+                onChange={handleDateChange}
+                className="h-10"
+              />
+            </div>
 
-    {/* Start Date */}
-    <div>
-      <label className="block text-sm font-medium text-gray-600 mb-1">
-        Start Date
-      </label>
-      <input
-        type="date"
-        name="startDate"
-        value={dateRange.startDate}
-        onChange={handleDateChange}
-        className="w-full border border-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-      />
-    </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                End Date
+              </label>
+              <Input
+                type="date"
+                name="endDate"
+                value={dateRange.endDate}
+                onChange={handleDateChange}
+                className="h-10"
+              />
+            </div>
 
-    {/* End Date */}
-    <div>
-      <label className="block text-sm font-medium text-gray-600 mb-1">
-        End Date
-      </label>
-      <input
-        type="date"
-        name="endDate"
-        value={dateRange.endDate}
-        onChange={handleDateChange}
-        className="w-full border border-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-      />
-    </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                Records Limit
+              </label>
+              <Select
+                value={limit.toString()}
+                onValueChange={(v) => setLimit(parseInt(v))}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select limit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="30">30</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                  <SelectItem value="0">All</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-    {/* Records Limit */}
-    <div>
-      <label className="block text-sm font-medium text-gray-600 mb-1">
-        Records Limit
-      </label>
-      <select
-        value={limit}
-        onChange={(e) => setLimit(parseInt(e.target.value))}
-        className="w-full border border-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-      >
-        <option value={10}>10</option>
-        <option value={30}>30</option>
-        <option value={50}>50</option>
-        <option value={100}>100</option>
-        <option value={0}>All</option>
-      </select>
-    </div>
-
-    {/* Buttons */}
-    <div className="flex items-end gap-3">
-      <button
-        onClick={handleFilter}
-        className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition"
-      >
-        Apply
-      </button>
-
-      <button
-        onClick={handleClearFilter}
-        className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-sm font-medium rounded-lg transition"
-      >
-        Clear
-      </button>
-    </div>
-
-  </div>
-</div>
-
+            <div className="flex items-end gap-2">
+              <Button
+                onClick={handleFilter}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Apply
+              </Button>
+              <Button
+                onClick={handleClearFilter}
+                variant="outline"
+                className="flex-1"
+              >
+                Clear
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Attendance Table */}
-      {/* Attendance Table */}
-<div className="bg-white shadow-md rounded-lg overflow-hidden">
-  <div className="p-6">
-    <div className="flex justify-between items-center mb-4">
-      <h3 className="text-lg font-semibold flex items-center gap-2">
-        <Calendar className="w-8 h-8 text-red-400" />
-        {activeTab === "all" && "All "}
-        {activeTab === "onTime" && "On Time "}
-        {activeTab === "late" && "Late "}
-        {activeTab === "absent" && "Absent "}
-        Attendance Records
-      </h3>
-      <div className="text-sm text-gray-500">
-        Showing {filteredRecords.length} of {attendanceData.attendance.length} records
-      </div>
-    </div>
-  </div>
+      <Card className="border border-slate-100 shadow-sm rounded-xl bg-white overflow-hidden">
 
-  {filteredRecords.length === 0 ? (
-    <div className="text-center py-8 text-gray-500">
-      No {activeTab !== "all" ? activeTab : ""} records found for the selected filter
-    </div>
-  ) : (
-    <div className="overflow-x-auto">
-      <table className="w-[97%] mx-auto">
-        <thead>
-          <tr className="border-b border-gray-100">
-            {["Date", "Day", "Clock In", "Clock Out", "Working Hours", "Breaks", "Status"].map((th) => (
-              <th key={th} className="text-left py-3 px-4 font-medium">
-                {th}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {filteredRecords.map((record, i) => (
-            <AttendanceRow key={`${activeTab}-${i}`} record={record} />
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )}
-</div>
+        {/* Table header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/40">
+          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 uppercase tracking-wide">
+            <Calendar className="w-4 h-4 text-blue-600" />
+            {activeTab === "all" && "All Attendance Records"}
+            {activeTab === "onTime" && "On Time Records"}
+            {activeTab === "late" && "Late Records"}
+            {activeTab === "absent" && "Absent Records"}
+            <span className="bg-slate-100 text-slate-500 text-[10px] px-2.5 py-0.5 rounded-full font-bold ml-2">
+              {filteredRecords.length} of {attendanceData.attendance.length}
+            </span>
+          </h3>
+        </div>
+
+        {filteredRecords.length === 0 ? (
+          <div className="py-16 text-center">
+            <Calendar className="w-10 h-10 mx-auto text-slate-300 mb-2" />
+            <p className="text-sm text-slate-500 font-semibold">
+              No {activeTab !== "all" ? activeTab : ""} records found for the selected filter
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-slate-50">
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Day</TableHead>
+                  <TableHead>Clock In</TableHead>
+                  <TableHead>Clock Out</TableHead>
+                  <TableHead>Working Hours</TableHead>
+                  <TableHead>Breaks</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredRecords.map((record, i) => (
+                  <AttendanceRow key={`${activeTab}-${i}`} record={record} />
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </Card>
     </div>
   );
 };
