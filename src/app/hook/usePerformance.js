@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   addEmployeeReview,
   getAllPerformanceReviews,
+  getAllPerformanceReviewsByEmail,        // ✅ NEW
   getEmployeePerformanceHistory,
   deletePerformanceReview,
   getEmployeePerformance,
@@ -12,6 +13,13 @@ import {
 
 /* ================= SHARED STATE ================= */
 let sharedReviews = [];
+let sharedMyReviews = [];                  // ✅ NEW — only the logged-in user's reviews
+let sharedMyReviewsStats = {               // ✅ NEW — summary stats for the current user
+  totalReviews: 0,
+  avgRating: 0,
+  avgScore: 0,
+  statusBreakdown: {},
+};
 let sharedEmployees = [];
 let sharedCounts = {
   employmentTypeCounts: {},
@@ -27,12 +35,9 @@ let sharedFilters = {
 };
 let sharedPagination = { page: 1, totalPages: 1, totalEmployees: 0 };
 let sharedPerformanceStats = { avgRating: "0.0", totalReviews: 0 };
+let sharedMyPerformance = null;
 let sharedPerformanceLoading = false;
 let sharedPerformanceError = null;
-
-// ✅ NEW — shared state for the single-employee-by-email lookup
-let sharedMyPerformance = null;
-
 let performanceListeners = [];
 
 const notifyPerformance = () => {
@@ -41,12 +46,14 @@ const notifyPerformance = () => {
 
 export function usePerformance() {
   const [reviews, setReviews] = useState(sharedReviews);
+  const [myReviews, setMyReviews] = useState(sharedMyReviews);                    // ✅ NEW
+  const [myReviewsStats, setMyReviewsStats] = useState(sharedMyReviewsStats);     // ✅ NEW
   const [employees, setEmployees] = useState(sharedEmployees);
   const [counts, setCounts] = useState(sharedCounts);
   const [filters, setFilters] = useState(sharedFilters);
   const [pagination, setPagination] = useState(sharedPagination);
   const [stats, setStats] = useState(sharedPerformanceStats);
-  const [myPerformance, setMyPerformance] = useState(sharedMyPerformance); // ✅ NEW
+  const [myPerformance, setMyPerformance] = useState(sharedMyPerformance);
   const [loading, setLoading] = useState(sharedPerformanceLoading);
   const [error, setError] = useState(sharedPerformanceError);
 
@@ -54,12 +61,14 @@ export function usePerformance() {
   useEffect(() => {
     const listener = () => {
       setReviews([...sharedReviews]);
+      setMyReviews([...sharedMyReviews]);                                  // ✅ NEW
+      setMyReviewsStats({ ...sharedMyReviewsStats });                      // ✅ NEW
       setEmployees([...sharedEmployees]);
       setCounts({ ...sharedCounts });
       setFilters({ ...sharedFilters });
       setPagination({ ...sharedPagination });
       setStats({ ...sharedPerformanceStats });
-      setMyPerformance(sharedMyPerformance ? { ...sharedMyPerformance } : null); // ✅ NEW
+      setMyPerformance(sharedMyPerformance ? { ...sharedMyPerformance } : null);
       setLoading(sharedPerformanceLoading);
       setError(sharedPerformanceError);
     };
@@ -72,7 +81,7 @@ export function usePerformance() {
     };
   }, []);
 
-  /* ================= FETCH ALL REVIEWS ================= */
+  /* ================= FETCH ALL REVIEWS (global) ================= */
   const fetchAllReviews = useCallback(async (params = {}) => {
     try {
       sharedPerformanceLoading = true;
@@ -82,6 +91,51 @@ export function usePerformance() {
       sharedPerformanceError = null;
     } catch (err) {
       sharedPerformanceError = err.message || "Failed to fetch reviews";
+    } finally {
+      sharedPerformanceLoading = false;
+      notifyPerformance();
+    }
+  }, []);
+
+  /* ================= ✅ NEW — FETCH MY REVIEWS (by email) ================= */
+  const fetchMyReviews = useCallback(async (email, params = {}) => {
+    if (!email) return null;
+    try {
+      sharedPerformanceLoading = true;
+      notifyPerformance();
+
+      // Strip empty values from params
+      const cleanParams = Object.fromEntries(
+        Object.entries(params).filter(
+          ([, v]) => v !== "" && v !== null && v !== undefined
+        )
+      );
+
+      const result = await getAllPerformanceReviewsByEmail(email, cleanParams);
+
+      if (result?.success) {
+        sharedMyReviews = result.data || [];
+        sharedMyReviewsStats = result.stats || {
+          totalReviews: 0,
+          avgRating: 0,
+          avgScore: 0,
+          statusBreakdown: {},
+        };
+      } else {
+        sharedMyReviews = [];
+        sharedMyReviewsStats = {
+          totalReviews: 0,
+          avgRating: 0,
+          avgScore: 0,
+          statusBreakdown: {},
+        };
+      }
+      sharedPerformanceError = null;
+
+      return result;
+    } catch (err) {
+      sharedPerformanceError = err.message || "Failed to fetch user reviews";
+      throw err;
     } finally {
       sharedPerformanceLoading = false;
       notifyPerformance();
@@ -113,7 +167,6 @@ export function usePerformance() {
       sharedPerformanceLoading = true;
       notifyPerformance();
 
-      // Strip empty values so backend doesn't see "department=&designation="
       const cleanParams = Object.fromEntries(
         Object.entries(params).filter(
           ([, v]) => v !== "" && v !== null && v !== undefined
@@ -141,7 +194,6 @@ export function usePerformance() {
         totalEmployees: result?.totalEmployees || 0,
       };
 
-      // Compute summary stats from joined reviews
       const allReviews = (result?.data || []).flatMap(
         (emp) => emp.performanceReviews || []
       );
@@ -167,14 +219,13 @@ export function usePerformance() {
     }
   }, []);
 
-  /* ================= ✅ FETCH BY EMAIL (single employee) ================= */
+  /* ================= FETCH BY EMAIL (single employee with reviews joined) ================= */
   const fetchByEmail = useCallback(async (email, params = {}) => {
     if (!email) return null;
     try {
       sharedPerformanceLoading = true;
       notifyPerformance();
 
-      // Strip empty values from params
       const cleanParams = Object.fromEntries(
         Object.entries(params).filter(
           ([, v]) => v !== "" && v !== null && v !== undefined
@@ -249,20 +300,23 @@ export function usePerformance() {
   return {
     // State
     reviews,
+    myReviews,            // ✅ NEW
+    myReviewsStats,       // ✅ NEW
     employees,
     counts,
-    filters,         // designations[] and departments[]
+    filters,
     pagination,
     stats,
-    myPerformance,   // ✅ NEW — single-employee data from fetchByEmail
+    myPerformance,
     loading,
     error,
 
     // Actions
     fetchAllReviews,
+    fetchMyReviews,       // ✅ NEW
     fetchEmployeeHistory,
     fetchEmployeePerformance,
-    fetchByEmail,    // ✅ NEW
+    fetchByEmail,
     submitReview,
     removeReview,
   };
