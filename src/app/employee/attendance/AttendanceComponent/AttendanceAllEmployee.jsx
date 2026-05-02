@@ -134,7 +134,7 @@ const AttendanceAllEmployee = () => {
       );
 
       const response = await axios.get(
-        "http://localhost:50001/attendance-summary",
+        "https://code360.pro/attendance-summary",
         { params, timeout: 10000 }
       );
 
@@ -154,7 +154,7 @@ const AttendanceAllEmployee = () => {
         Object.keys(params).forEach(
           (key) => params[key] === undefined && delete params[key]
         );
-        const response = await axios.get("http://localhost:50001/attendance", { params });
+        const response = await axios.get("https://code360.pro/attendance", { params });
         if (response.data.success && response.data.data) {
           const allData = response.data.data;
           const counts = {
@@ -204,7 +204,7 @@ const AttendanceAllEmployee = () => {
           (key) => params[key] === undefined && delete params[key]
         );
 
-        const response = await axios.get("http://localhost:50001/attendance", { params });
+        const response = await axios.get("https://code360.pro/attendance", { params });
 
         if (response.data.success) {
           let filteredData = response.data.data;

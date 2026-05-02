@@ -33,7 +33,7 @@ export default function SignInPage() {
   const onSubmit = async (data) => {
     try {
       const res = await fetch(
-        `http://localhost:50001/api/signin`,
+        `https://code360.pro/api/signin`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -91,7 +91,7 @@ export default function SignInPage() {
 
     try {
       const res = await fetch(
-        `http://localhost:50001/api/forgot-password`,
+        `https://code360.pro/api/forgot-password`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

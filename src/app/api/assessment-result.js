@@ -3,7 +3,7 @@
  */
 export const saveAssessmentResult = async (assessmentResult) => {
   try {
-    const res = await fetch("http://localhost:50001/add-assessment-result-post", {
+    const res = await fetch("https://code360.pro/add-assessment-result-post", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(assessmentResult),
@@ -28,7 +28,7 @@ export const saveAssessmentResult = async (assessmentResult) => {
  */
 export const getSpecificAssessmentResult = async (jobRoleId, candidateId) => {
   try {
-    const url = `http://localhost:50001/specific-assessment-result?jobRoleId=${jobRoleId}&candidateId=${candidateId}`;
+    const url = `https://code360.pro/specific-assessment-result?jobRoleId=${jobRoleId}&candidateId=${candidateId}`;
     
     const res = await fetch(url, {
       method: "GET",
@@ -56,7 +56,7 @@ export const getSpecificAssessmentResult = async (jobRoleId, candidateId) => {
  */
 export const saveInterviewResult = async (interviewData) => {
   try {
-    const res = await fetch("http://localhost:50001/add-interview-result-put", {
+    const res = await fetch("https://code360.pro/add-interview-result-put", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(interviewData),
@@ -81,7 +81,7 @@ export const saveInterviewResult = async (interviewData) => {
  */
 export const getSpecificInterview = async (jobRoleId, candidateId) => {
   try {
-    const url = `http://localhost:50001/specific-interview?jobRoleId=${jobRoleId}&candidateId=${candidateId}`;
+    const url = `https://code360.pro/specific-interview?jobRoleId=${jobRoleId}&candidateId=${candidateId}`;
     
     const res = await fetch(url, {
       method: "GET",
