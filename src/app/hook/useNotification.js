@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { notificationApi } from '../api/notification';
 
 // Replace with your actual backend URL if different
-const SOCKET_URL = 'https://code360.pro';
+const SOCKET_URL = 'http://localhost:50001';
 const socket = io(SOCKET_URL);
 
 export const useNotification = () => {

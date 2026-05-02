@@ -1,5 +1,5 @@
 /* ================= API BASE URL ================= */
-const BASE_URL = "https://code360.pro";
+const BASE_URL = "http://localhost:50001";
 
 /* ================= LEAVE TYPE SERVICES (Categories) ================= */
 

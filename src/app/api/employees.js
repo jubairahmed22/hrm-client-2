@@ -2,7 +2,7 @@
 export const fetchEmployees = async (page = 1, search = "") => {
   try {
     const res = await fetch(
-      `https://code360.pro/api/get-employee-options?page=${page}&search=${search}`
+      `http://localhost:50001/api/get-employee-options?page=${page}&search=${search}`
     );
     const data = await res.json();
     if (data.success) {
@@ -19,7 +19,7 @@ export const fetchEmployees = async (page = 1, search = "") => {
 // api/employees.js
 export const fetchHierarchy = async (parent = "CEO", page = 1, search = "") => {
   const res = await fetch(
-    `https://code360.pro/get-employee-hierarchy?parent=${parent}&page=${page}&search=${encodeURIComponent(search)}`
+    `http://localhost:50001/get-employee-hierarchy?parent=${parent}&page=${page}&search=${encodeURIComponent(search)}`
   );
 
   const data = await res.json();

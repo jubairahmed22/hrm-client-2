@@ -3,7 +3,7 @@
  */
 export const addCandidateNote = async (noteData) => {
   try {
-    const res = await fetch("https://code360.pro/add-candidate-note-post", {
+    const res = await fetch("http://localhost:50001/add-candidate-note-post", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(noteData),
@@ -47,7 +47,7 @@ export const getSpecificCandidateNotes = async (jobId, candidateId) => {
     });
 
     const res = await fetch(
-      `https://code360.pro/specific-candidate-notes-details?${params.toString()}`
+      `http://localhost:50001/specific-candidate-notes-details?${params.toString()}`
     );
 
     if (res.status === 404) {
@@ -85,7 +85,7 @@ export const deleteCandidateNote = async (noteId) => {
     }
 
     const res = await fetch(
-      `https://code360.pro/delete-candidate-note/${noteId}`,
+      `http://localhost:50001/delete-candidate-note/${noteId}`,
       {
         method: "DELETE",
       }

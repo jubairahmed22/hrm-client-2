@@ -48,7 +48,7 @@ export default function TeamsPage() {
   const fetchDepartments = async (page = 1, search = "") => {
     try {
       const res = await fetch(
-        `https://code360.pro/api/get-department?page=${page}&name=${search}`
+        `http://localhost:50001/api/get-department?page=${page}&name=${search}`
       );
       const data = await res.json();
       if (data.success) {
@@ -67,7 +67,7 @@ export default function TeamsPage() {
   // ---------------- Fetch Teams ----------------
  const fetchTeams = async () => {
   try {
-    const res = await fetch("https://code360.pro/api/get-teams");
+    const res = await fetch("http://localhost:50001/api/get-teams");
     const data = await res.json();
     if (data.success) {
       // normalize the key
@@ -143,7 +143,7 @@ export default function TeamsPage() {
       return alert("Fill all fields");
 
     try {
-      const res = await fetch("https://code360.pro/api/add-department", {
+      const res = await fetch("http://localhost:50001/api/add-department", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(deptForm),
@@ -170,7 +170,7 @@ export default function TeamsPage() {
     }
 
     try {
-      const res = await fetch("https://code360.pro/api/add-team", {
+      const res = await fetch("http://localhost:50001/api/add-team", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(teamForm),

@@ -150,7 +150,7 @@ const EmployeePage = () => {
       });
 
       const res = await fetch(
-        `https://code360.pro/api/get-employee?${params.toString()}`
+        `http://localhost:50001/api/get-employee?${params.toString()}`
       );
       const data = await res.json();
 
