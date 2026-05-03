@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, CheckCheck, Clock } from "lucide-react";
 import { useNotification } from "@/app/hook/useNotification";
+import Link from "next/link";
 
 export default function NotificationBell() {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -18,7 +19,7 @@ export default function NotificationBell() {
     loading 
   } = useNotification();
 
-  // Initialize Sound (Make sure file is in public/sounds/notificaitonsound.mp3)
+  // Initialize Sound
   useEffect(() => {
     audioRef.current = new Audio("/sounds/notificaitonsound.mp3");
   }, []);
@@ -33,7 +34,9 @@ export default function NotificationBell() {
   }, [unreadCount]);
 
   useEffect(() => {
-    const close = (e) => { if (bellRef.current && !bellRef.current.contains(e.target)) setShowNotifications(false); };
+    const close = (e) => { 
+      if (bellRef.current && !bellRef.current.contains(e.target)) setShowNotifications(false); 
+    };
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, []);
@@ -87,20 +90,46 @@ export default function NotificationBell() {
                   <p className="text-gray-500 text-sm font-medium">No new alerts</p>
                 </div>
               ) : (
-                notifications.map((n) => (
-                  <motion.div
-                    key={n._id}
-                    onClick={() => handleMarkRead(n._id)}
-                    className={`p-4 border-b border-gray-50 cursor-pointer hover:bg-gray-50 ${n.status === 'unread' ? 'bg-blue-50/20' : ''}`}
-                  >
-                    <p className={`text-sm mb-1 ${n.status === 'unread' ? 'font-bold text-gray-900' : 'text-gray-700'}`}>{n.title}</p>
-                    <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{n.message}</p>
-                    <div className="flex items-center gap-1.5 mt-2 text-gray-400 text-[10px]">
-                      <Clock className="w-3 h-3" />
-                      {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                  </motion.div>
-                ))
+                notifications.map((n) => {
+                  /** * This regex splits the message at a full stop ONLY if it's 
+                   * followed by a space (standard sentence ending). 
+                   * This prevents email addresses like .com from breaking.
+                   **/
+                  const segments = n.message.split(/(?<=\. )/g);
+
+                  return (
+                    <Link 
+                      key={n._id} 
+                      href={n.link || "#"} 
+                      onClick={() => {
+                        handleMarkRead(n._id);
+                        setShowNotifications(false);
+                      }}
+                      className="block"
+                    >
+                      <motion.div
+                        className={`p-4 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors ${n.status === 'unread' ? 'bg-blue-50/20' : ''}`}
+                      >
+                        <p className={`text-sm mb-1 ${n.status === 'unread' ? 'font-bold text-gray-900' : 'text-gray-700'}`}>{n.title}</p>
+                        
+                        <div className="text-xs text-gray-500 leading-relaxed">
+                          {segments.map((sentence, index) => (
+                            sentence.trim() !== "" && (
+                              <span key={index} className="block mb-0.5">
+                                {sentence.trim()}
+                              </span>
+                            )
+                          ))}
+                        </div>
+
+                        <div className="flex items-center gap-1.5 mt-2 text-gray-400 text-[10px]">
+                          <Clock className="w-3 h-3" />
+                          {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </motion.div>
+                    </Link>
+                  );
+                })
               )}
             </div>
           </motion.div>
