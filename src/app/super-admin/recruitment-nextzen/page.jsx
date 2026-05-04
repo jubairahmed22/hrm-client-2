@@ -1,9 +1,10 @@
 import React from 'react';
+import JobPostHeader from './RecNextCompo/JobPostHeader';
 
 const page = () => {
     return (
         <div>
-             this is new rec
+             <JobPostHeader></JobPostHeader>
         </div>
     );
 };
