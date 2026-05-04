@@ -95,6 +95,13 @@ const menuItems = [
     description: "Manage Recruitment records",
     roles: ["superadmin", "admin"],
   },
+    {
+    id: "recruitment-nextzen",
+    label: "Recruitment",
+    icon: UserCheck,
+    description: "Manage Recruitment records",
+    roles: ["superadmin", "admin"],
+  },
   {
     id: "employees",
     label: "Employee Management",
