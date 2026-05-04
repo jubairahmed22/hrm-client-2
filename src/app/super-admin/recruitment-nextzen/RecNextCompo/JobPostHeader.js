@@ -2,18 +2,14 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Briefcase } from "lucide-react";
+import { Briefcase, UserPlus, Plus } from "lucide-react";
 import CreateJobDialog from "./CreateJobDialog";
+import CreateRecruitment from "./CreateRecruitment";
 import { Button } from "@/components/ui/button";
 
 const JobPostHeader = () => {
-  const [open, setOpen] = useState(false);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form submitted");
-    setOpen(false);
-  };
+  const [jobOpen, setJobOpen] = useState(false);
+  const [recruitmentOpen, setRecruitmentOpen] = useState(false);
 
   return (
     <>
@@ -34,22 +30,37 @@ const JobPostHeader = () => {
               Streamline your hiring process and track candidate pipelines
             </p>
           </div>
-          <div className="flex items-center gap-6">
-            
-            <Button 
-                onClick={() => setOpen(true)}
-                className="bg-white text-blue-600 hover:bg-purple-50 font-semibold"
+
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => setJobOpen(true)}
+              className="bg-white text-blue-600 hover:bg-purple-50 font-semibold flex items-center gap-2"
             >
-                + Create New Job
+              <Plus className="w-4 h-4" />
+              Create New Job
+            </Button>
+
+            <Button
+              onClick={() => setRecruitmentOpen(true)}
+              className="bg-white text-blue-600 hover:bg-purple-50 font-semibold flex items-center gap-2"
+            >
+              <UserPlus className="w-4 h-4" />
+              Add Candidate
             </Button>
           </div>
         </div>
       </motion.div>
 
+      {/* Create Job Dialog */}
       <CreateJobDialog
-        open={open}
-        onClose={() => setOpen(false)}
-        onSubmit={handleSubmit}
+        open={jobOpen}
+        onClose={() => setJobOpen(false)}
+      />
+
+      {/* Add Candidate (Recruitment) Dialog */}
+      <CreateRecruitment
+        open={recruitmentOpen}
+        onClose={() => setRecruitmentOpen(false)}
       />
     </>
   );
