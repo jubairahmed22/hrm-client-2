@@ -1,14 +1,17 @@
-import { useState } from "react";
+"use client";
+
+import { useState, useRef, useCallback, useEffect } from "react";
 import AccessibleDialog from "@/components/ui/accessible-dialog";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { X } from "lucide-react";
+import { X, ChevronDown, Loader2, Check } from "lucide-react";
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useJobPostsNextzen } from "@/app/hook/useJobPostsNextzen"; // ✅ updated
+import { useJobPostsNextzen } from "@/app/hook/useJobPostsNextzen";
+import { useDepartments } from "@/app/hook/useDepartment";
 
 /* ====================== TAG INPUT COMPONENT ====================== */
 function TagInput({ label, tags, setTags }) {
@@ -62,6 +65,172 @@ function TagInput({ label, tags, setTags }) {
       <p className="text-[10px] text-muted-foreground">
         Press Enter or comma to add a skill.
       </p>
+    </div>
+  );
+}
+
+/* ====================== DEPARTMENT DROPDOWN (with search + infinite scroll) ====================== */
+function DepartmentDropdown({ value, onChange, departmentName }) {
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const scrollRef = useRef(null);
+
+  const {
+    departments,
+    loading,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    search,
+    setSearch,
+  } = useDepartments();
+
+  // Track accumulated departments across pages
+  const [allDepts, setAllDepts] = useState([]);
+
+  useEffect(() => {
+    if (departments.length === 0) return;
+
+    setAllDepts((prev) => {
+      // If on page 1 (or after a search reset), replace the list
+      if (currentPage === 1) return departments;
+
+      // Otherwise append, deduplicating by _id
+      const existingIds = new Set(prev.map((d) => d._id));
+      const newOnes = departments.filter((d) => !existingIds.has(d._id));
+      return [...prev, ...newOnes];
+    });
+  }, [departments, currentPage]);
+
+  // Reset accumulated list when search changes
+  useEffect(() => {
+    setAllDepts([]);
+    setCurrentPage(1);
+  }, [search]);
+
+  // Close on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    if (open) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  // Infinite scroll handler
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el || loading) return;
+
+    const reachedBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
+    if (reachedBottom && currentPage < totalPages) {
+      setCurrentPage((p) => p + 1);
+    }
+  }, [loading, currentPage, totalPages, setCurrentPage]);
+
+  const handleSelect = (dept) => {
+    onChange({
+      departmentId: dept._id,
+      department: dept.name || dept.departmentName || dept.title,
+    });
+    setOpen(false);
+  };
+
+  return (
+    <div className="flex flex-col space-y-2 relative" ref={dropdownRef}>
+      <Label>Department</Label>
+
+      {/* Trigger */}
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center justify-between border border-gray-300 rounded-md px-3 py-2 text-sm bg-white hover:border-gray-400 transition-colors"
+      >
+        <span className={departmentName ? "text-gray-900" : "text-gray-400"}>
+          {departmentName || "Select department"}
+        </span>
+        <ChevronDown
+          size={16}
+          className={`text-gray-500 transition-transform ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-30 max-h-[280px] overflow-hidden flex flex-col">
+
+          {/* Search input */}
+          <div className="p-2 border-b border-gray-100">
+            <Input
+              autoFocus
+              placeholder="Search departments..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-8 text-sm"
+            />
+          </div>
+
+          {/* List with infinite scroll */}
+          <div
+            ref={scrollRef}
+            onScroll={handleScroll}
+            className="flex-1 overflow-y-auto py-1"
+          >
+            {allDepts.length === 0 && !loading && (
+              <p className="text-center text-xs text-gray-400 py-6">
+                {search ? "No matching departments" : "No departments yet"}
+              </p>
+            )}
+
+            {allDepts.map((dept) => {
+              const deptName = dept.name || dept.departmentName || dept.title;
+              const isSelected = value === dept._id;
+
+              return (
+                <button
+                  type="button"
+                  key={dept._id}
+                  onClick={() => handleSelect(dept)}
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center justify-between ${
+                    isSelected ? "bg-primary/5 font-medium" : ""
+                  }`}
+                >
+                  <div>
+                    <div className="text-gray-900">{deptName}</div>
+                    {dept.description && (
+                      <div className="text-[11px] text-gray-500 mt-0.5 truncate">
+                        {dept.description}
+                      </div>
+                    )}
+                  </div>
+                  {isSelected && (
+                    <Check size={14} className="text-primary flex-shrink-0" />
+                  )}
+                </button>
+              );
+            })}
+
+            {loading && (
+              <div className="flex items-center justify-center py-3">
+                <Loader2 className="animate-spin text-gray-400" size={16} />
+                <span className="ml-2 text-xs text-gray-500">Loading...</span>
+              </div>
+            )}
+
+            {!loading &&
+              allDepts.length > 0 &&
+              currentPage >= totalPages && (
+                <p className="text-center text-[10px] text-gray-400 py-2">
+                  All departments loaded
+                </p>
+              )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -138,10 +307,12 @@ export default function CreateJobDialog({ open, onClose }) {
     employmentType: "",
     location: "",
     vacancies: "",
+    department: "",        // ✅ NEW — display name
+    departmentId: "",      // ✅ NEW — ObjectId reference
     context: "",
     responsibilities: "",
     competencies: "",
-    skills: [], // Array for tags
+    skills: [],
     experience: "",
     salary: "",
     benefits: "",
@@ -153,8 +324,6 @@ export default function CreateJobDialog({ open, onClose }) {
 
   const [formData, setFormData] = useState(initialFormState);
 
-  // ✅ Use the Nextzen hook — note: it doesn't expose `success`,
-  //    so we track that locally for the success message
   const { submitJob, loading, error, fetchJobs } = useJobPostsNextzen();
   const [success, setSuccess] = useState("");
 
@@ -163,9 +332,13 @@ export default function CreateJobDialog({ open, onClose }) {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  // Specific handler for the skills array
   const handleSkillsChange = (newSkills) => {
     setFormData((prev) => ({ ...prev, skills: newSkills }));
+  };
+
+  // ✅ NEW — handler for department selection
+  const handleDepartmentChange = ({ departmentId, department }) => {
+    setFormData((prev) => ({ ...prev, departmentId, department }));
   };
 
   const onSubmit = async (e) => {
@@ -177,11 +350,8 @@ export default function CreateJobDialog({ open, onClose }) {
 
       if (result?.success) {
         setSuccess(result.message || "Nextzen job post created successfully");
-
-        // Refresh the Nextzen jobs list
         await fetchJobs({ page: 1 });
 
-        // Reset form + close after a brief moment so user sees the success state
         setTimeout(() => {
           setFormData(initialFormState);
           setSuccess("");
@@ -190,7 +360,6 @@ export default function CreateJobDialog({ open, onClose }) {
       }
     } catch (err) {
       console.error("Submit error:", err);
-      // Error is already captured by the hook's `error` state
     }
   };
 
@@ -245,7 +414,13 @@ export default function CreateJobDialog({ open, onClose }) {
                 />
               </div>
 
+              {/* ✅ NEW — Department selector + location row */}
               <div className="grid grid-cols-2 gap-5">
+                <DepartmentDropdown
+                  value={formData.departmentId}
+                  departmentName={formData.department}
+                  onChange={handleDepartmentChange}
+                />
                 <FormInput
                   id="location"
                   label="Location"
@@ -253,6 +428,9 @@ export default function CreateJobDialog({ open, onClose }) {
                   value={formData.location}
                   onChange={handleChange}
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-5">
                 <FormInput
                   id="vacancies"
                   label="Vacancies"
@@ -350,7 +528,9 @@ export default function CreateJobDialog({ open, onClose }) {
         {activeTab === "application" && (
           <div className="pt-5 border-t mt-auto">
             {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-            {success && <p className="text-green-500 text-sm mb-2">{success}</p>}
+            {success && (
+              <p className="text-green-500 text-sm mb-2">{success}</p>
+            )}
             <div className="flex justify-end gap-3">
               <Button variant="outline" type="button" onClick={onClose}>
                 Cancel
