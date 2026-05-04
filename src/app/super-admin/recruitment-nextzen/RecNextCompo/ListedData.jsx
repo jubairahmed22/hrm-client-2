@@ -1,11 +1,11 @@
 import React from 'react';
 
-const List = () => {
+const ListedData = () => {
     return (
         <div>
-             this. is list
+            listed data
         </div>
     );
 };
 
-export default List;
+export default ListedData;
