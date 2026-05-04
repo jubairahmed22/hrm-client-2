@@ -10,6 +10,10 @@ import {
 } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { GitBranch, List, BarChart3, Archive } from "lucide-react";
+import Pipeline from "./Pipeline";
+import ListedData from "./ListedData";
+import Analytics from "./Analytics";
+import Inventory from "./Inventory";
 
 // Tab content components — replace these imports with your actual components
 // import Pipeline from "./Pipeline";
@@ -101,54 +105,12 @@ const Tablisted = () => {
 
         {/* Tab Content — Pipeline */}
         <TabsContent value="pipeline" className="animate-in fade-in duration-500 mt-0">
-          <div className="bg-white border border-slate-100 shadow-sm rounded-xl p-8">
-            <div className="flex items-center gap-3 mb-2">
-              <GitBranch className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-bold text-slate-900">
-                Recruitment Pipeline
-              </h2>
-            </div>
-            <p className="text-slate-500 text-sm mb-6">
-              Track candidates as they move through your hiring stages.
-            </p>
-
-            {/* TODO: Replace with <Pipeline /> component */}
-            <div className="bg-slate-50 border border-dashed border-slate-200 rounded-xl p-12 text-center">
-              <GitBranch className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-              <p className="text-sm text-slate-500 font-semibold">
-                Pipeline component goes here
-              </p>
-              <p className="text-xs text-slate-400 mt-1">
-                Showing 18 candidates across all stages
-              </p>
-            </div>
-          </div>
+          <Pipeline></Pipeline>
         </TabsContent>
 
         {/* Tab Content — List */}
         <TabsContent value="list" className="animate-in fade-in duration-500 mt-0">
-          <div className="bg-white border border-slate-100 shadow-sm rounded-xl p-8">
-            <div className="flex items-center gap-3 mb-2">
-              <List className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-bold text-slate-900">
-                Candidate List
-              </h2>
-            </div>
-            <p className="text-slate-500 text-sm mb-6">
-              View all candidates in a structured table format.
-            </p>
-
-            {/* TODO: Replace with <CandidateList /> component */}
-            <div className="bg-slate-50 border border-dashed border-slate-200 rounded-xl p-12 text-center">
-              <List className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-              <p className="text-sm text-slate-500 font-semibold">
-                List component goes here
-              </p>
-              <p className="text-xs text-slate-400 mt-1">
-                Sortable, filterable candidate table
-              </p>
-            </div>
-          </div>
+          <ListedData></ListedData>
         </TabsContent>
 
         {/* Tab Content — Analytics */}
@@ -156,28 +118,7 @@ const Tablisted = () => {
           value="analytics"
           className="animate-in fade-in duration-500 mt-0"
         >
-          <div className="bg-white border border-slate-100 shadow-sm rounded-xl p-8">
-            <div className="flex items-center gap-3 mb-2">
-              <BarChart3 className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-bold text-slate-900">
-                Recruitment Analytics
-              </h2>
-            </div>
-            <p className="text-slate-500 text-sm mb-6">
-              Insights and metrics on your hiring performance.
-            </p>
-
-            {/* TODO: Replace with <Analytics /> component */}
-            <div className="bg-slate-50 border border-dashed border-slate-200 rounded-xl p-12 text-center">
-              <BarChart3 className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-              <p className="text-sm text-slate-500 font-semibold">
-                Analytics component goes here
-              </p>
-              <p className="text-xs text-slate-400 mt-1">
-                Charts, conversion rates, time-to-hire stats
-              </p>
-            </div>
-          </div>
+          <Analytics></Analytics>
         </TabsContent>
 
         {/* Tab Content — Inventory */}
@@ -185,28 +126,7 @@ const Tablisted = () => {
           value="inventory"
           className="animate-in fade-in duration-500 mt-0"
         >
-          <div className="bg-white border border-slate-100 shadow-sm rounded-xl p-8">
-            <div className="flex items-center gap-3 mb-2">
-              <Archive className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-bold text-slate-900">
-                Candidate Inventory
-              </h2>
-            </div>
-            <p className="text-slate-500 text-sm mb-6">
-              Past candidates archived for future opportunities.
-            </p>
-
-            {/* TODO: Replace with <Inventory /> component */}
-            <div className="bg-slate-50 border border-dashed border-slate-200 rounded-xl p-12 text-center">
-              <Archive className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-              <p className="text-sm text-slate-500 font-semibold">
-                Inventory component goes here
-              </p>
-              <p className="text-xs text-slate-400 mt-1">
-                10 candidates in your talent pool
-              </p>
-            </div>
-          </div>
+          <Inventory></Inventory>
         </TabsContent>
       </Tabs>
     </div>

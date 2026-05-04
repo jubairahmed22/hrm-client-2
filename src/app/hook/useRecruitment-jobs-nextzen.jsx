@@ -105,28 +105,21 @@ export function useRecruitmentNextzen() {
 
   /* ================= STATUS-WISE PAGINATION FETCH ================= */
   const fetchByStatus = useCallback(
-    async (jobId, status, page = 1, limit = 10, search = "") => {
-      try {
-        const result = await fetchCandidatesByStatusNextzen(
-          jobId,
-          status,
-          page,
-          limit,
-          search
-        );
-
-        return {
-          candidates: result.candidates || [],
-          hasNextPage: result.hasNextPage || false,
-          total: result.total || 0,
-        };
-      } catch (err) {
-        console.error(`Nextzen error fetching stage ${status}:`, err);
-        return { candidates: [], hasNextPage: false, total: 0 };
-      }
-    },
-    []
-  );
+  async (status, params = {}) => {
+    try {
+      const result = await fetchCandidatesByStatusNextzen(status, params);
+      return {
+        candidates: result.candidates || [],
+        hasNextPage: result.hasNextPage || false,
+        total: result.total || 0,
+      };
+    } catch (err) {
+      console.error(`Nextzen error fetching stage ${status}:`, err);
+      return { candidates: [], hasNextPage: false, total: 0 };
+    }
+  },
+  []
+);
 
   /* ================= SUBMIT CANDIDATE ================= */
   const submitCandidate = useCallback(

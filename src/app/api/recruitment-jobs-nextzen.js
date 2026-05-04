@@ -164,24 +164,25 @@ export async function updateRecruitmentStatusNextzen(
 // ─────────────────────────────────────────────────────────────────────────────
 // 6. Fetch paginated Nextzen candidates by status (Kanban columns)
 // ─────────────────────────────────────────────────────────────────────────────
+
+
+// Fetch paginated Nextzen candidates by status (Kanban columns)
 export async function fetchCandidatesByStatusNextzen(
-  jobId,
   status,
-  page = 1,
-  limit = 10,
-  search = ""
+  { page = 1, limit = 10, search = "", jobRoleName = "", source = "" } = {}
 ) {
   try {
     const query = new URLSearchParams({
-      status,
       page: page.toString(),
       limit: limit.toString(),
     });
 
     if (search) query.append("search", search);
+    if (jobRoleName && jobRoleName !== "all") query.append("jobRoleName", jobRoleName);
+    if (source && source !== "all") query.append("source", source);
 
     const response = await fetch(
-      `${BASE_URL}/candidates-by-status-nextzen/${jobId}?${query}`
+      `${BASE_URL}/candidates-by-status-nextzen/${encodeURIComponent(status)}?${query}`
     );
 
     if (!response.ok) {
