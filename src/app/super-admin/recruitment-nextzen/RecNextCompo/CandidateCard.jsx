@@ -215,3 +215,4 @@ const CandidateCard = ({ candidate, onDragStart, onStatusChange, stagesConfig = 
 };
 
 export default CandidateCard;
+3553123
