@@ -173,10 +173,10 @@ const CreateRecruitment = ({ open, onClose, job }) => {
     e.preventDefault();
     setSuccess("");
 
-    if (!resumeFile) {
-      alert("Please upload a resume.");
-      return;
-    }
+    // if (!resumeFile) {
+    //   alert("Please upload a resume.");
+    //   return;
+    // }
 
     if (!formData.jobRoleId) {
       alert("Please select a job role.");
