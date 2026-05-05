@@ -71,9 +71,9 @@ function TagInput({ tags, setTags, placeholder }) {
 
 /* ====================== MAIN COMPONENT ====================== */
 const CreateRecruitment = ({ open, onClose, job }) => {
-  // ✅ Pull both Nextzen hooks
+  // Pull both Nextzen hooks
   const { fetchJobOptions } = useJobPostsNextzen();
-  const { submitCandidate, loading: isSubmitting, error, fetchByStatus } = useRecruitmentNextzen();
+  const { submitCandidate, loading: isSubmitting, error, fetchAllCandidates } = useRecruitmentNextzen();
 
   const [jobOptions, setJobOptions] = useState([]);
   const [resumeFile, setResumeFile] = useState(null);
@@ -96,7 +96,7 @@ const CreateRecruitment = ({ open, onClose, job }) => {
 
   const [formData, setFormData] = useState(initialFormState);
 
-  // ✅ Fetch job options every time the dialog opens
+  // Fetch job options every time the dialog opens
   useEffect(() => {
     if (open) {
       fetchJobOptions().then((data) => {
@@ -173,11 +173,6 @@ const CreateRecruitment = ({ open, onClose, job }) => {
     e.preventDefault();
     setSuccess("");
 
-    // if (!resumeFile) {
-    //   alert("Please upload a resume.");
-    //   return;
-    // }
-
     if (!formData.jobRoleId) {
       alert("Please select a job role.");
       return;
@@ -194,12 +189,20 @@ const CreateRecruitment = ({ open, onClose, job }) => {
           data.append(key, formData[key]);
         }
       });
-      data.append("resume", resumeFile);
+      if (resumeFile) {
+        data.append("resume", resumeFile);
+      }
 
       const result = await submitCandidate(data);
 
       if (result?.success) {
         setSuccess(result.message || "Candidate added successfully!");
+
+        // Refresh shared state
+        await fetchAllCandidates({ page: 1 });
+
+        // Dispatch global update event to trigger board/list view updates in real time
+        window.dispatchEvent(new CustomEvent("refresh-kanban-board"));
 
         // Brief pause to show the success message, then close
         setTimeout(() => {
@@ -209,7 +212,6 @@ const CreateRecruitment = ({ open, onClose, job }) => {
           onClose();
         }, 800);
       }
-      fetchByStatus()
     } catch (err) {
       console.error("Submission failed:", err);
     }
