@@ -215,3 +215,5 @@ const CandidateCard = ({ candidate, onDragStart, onStatusChange, stagesConfig = 
 };
 
 export default CandidateCard;
+
+aewfa
