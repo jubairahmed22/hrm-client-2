@@ -215,4 +215,3 @@ const CandidateCard = ({ candidate, onDragStart, onStatusChange, stagesConfig = 
 };
 
 export default CandidateCard;
-w4tq
