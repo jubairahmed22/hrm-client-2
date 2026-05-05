@@ -59,11 +59,18 @@ const CandidateCard = ({ candidate, onDragStart, onStatusChange, stagesConfig = 
   const renderStatusDialog = () => {
     if (!isViewOpen) return null;
 
+    // Safely resolve the job object so dialogs requiring 'job.skills' or 'job.title' do not crash or render null
+    const activeJob = job || {
+      _id: candidate.jobRoleId || candidate.jobId || "",
+      title: candidate.jobRoleName || "Job Position",
+      skills: candidate.skills || []
+    };
+
     const commonProps = {
       open: isViewOpen,
       onClose: () => setIsViewOpen(false),
       person: candidate,
-      job: job
+      job: activeJob
     };
 
     switch (candidate.status) {
@@ -161,6 +168,7 @@ const CandidateCard = ({ candidate, onDragStart, onStatusChange, stagesConfig = 
             <div className="flex items-center gap-1.5">
               {/* Eye Button to open dialog */}
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsViewOpen(true);
