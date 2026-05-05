@@ -73,7 +73,7 @@ function TagInput({ tags, setTags, placeholder }) {
 const CreateRecruitment = ({ open, onClose, job }) => {
   // ✅ Pull both Nextzen hooks
   const { fetchJobOptions } = useJobPostsNextzen();
-  const { submitCandidate, loading: isSubmitting, error } = useRecruitmentNextzen();
+  const { submitCandidate, loading: isSubmitting, error, fetchByStatus } = useRecruitmentNextzen();
 
   const [jobOptions, setJobOptions] = useState([]);
   const [resumeFile, setResumeFile] = useState(null);
@@ -209,6 +209,7 @@ const CreateRecruitment = ({ open, onClose, job }) => {
           onClose();
         }, 800);
       }
+      fetchByStatus()
     } catch (err) {
       console.error("Submission failed:", err);
     }
