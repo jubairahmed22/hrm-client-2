@@ -196,17 +196,17 @@ export default function ListedData() {
             </div>
 
             {/* Status Selector with Aggregation Counts */}
-            <Select value={statusFilter} onValueChange={(val) => handleFilterChange("status", val)}>
-              <SelectTrigger className="bg-slate-50 border-slate-200/80 rounded-xl">
+            <Select  value={statusFilter} onValueChange={(val) => handleFilterChange("status", val)}>
+              <SelectTrigger className="w-56">
                 <SelectValue placeholder="Pipeline Stage" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Stages</SelectItem>
+                <SelectItem  value="all">All Stages</SelectItem>
                 {STAGES.map((s) => {
                   const count = metaCounts.statuses[s.key] || 0;
                   return (
-                    <SelectItem key={s.key} value={s.key}>
-                      <div className="flex items-center justify-between gap-10 w-full">
+                    <SelectItem  key={s.key} value={s.key}>
+                      <div className="flex flex-row justify-between w-full gap-2">
                         <span>{s.label}</span>
                         <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-mono font-bold">
                           {count}
