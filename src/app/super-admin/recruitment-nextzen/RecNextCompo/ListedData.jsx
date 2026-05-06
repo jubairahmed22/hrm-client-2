@@ -54,6 +54,7 @@ const STAGES = [
   { key: "Offer", label: "Offer", color: "bg-emerald-500 text-white border-emerald-600" },
   { key: "Hired", label: "Hired", color: "bg-teal-600 text-white border-teal-700" },
   { key: "Rejected", label: "Rejected", color: "bg-red-500 text-white border-red-600" },
+  { key: "Inventory", label: "Inventory", color: "bg-indigo-500 text-white border-indigo-600" },
 ];
 
 const SOURCE_OPTIONS = [
