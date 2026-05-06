@@ -184,7 +184,6 @@ export default function ListedData() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             {/* Search Input */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               <Input
                 placeholder="Search by name, email..."
                 value={search}
@@ -192,7 +191,7 @@ export default function ListedData() {
                   setSearch(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="pl-9 w-full bg-slate-50 border-slate-200/80 rounded-xl"
+                
               />
             </div>
 
