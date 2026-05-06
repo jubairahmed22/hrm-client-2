@@ -175,7 +175,7 @@ export default function ListedData() {
   };
 
   return (
-    <div className="w-full bg-[#f8f9fc] rounded-2xl border border-slate-100">
+    <div className="w-full bg-[#f8f9fc] space-y-7 rounded-2xl border border-slate-100">
       
       {/* ── FILTER BAR ── */}
       <Card>
