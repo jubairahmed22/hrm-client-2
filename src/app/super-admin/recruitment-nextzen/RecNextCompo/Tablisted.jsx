@@ -72,7 +72,7 @@ const Tablisted = () => {
 
   return (
     <div className="w-full">
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">234123
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
 
         {/* Tab Bar */}
         <TabsList className="bg-white border border-slate-100 shadow-sm rounded-xl p-1 h-auto mb-6 grid grid-cols-4 w-full max-w-2xl">
