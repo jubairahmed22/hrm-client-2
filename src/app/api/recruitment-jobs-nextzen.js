@@ -32,12 +32,19 @@ export async function getAllRecruitmentsNextzen({
   search = "",
   startDate = "",
   endDate = "",
+  status = "all",
+  jobRoleName = "all",
+  source = "all",
 } = {}) {
   try {
     const query = new URLSearchParams({ page });
+    
     if (search) query.append("search", search);
     if (startDate) query.append("startDate", startDate);
     if (endDate) query.append("endDate", endDate);
+    if (status && status !== "all") query.append("status", status);
+    if (jobRoleName && jobRoleName !== "all") query.append("jobRoleName", jobRoleName);
+    if (source && source !== "all") query.append("source", source);
 
     const response = await fetch(
       `${BASE_URL}/all-recruitment-post-nextzen?${query.toString()}`
@@ -52,7 +59,6 @@ export async function getAllRecruitmentsNextzen({
     throw error;
   }
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // 3. Get Nextzen candidates filtered by Job ID
 // ─────────────────────────────────────────────────────────────────────────────
