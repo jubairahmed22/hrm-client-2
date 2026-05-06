@@ -6,7 +6,7 @@ const page = () => {
     return (
         <div className='p-6  space-y-8'>
              <JobPostHeader></JobPostHeader>
-             <Tablisted></Tablisted> qwtqwe
+             <Tablisted></Tablisted>
         </div>
     );
 };
