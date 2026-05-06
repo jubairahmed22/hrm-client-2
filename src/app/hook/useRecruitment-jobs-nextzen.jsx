@@ -53,27 +53,32 @@ export function useRecruitmentNextzen() {
   }, []);
 
   /* ================= FETCH ALL CANDIDATES ================= */
-  const fetchAllCandidates = useCallback(async (params = {}) => {
-    try {
-      sharedRecruitmentLoading = true;
-      notifyRecruitment();
+/* ================= FETCH ALL CANDIDATES ================= */
+const fetchAllCandidates = useCallback(async (params = {}) => {
+  try {
+    sharedRecruitmentLoading = true;
+    notifyRecruitment();
 
-      const result = await getAllRecruitmentsNextzen(params);
+    const result = await getAllRecruitmentsNextzen(params);
 
-      sharedCandidates = result?.candidates || [];
-      sharedRecruitmentPagination = {
-        totalItems: result?.pagination?.totalItems || 0,
-        totalPages: result?.pagination?.totalPages || 1,
-        currentPage: result?.pagination?.currentPage || 1,
-      };
-      sharedRecruitmentError = null;
-    } catch (err) {
-      sharedRecruitmentError = err.message || "Failed to fetch Nextzen candidates";
-    } finally {
-      sharedRecruitmentLoading = false;
-      notifyRecruitment();
-    }
-  }, []);
+    sharedCandidates = result?.candidates || [];
+    sharedRecruitmentPagination = {
+      totalItems: result?.pagination?.totalItems || 0,
+      totalPages: result?.pagination?.totalPages || 1,
+      currentPage: result?.pagination?.currentPage || 1,
+    };
+    sharedRecruitmentError = null;
+
+    // CRITICAL FIX: Return the full result object so ListedData can read metaCounts!
+    return result; 
+  } catch (err) {
+    sharedRecruitmentError = err.message || "Failed to fetch Nextzen candidates";
+    throw err;
+  } finally {
+    sharedRecruitmentLoading = false;
+    notifyRecruitment();
+  }
+}, []);
 
   /* ================= FETCH CANDIDATES BY JOB ID ================= */
   const fetchCandidatesByJob = useCallback(async (jobId, params = {}) => {

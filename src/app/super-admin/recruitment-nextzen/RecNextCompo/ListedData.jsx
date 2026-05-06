@@ -4,14 +4,15 @@ import React, { useEffect, useState, useCallback } from "react";
 import { 
   Search, 
   Loader2, 
-  MapPin, 
-  Briefcase, 
   Star, 
+  Eye, 
   ChevronLeft, 
   ChevronRight,
-  RefreshCcw,
   SlidersHorizontal,
+  RefreshCcw,
   Mail,
+  MapPin,
+  Briefcase,
   Clock
 } from "lucide-react";
 import { useRecruitmentNextzen } from "@/app/hook/useRecruitment-jobs-nextzen";
@@ -26,15 +27,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// Separate Dialog Components
+import AppliedDialog from "./AppliedDialog";
+import ScreeningDialog from "./ScreeningDialog";
+import AssessmentDialog from "./AssessmentDialog";
+import InterviewDialog from "./InterviewDialog";
+import FinalReviewDialog from "./FinalReviewDialog";
+import OfferDialog from "./OfferDialog";
+import HiredDialog from "./HiredDialog";
+
 const STAGES = [
-  { key: "Applied", label: "Applied" },
-  { key: "Screening", label: "Screening" },
-  { key: "Assessment", label: "Assessment" },
-  { key: "Interview", label: "Interview" },
-  { key: "Final Review", label: "Final Review" },
-  { key: "Offer", label: "Offer" },
-  { key: "Hired", label: "Hired" },
-  { key: "Rejected", label: "Rejected" },
+  { key: "Applied", label: "Applied", color: "bg-slate-100 text-slate-700 border-slate-200" },
+  { key: "Screening", label: "Screening", color: "bg-blue-500 text-white border-blue-600" },
+  { key: "Assessment", label: "Assessment", color: "bg-purple-500 text-white border-purple-600" },
+  { key: "Interview", label: "Interview", color: "bg-amber-500 text-white border-amber-600" },
+  { key: "Final Review", label: "Final Review", color: "bg-orange-500 text-white border-orange-600" },
+  { key: "Offer", label: "Offer", color: "bg-emerald-500 text-white border-emerald-600" },
+  { key: "Hired", label: "Hired", color: "bg-teal-600 text-white border-teal-700" },
+  { key: "Rejected", label: "Rejected", color: "bg-red-500 text-white border-red-600" },
 ];
 
 const SOURCE_OPTIONS = [
@@ -50,23 +60,27 @@ export default function ListedData() {
   const { fetchAllCandidates, candidates, pagination, loading, error } = useRecruitmentNextzen();
   const { fetchJobOptions } = useJobPostsNextzen();
 
-  // Filters state
+  // Filters State
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [jobRoleFilter, setJobRoleFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Lists and Meta-counts returned from aggregate
+  // Dialog State
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+
+  // Dropdown options & real-time metadata metrics
   const [jobOptions, setJobOptions] = useState([]);
   const [metaCounts, setMetaCounts] = useState({ statuses: {}, jobRoles: {}, sources: {} });
 
-  // Load job options dropdown on mount
+  // 1. Fetch static job dropdown options
   useEffect(() => {
     fetchJobOptions().then((opts) => setJobOptions(opts || []));
   }, [fetchJobOptions]);
 
-  // Load and refresh list when filters change
+  // 2. Fetch candidates & dynamic aggregation counts based on active filters
   const handleFetchData = useCallback(async () => {
     try {
       const response = await fetchAllCandidates({
@@ -77,8 +91,8 @@ export default function ListedData() {
         source: sourceFilter,
       });
 
-      // Safely extract aggregations from response if stored in backend response payload
-      if (response?.metaCounts) {
+      // Update local state with aggregated counts returned from hook response
+      if (response && response.metaCounts) {
         setMetaCounts(response.metaCounts);
       }
     } catch (err) {
@@ -90,7 +104,6 @@ export default function ListedData() {
     handleFetchData();
   }, [handleFetchData]);
 
-  // Reset to page 1 whenever any key filters update
   const handleFilterChange = (type, value) => {
     setCurrentPage(1);
     if (type === "status") setStatusFilter(value);
@@ -98,25 +111,64 @@ export default function ListedData() {
     if (type === "source") setSourceFilter(value);
   };
 
-  // Status badge dynamic styling resolver
-  const getStatusBadgeClass = (status) => {
-    const maps = {
-      Applied: "bg-slate-50 text-slate-700 border-slate-200",
-      Screening: "bg-blue-50 text-blue-700 border-blue-200",
-      Assessment: "bg-purple-50 text-purple-700 border-purple-200",
-      Interview: "bg-pink-50 text-pink-700 border-pink-200",
-      "Final Review": "bg-orange-50 text-orange-700 border-orange-200",
-      Offer: "bg-cyan-50 text-cyan-700 border-cyan-200",
-      Hired: "bg-emerald-50 text-emerald-700 border-emerald-200",
-      Rejected: "bg-red-50 text-red-700 border-red-200",
+  // Helper: Match Score Styles (from Image 2)
+  const getMatchScoreStyle = (score) => {
+    if (score >= 90) return "text-emerald-600 bg-emerald-50/50";
+    if (score >= 80) return "text-blue-600 bg-blue-50/50";
+    if (score >= 70) return "text-amber-600 bg-amber-50/50";
+    return "text-red-500 bg-red-50/50";
+  };
+
+  // Helper: Flow/Pillar Status (from Image 2)
+  const getProgressStatusStyle = (status) => {
+    if (status === "Hired") {
+      return { text: "hired", classes: "bg-emerald-50 text-emerald-700 border-emerald-100" };
+    }
+    if (status === "Rejected") {
+      return { text: "rejected", classes: "bg-zinc-100 text-zinc-600 border-zinc-200" };
+    }
+    if (status === "Offer" || status === "Final Review") {
+      return { text: "ready to-share", classes: "bg-amber-50 text-amber-700 border-amber-100" };
+    }
+    return { text: "in progress", classes: "bg-slate-50 text-slate-600 border-slate-100" };
+  };
+
+  // Dynamically resolve & show active status modal
+  const renderStatusDialog = () => {
+    if (!isViewOpen || !selectedCandidate) return null;
+
+    const activeJob = {
+      _id: selectedCandidate.jobRoleId || selectedCandidate.jobId || "",
+      title: selectedCandidate.jobRoleName || "Job Position",
+      skills: selectedCandidate.skills || []
     };
-    return maps[status] || "bg-slate-50 text-slate-700 border-slate-200";
+
+    const commonProps = {
+      open: isViewOpen,
+      onClose: () => {
+        setIsViewOpen(false);
+        setSelectedCandidate(null);
+      },
+      person: selectedCandidate,
+      job: activeJob
+    };
+
+    switch (selectedCandidate.status) {
+      case "Applied": return <AppliedDialog {...commonProps} />;
+      case "Screening": return <ScreeningDialog {...commonProps} />;
+      case "Assessment": return <AssessmentDialog {...commonProps} />;
+      case "Interview": return <InterviewDialog {...commonProps} />;
+      case "Final Review": return <FinalReviewDialog {...commonProps} />;
+      case "Offer": return <OfferDialog {...commonProps} />;
+      case "Hired": return <HiredDialog {...commonProps} />;
+      default: return null; 
+    }
   };
 
   return (
     <div className="w-full bg-[#f8f9fc] rounded-2xl p-6 border border-slate-100">
       
-      {/* FILTER CONTROL PANEL */}
+      {/* ── FILTER BAR ── */}
       <Card className="border-slate-100 shadow-sm rounded-xl mb-6 bg-white">
         <CardContent className="p-4 flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -124,9 +176,8 @@ export default function ListedData() {
               <SlidersHorizontal className="w-4 h-4 text-slate-500" />
               <h3 className="text-sm font-bold text-slate-800">Filter Applicants</h3>
             </div>
-            {/* Total global Count badge */}
             <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-semibold">
-              Total Matches: {pagination.totalItems || 0}
+              Total Candidates: {pagination.totalItems || 0}
             </span>
           </div>
 
@@ -135,7 +186,7 @@ export default function ListedData() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               <Input
-                placeholder="Search candidates..."
+                placeholder="Search by name, email..."
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -145,17 +196,13 @@ export default function ListedData() {
               />
             </div>
 
-            {/* Status Dropdown Filter */}
+            {/* Status Selector with Aggregation Counts */}
             <Select value={statusFilter} onValueChange={(val) => handleFilterChange("status", val)}>
               <SelectTrigger className="bg-slate-50 border-slate-200/80 rounded-xl">
                 <SelectValue placeholder="Pipeline Stage" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">
-                  <div className="flex items-center justify-between w-full gap-4">
-                    <span>All Stages</span>
-                  </div>
-                </SelectItem>
+                <SelectItem value="all">All Stages</SelectItem>
                 {STAGES.map((s) => {
                   const count = metaCounts.statuses[s.key] || 0;
                   return (
@@ -172,7 +219,7 @@ export default function ListedData() {
               </SelectContent>
             </Select>
 
-            {/* Job Role Dropdown Filter */}
+            {/* Job Role Selector with Aggregation Counts */}
             <Select value={jobRoleFilter} onValueChange={(val) => handleFilterChange("jobRole", val)}>
               <SelectTrigger className="bg-slate-50 border-slate-200/80 rounded-xl">
                 <SelectValue placeholder="Job Role" />
@@ -180,7 +227,8 @@ export default function ListedData() {
               <SelectContent>
                 <SelectItem value="all">All Roles</SelectItem>
                 {jobOptions.map((opt) => {
-                  const count = metaCounts.jobRoles[opt.title] || 0;
+                  // Fallback match to handle spacing discrepancies (e.g., "Full Stack" vs "Full-Stack")
+                  const count = metaCounts.jobRoles[opt.title] || metaCounts.jobRoles[opt.title.trim()] || 0;
                   return (
                     <SelectItem key={opt._id} value={opt.title}>
                       <div className="flex items-center justify-between gap-10 w-full">
@@ -195,7 +243,7 @@ export default function ListedData() {
               </SelectContent>
             </Select>
 
-            {/* Source Dropdown Filter */}
+            {/* Source Selector with Aggregation Counts */}
             <Select value={sourceFilter} onValueChange={(val) => handleFilterChange("source", val)}>
               <SelectTrigger className="bg-slate-50 border-slate-200/80 rounded-xl">
                 <SelectValue placeholder="Source" />
@@ -221,7 +269,7 @@ export default function ListedData() {
         </CardContent>
       </Card>
 
-      {/* RENDER CANDIDATES LIST */}
+      {/* ── DATA PANEL ── */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 bg-white border border-slate-100 rounded-xl">
           <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
@@ -241,79 +289,108 @@ export default function ListedData() {
         <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-slate-200 rounded-xl bg-white">
           <span className="text-3xl mb-2">📂</span>
           <p className="text-sm font-bold text-slate-700">No applicants found</p>
-          <p className="text-xs text-slate-400 mt-1">Try tweaking your search term or selection filters.</p>
+          <p className="text-xs text-slate-400 mt-1">Try resetting or widening your filter values.</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {/* List Display View Grid */}
-          <div className="grid grid-cols-1 gap-3">
-            {candidates.map((candidate) => {
-              const score = candidate.matchScore ?? 75;
-              const name = candidate.fullName || candidate.name || "Unknown Candidate";
-              
-              return (
-                <div 
-                  key={candidate._id}
-                  className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md transition-shadow"
-                >
-                  {/* Left Side: Identity */}
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">
-                      {name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-slate-800 text-sm">{name}</h4>
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getStatusBadgeClass(candidate.status)}`}>
-                          {candidate.status || "Applied"}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-400 font-medium mt-0.5">
-                        {candidate.jobRoleName || "Unassigned Position"}
-                      </p>
-                    </div>
-                  </div>
+        <div className="bg-white border border-slate-100 rounded-xl shadow-sm overflow-x-auto">
+          {/* Main Table Matching Image 2 */}
+          <table className="w-full text-left border-collapse min-w-[1000px]">
+            <thead>
+              <tr className="border-b border-slate-100 text-xs text-slate-400 uppercase font-bold tracking-wider bg-slate-50/50">
+                <th className="py-4 px-5">Candidate</th>
+                <th className="py-4 px-4">Job Role</th>
+                <th className="py-4 px-4">Match</th>
+                <th className="py-4 px-4">Stage</th>
+                <th className="py-4 px-4">Status</th>
+                <th className="py-4 px-4">Source</th>
+                <th className="py-4 px-4">Applied</th>
+                <th className="py-4 px-5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-[13px] text-slate-600 font-medium">
+              {candidates.map((candidate) => {
+                const name = candidate.fullName || candidate.name || "Unknown Candidate";
+                const email = candidate.email || "—";
+                const score = candidate.matchScore ?? 75;
+                const statusMeta = getProgressStatusStyle(candidate.status);
 
-                  {/* Mid Segment: Metadata details */}
-                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 my-3 md:my-0 text-xs text-slate-500">
-                    <div className="flex items-center gap-1.5">
-                      <Mail className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{candidate.email}</span>
-                    </div>
-                    {candidate.location && (
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{candidate.location.split(",")[0]}</span>
+                return (
+                  <tr key={candidate._id} className="hover:bg-slate-50/40 transition-colors">
+                    {/* Candidate Identity block */}
+                    <td className="py-3 px-5">
+                      <div>
+                        <div className="font-bold text-slate-800 text-[13.5px]">{name}</div>
+                        <div className="text-xs text-slate-400 font-normal mt-0.5">{email}</div>
                       </div>
-                    )}
-                    {candidate.experience !== undefined && (
-                      <div className="flex items-center gap-1">
-                        <Briefcase className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{candidate.experience} yrs</span>
+                    </td>
+
+                    {/* Job Role */}
+                    <td className="py-3 px-4 text-slate-500 font-medium">
+                      {candidate.jobRoleName || "—"}
+                    </td>
+
+                    {/* Score Star Indicator */}
+                    <td className="py-3 px-4">
+                      <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold ${getMatchScoreStyle(score)}`}>
+                        <Star className="w-3 h-3 fill-current" />
+                        {score}%
                       </div>
-                    )}
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      <span>
-                        {new Date(candidate.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </td>
+
+                    {/* Current Pipeline Stage */}
+                    <td className="py-3 px-4">
+                      <span className={`inline-block px-2.5 py-0.5 text-[10px] font-bold rounded uppercase tracking-wider ${
+                        STAGES.find((s) => s.key === candidate.status)?.color || "bg-slate-100 text-slate-600 border border-slate-200"
+                      }`}>
+                        {candidate.status || "Applied"}
                       </span>
-                    </div>
-                  </div>
+                    </td>
 
-                  {/* Right Side: Score indicator */}
-                  <div className="flex items-center gap-4 border-t md:border-t-0 pt-3 md:pt-0 border-slate-50 justify-between md:justify-end">
-                    <div className="flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-1 rounded font-bold text-xs">
-                      <Star className="w-3.5 h-3.5 fill-current" />
-                      {score}% Match
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                    {/* Progress Value Status */}
+                    <td className="py-3 px-4">
+                      <span className={`inline-block px-2.5 py-0.5 text-[10.5px] rounded-full border font-semibold ${statusMeta.classes}`}>
+                        {statusMeta.text}
+                      </span>
+                    </td>
 
-          {/* Pagination Controllers */}
-          <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
+                    {/* Applicant Source */}
+                    <td className="py-3 px-4 text-slate-500">
+                      {candidate.source || "—"}
+                    </td>
+
+                    {/* Applied Date */}
+                    <td className="py-3 px-4 text-slate-400 font-normal">
+                      {candidate.createdAt 
+                        ? new Date(candidate.createdAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric"
+                          })
+                        : "—"
+                      }
+                    </td>
+
+                    {/* Action Dialog Activator */}
+                    <td className="py-3 px-5 text-right">
+                      <button
+                        onClick={() => {
+                          setSelectedCandidate(candidate);
+                          setIsViewOpen(true);
+                        }}
+                        className="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-800 rounded-lg transition-colors inline-flex items-center justify-center"
+                        title="View pipeline modal details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          {/* Table Footer Pagination */}
+          <div className="flex items-center justify-between p-4 bg-slate-50/50 border-t border-slate-100">
             <span className="text-xs text-slate-400 font-medium">
               Page <span className="font-semibold text-slate-700">{currentPage}</span> of{" "}
               <span className="font-semibold text-slate-700">{pagination.totalPages}</span>
@@ -323,21 +400,24 @@ export default function ListedData() {
               <button
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-3.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-xs font-semibold text-slate-600 transition shadow-sm flex items-center gap-1"
+                className="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-xs font-bold text-slate-600 transition shadow-sm"
               >
-                <ChevronLeft className="w-3.5 h-3.5" /> Previous
+                Previous
               </button>
               <button
                 onClick={() => setCurrentPage((p) => p + 1)}
                 disabled={currentPage >= pagination.totalPages}
-                className="px-3.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-xs font-semibold text-slate-600 transition shadow-sm flex items-center gap-1"
+                className="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-xs font-bold text-slate-600 transition shadow-sm"
               >
-                Next <ChevronRight className="w-3.5 h-3.5" />
+                Next
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Render the dynamically selected Dialog overlay modal */}
+      {renderStatusDialog()}
     </div>
   );
 }
