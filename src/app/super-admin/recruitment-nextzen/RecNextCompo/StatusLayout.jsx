@@ -85,7 +85,7 @@ const STAGES = [
   {
     key: "Inventory",
     label: "Inventory",
-    icon: Archive, // Make sure to import Archive from 'lucide-react'
+    icon: Archive, 
     iconBg: "bg-indigo-100",
     iconColor: "text-indigo-600",
     accent: "bg-indigo-500",
