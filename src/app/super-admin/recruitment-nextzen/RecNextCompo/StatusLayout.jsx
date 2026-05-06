@@ -11,8 +11,9 @@ import {
   Send,
   CheckCircle2,
   XCircle,
+  Archive
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent,  } from "@/components/ui/card";
 import { useRecruitmentNextzen } from "@/app/hook/useRecruitment-jobs-nextzen";
 import CandidateCard from "./CandidateCard"; // 👈 Imported extracted component
 

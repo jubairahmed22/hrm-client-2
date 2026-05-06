@@ -9,11 +9,12 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { GitBranch, List, BarChart3, Archive, ArchiveIcon } from "lucide-react";
+import { GitBranch, List, BarChart3, Archive } from "lucide-react";
 import Pipeline from "./Pipeline";
 import ListedData from "./ListedData";
 import Analytics from "./Analytics";
 import Inventory from "./Inventory";
+import InventoryNextzen from "./InventoryNextzen";
 
 // Tab content components — replace these imports with your actual components
 // import Pipeline from "./Pipeline";
@@ -43,7 +44,7 @@ const TAB_CONFIG = [
   {
     value: "inventory",
     label: "Inventory",
-    icon: ArchiveIcon,
+    icon: Archive,
     count: 10,
   },
 ];
@@ -126,7 +127,7 @@ const Tablisted = () => {
           value="inventory"
           className="animate-in fade-in duration-500 mt-0"
         >
-          <Inventory></Inventory>
+          <InventoryNextzen></InventoryNextzen>
         </TabsContent>
       </Tabs>
     </div>
