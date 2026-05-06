@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import StatusLayout from "./StatusLayout";
  import { useJobPostsNextzen } from "@/app/hook/useJobPostsNextzen";
+import RejectedList from "./RejectedList";
 
 const SOURCE_OPTIONS = [
   { value: "all", label: "All Sources" },
@@ -104,7 +105,7 @@ const Pipeline = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-220px)] rounded-xl overflow-hidden select-none">
+    <div className="flex flex-col h-[calc(200vh-320px)] space-y-7 rounded-xl overflow-hidden select-none">
 
       {/* ── FILTER BAR ──────────────────────────────────────────────────── */}
       <div className="z-30 bg-white px-4 py-4 border-b border-slate-100">
@@ -233,6 +234,9 @@ const Pipeline = () => {
         </div>
       </div>
       
+
+   <RejectedList></RejectedList>
+
     </div>
   );
 };
