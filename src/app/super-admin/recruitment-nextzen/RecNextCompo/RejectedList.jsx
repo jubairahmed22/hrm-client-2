@@ -67,7 +67,7 @@ export default function RejectedList() {
     <div className="w-full bg-[#f8f9fc] rounded-2xl p-6 shadow-sm border border-slate-100">
       
       {/* Premium Header & Filters Panel */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-6">
+      <div className="flex flex-col justify-between gap-4 pb-6 mb-6">
         {/* Title in Red Accent styling as shown in design */}
         <div className="flex items-center gap-2">
           <div className="flex items-center justify-center w-5 h-5 rounded-full bg-red-50 text-red-500 border border-red-100">
