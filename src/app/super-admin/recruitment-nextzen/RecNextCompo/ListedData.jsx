@@ -27,6 +27,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
 // Separate Dialog Components
 import AppliedDialog from "./AppliedDialog";
 import ScreeningDialog from "./ScreeningDialog";
@@ -181,9 +190,9 @@ export default function ListedData() {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="flex flex-row gap-5 w-full">
             {/* Search Input */}
-            <div className="relative">
+            <div className="relative w-full">
               <Input
                 placeholder="Search by name, email..."
                 value={search}
@@ -291,22 +300,22 @@ export default function ListedData() {
           <p className="text-xs text-slate-400 mt-1">Try resetting or widening your filter values.</p>
         </div>
       ) : (
-        <div className="bg-white border border-slate-100 rounded-xl shadow-sm overflow-x-auto">
+<div className="bg-white border border-slate-100 rounded-xl shadow-sm overflow-x-auto">
           {/* Main Table Matching Image 2 */}
-          <table className="w-full text-left border-collapse min-w-[1000px]">
-            <thead>
-              <tr className="border-b border-slate-100 text-xs text-slate-400 uppercase font-bold tracking-wider bg-slate-50/50">
-                <th className="py-4 px-5">Candidate</th>
-                <th className="py-4 px-4">Job Role</th>
-                <th className="py-4 px-4">Match</th>
-                <th className="py-4 px-4">Stage</th>
-                <th className="py-4 px-4">Status</th>
-                <th className="py-4 px-4">Source</th>
-                <th className="py-4 px-4">Applied</th>
-                <th className="py-4 px-5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-[13px] text-slate-600 font-medium">
+          <Table className="w-full text-left border-collapse min-w-[1000px]">
+            <TableHeader>
+              <TableRow className="border-b border-slate-100 text-xs text-slate-400 uppercase font-bold tracking-wider bg-slate-50/50 hover:bg-transparent">
+                <TableHead className="py-4 px-5 text-slate-400 font-bold">Candidate</TableHead>
+                <TableHead className="py-4 px-4 text-slate-400 font-bold">Job Role</TableHead>
+                <TableHead className="py-4 px-4 text-slate-400 font-bold">Match</TableHead>
+                <TableHead className="py-4 px-4 text-slate-400 font-bold">Stage</TableHead>
+                <TableHead className="py-4 px-4 text-slate-400 font-bold">Status</TableHead>
+                <TableHead className="py-4 px-4 text-slate-400 font-bold">Source</TableHead>
+                <TableHead className="py-4 px-4 text-slate-400 font-bold">Applied</TableHead>
+                <TableHead className="py-4 px-5 text-right text-slate-400 font-bold">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-slate-100 text-[13px] text-slate-600 font-medium">
               {candidates.map((candidate) => {
                 const name = candidate.fullName || candidate.name || "Unknown Candidate";
                 const email = candidate.email || "—";
@@ -314,51 +323,51 @@ export default function ListedData() {
                 const statusMeta = getProgressStatusStyle(candidate.status);
 
                 return (
-                  <tr key={candidate._id} className="hover:bg-slate-50/40 transition-colors">
+                  <TableRow key={candidate._id} className="hover:bg-slate-50/40 transition-colors border-b border-slate-100">
                     {/* Candidate Identity block */}
-                    <td className="py-3 px-5">
+                    <TableCell className="py-3 px-5">
                       <div>
                         <div className="font-bold text-slate-800 text-[13.5px]">{name}</div>
                         <div className="text-xs text-slate-400 font-normal mt-0.5">{email}</div>
                       </div>
-                    </td>
+                    </TableCell>
 
                     {/* Job Role */}
-                    <td className="py-3 px-4 text-slate-500 font-medium">
+                    <TableCell className="py-3 px-4 text-slate-500 font-medium">
                       {candidate.jobRoleName || "—"}
-                    </td>
+                    </TableCell>
 
                     {/* Score Star Indicator */}
-                    <td className="py-3 px-4">
+                    <TableCell className="py-3 px-4">
                       <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold ${getMatchScoreStyle(score)}`}>
                         <Star className="w-3 h-3 fill-current" />
                         {score}%
                       </div>
-                    </td>
+                    </TableCell>
 
                     {/* Current Pipeline Stage */}
-                    <td className="py-3 px-4">
+                    <TableCell className="py-3 px-4">
                       <span className={`inline-block px-2.5 py-0.5 text-[10px] font-bold rounded uppercase tracking-wider ${
                         STAGES.find((s) => s.key === candidate.status)?.color || "bg-slate-100 text-slate-600 border border-slate-200"
                       }`}>
                         {candidate.status || "Applied"}
                       </span>
-                    </td>
+                    </TableCell>
 
                     {/* Progress Value Status */}
-                    <td className="py-3 px-4">
+                    <TableCell className="py-3 px-4">
                       <span className={`inline-block px-2.5 py-0.5 text-[10.5px] rounded-full border font-semibold ${statusMeta.classes}`}>
                         {statusMeta.text}
                       </span>
-                    </td>
+                    </TableCell>
 
                     {/* Applicant Source */}
-                    <td className="py-3 px-4 text-slate-500">
+                    <TableCell className="py-3 px-4 text-slate-500">
                       {candidate.source || "—"}
-                    </td>
+                    </TableCell>
 
                     {/* Applied Date */}
-                    <td className="py-3 px-4 text-slate-400 font-normal">
+                    <TableCell className="py-3 px-4 text-slate-400 font-normal">
                       {candidate.createdAt 
                         ? new Date(candidate.createdAt).toLocaleDateString("en-US", {
                             month: "short",
@@ -367,10 +376,10 @@ export default function ListedData() {
                           })
                         : "—"
                       }
-                    </td>
+                    </TableCell>
 
                     {/* Action Dialog Activator */}
-                    <td className="py-3 px-5 text-right">
+                    <TableCell className="py-3 px-5 text-right">
                       <button
                         onClick={() => {
                           setSelectedCandidate(candidate);
@@ -381,12 +390,12 @@ export default function ListedData() {
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
 
           {/* Table Footer Pagination */}
           <div className="flex items-center justify-between p-4 bg-slate-50/50 border-t border-slate-100">
