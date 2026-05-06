@@ -166,17 +166,17 @@ export default function ListedData() {
   };
 
   return (
-    <div className="w-full bg-[#f8f9fc] rounded-2xl p-6 border border-slate-100">
+    <div className="w-full bg-[#f8f9fc] rounded-2xl border border-slate-100">
       
       {/* ── FILTER BAR ── */}
-      <Card className="border-slate-100 shadow-sm rounded-xl mb-6 bg-white">
+      <Card>
         <CardContent className="p-4 flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <SlidersHorizontal className="w-4 h-4 text-slate-500" />
-              <h3 className="text-sm font-bold text-slate-800">Filter Applicants</h3>
+              <h3 >Filter Applicants</h3>
             </div>
-            <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-semibold">
+            <span >
               Total Candidates: {pagination.totalItems || 0}
             </span>
           </div>
