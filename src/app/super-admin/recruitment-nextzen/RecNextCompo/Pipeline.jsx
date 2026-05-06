@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import StatusLayout from "./StatusLayout";
-import { useJobPostsNextzen } from "@/app/hook/useJobPostsNextzen";
+ import { useJobPostsNextzen } from "@/app/hook/useJobPostsNextzen";
 
 const SOURCE_OPTIONS = [
   { value: "all", label: "All Sources" },
@@ -232,6 +232,7 @@ const Pipeline = () => {
           </div>
         </div>
       </div>
+      
     </div>
   );
 };

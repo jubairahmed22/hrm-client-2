@@ -10,6 +10,7 @@ import {
   ClipboardCheck,
   Send,
   CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRecruitmentNextzen } from "@/app/hook/useRecruitment-jobs-nextzen";
@@ -72,6 +73,14 @@ const STAGES = [
     iconBg: "bg-emerald-100",
     iconColor: "text-emerald-600",
     accent: "bg-emerald-500",
+  },
+  {
+    key: "Rejected",
+    label: "Rejected",
+    icon: XCircle,
+    iconBg: "bg-red-100/80",
+    iconColor: "text-red-600",
+    accent: "bg-red-500",
   },
 ];
 

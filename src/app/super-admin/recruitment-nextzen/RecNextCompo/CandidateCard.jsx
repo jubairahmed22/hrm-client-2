@@ -28,6 +28,7 @@ const STAGES = [
   { key: "Final Review", label: "Final Review" },
   { key: "Offer", label: "Offer" },
   { key: "Hired", label: "Hired" },
+  { key: "Reject", label: "Reject" },
 ];
 
 const CandidateCard = ({ candidate, onDragStart, onStatusChange, stagesConfig = STAGES, job }) => {
