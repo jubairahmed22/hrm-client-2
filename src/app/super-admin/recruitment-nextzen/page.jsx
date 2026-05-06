@@ -5,7 +5,7 @@ import Tablisted from './RecNextCompo/Tablisted';
 const page = () => {
     return (
         <div className='p-6  space-y-8'>
-             <JobPostHeader></JobPostHeader> 34523
+             <JobPostHeader></JobPostHeader>
              <Tablisted></Tablisted>
         </div>
     );
