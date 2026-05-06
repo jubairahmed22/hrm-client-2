@@ -82,6 +82,7 @@ const STAGES = [
     iconColor: "text-red-600",
     accent: "bg-red-500",
   },
+  { key: "Inventory", label: "Inventory", color: "bg-indigo-500 text-white border-indigo-600" },
 ];
 
 const StatusLayout = ({ filters = {}, onTotalChange }) => {
