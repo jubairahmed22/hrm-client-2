@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Tabs,
@@ -10,57 +10,80 @@ import {
 } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { GitBranch, List, BarChart3, Archive } from "lucide-react";
+import { useRecruitmentNextzen } from "@/app/hook/useRecruitment-jobs-nextzen";
+
+// Import your actual dashboard tab screens
 import Pipeline from "./Pipeline";
 import ListedData from "./ListedData";
 import Analytics from "./Analytics";
-import Inventory from "./Inventory";
 import InventoryNextzen from "./InventoryNextzen";
 
-// Tab content components — replace these imports with your actual components
-// import Pipeline from "./Pipeline";
-// import CandidateList from "./CandidateList";
-// import Analytics from "./Analytics";
-// import Inventory from "./Inventory";
-
-const TAB_CONFIG = [
-  {
-    value: "pipeline",
-    label: "Pipeline",
-    icon: GitBranch,
-    count: 18,
-  },
-  {
-    value: "list",
-    label: "List",
-    icon: List,
-    count: null, // no badge for List
-  },
-  {
-    value: "analytics",
-    label: "Analytics",
-    icon: BarChart3,
-    count: null,
-  },
-  {
-    value: "inventory",
-    label: "Inventory",
-    icon: Archive,
-    count: 10,
-  },
-];
-
-const Tablisted = () => {
+export default function Tablisted() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { fetchAllCandidates, fetchByStatus } = useRecruitmentNextzen();
 
   // Read current tab from URL (default to "pipeline")
   const currentTab = searchParams.get("tab") || "pipeline";
   const [activeTab, setActiveTab] = useState(currentTab);
 
-  // Keep local state in sync with URL changes (e.g. when user uses back/forward)
+  // Dynamic state values for the Tab Headers
+  const [pipelineCount, setPipelineCount] = useState(0);
+  const [inventoryCount, setInventoryCount] = useState(0);
+
+  // Keep local state in sync with URL changes
   useEffect(() => {
     setActiveTab(currentTab);
   }, [currentTab]);
+
+  // ── DYNAMIC COUNT LOADER ──
+  // Fetches both the aggregate metaCounts and explicit Inventory counts in parallel
+  const loadBadgeMetrics = useCallback(async () => {
+    try {
+      // 1. Fetch all candidates (returns response containing metaCounts object)
+      const allRes = await fetchAllCandidates({ page: 1, limit: 1 });
+      
+      // 2. Fetch inventory-specific candidates to get exact total count
+      const inventoryRes = await fetchByStatus("Inventory", { page: 1, limit: 1 });
+
+      const totalInventory = inventoryRes?.total || 0;
+      setInventoryCount(totalInventory);
+
+      if (allRes && allRes.metaCounts && allRes.metaCounts.statuses) {
+        // Calculate total of active stages, excluding 'Inventory'
+        const stagesMap = allRes.metaCounts.statuses;
+        const totalPipelineCandidates = Object.keys(stagesMap).reduce((acc, stageKey) => {
+          if (stageKey !== "Inventory") {
+            return acc + (stagesMap[stageKey] || 0);
+          }
+          return acc;
+        }, 0);
+
+        setPipelineCount(totalPipelineCandidates);
+      } else {
+        // Fallback using simple math if metaCounts is structural-different
+        const grandTotal = allRes?.pagination?.totalItems || 0;
+        setPipelineCount(Math.max(0, grandTotal - totalInventory));
+      }
+    } catch (err) {
+      console.error("Failed to load pipeline dynamic badge counts:", err);
+    }
+  }, [fetchAllCandidates, fetchByStatus]);
+
+  // Initial load and global refresh syncing (when candidates change stage)
+  useEffect(() => {
+    loadBadgeMetrics();
+  }, [loadBadgeMetrics]);
+
+  useEffect(() => {
+    const handleGlobalRefresh = () => {
+      loadBadgeMetrics();
+    };
+    window.addEventListener("refresh-kanban-board", handleGlobalRefresh);
+    return () => {
+      window.removeEventListener("refresh-kanban-board", handleGlobalRefresh);
+    };
+  }, [loadBadgeMetrics]);
 
   // Update URL when tab changes
   const handleTabChange = (value) => {
@@ -69,6 +92,34 @@ const Tablisted = () => {
     params.set("tab", value);
     router.push(`?${params.toString()}`, { scroll: false });
   };
+
+  // Dynamic configuration inside render to access live component states
+  const TAB_CONFIG = [
+    {
+      value: "pipeline",
+      label: "Pipeline",
+      icon: GitBranch,
+      count: pipelineCount,
+    },
+    {
+      value: "list",
+      label: "List",
+      icon: List,
+      count: null, // no badge for List
+    },
+    {
+      value: "analytics",
+      label: "Analytics",
+      icon: BarChart3,
+      count: null,
+    },
+    {
+      value: "inventory",
+      label: "Inventory",
+      icon: Archive,
+      count: inventoryCount,
+    },
+  ];
 
   return (
     <div className="w-full">
@@ -84,16 +135,16 @@ const Tablisted = () => {
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all"
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-4 h-4 shrink-0" />
                 <span>{tab.label}</span>
                 {tab.count !== null && (
                   <Badge
-                    className={`ml-1 px-1.5 py-0 h-5 text-[10px] font-bold ${
+                    className={`ml-1 px-1.5 py-0 h-5 text-[10px] font-bold transition-colors ${
                       isActive
-                        ? "bg-white/20 text-white hover:bg-white/30"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        ? "bg-white/20 text-white hover:bg-white/30 border-none"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200 border-none"
                     }`}
                   >
                     {tab.count}
@@ -106,32 +157,24 @@ const Tablisted = () => {
 
         {/* Tab Content — Pipeline */}
         <TabsContent value="pipeline" className="animate-in fade-in duration-500 mt-0">
-          <Pipeline></Pipeline>
+          <Pipeline />
         </TabsContent>
 
         {/* Tab Content — List */}
         <TabsContent value="list" className="animate-in fade-in duration-500 mt-0">
-          <ListedData></ListedData>
+          <ListedData />
         </TabsContent>
 
         {/* Tab Content — Analytics */}
-        <TabsContent
-          value="analytics"
-          className="animate-in fade-in duration-500 mt-0"
-        >
-          <Analytics></Analytics>
+        <TabsContent value="analytics" className="animate-in fade-in duration-500 mt-0">
+          <Analytics />
         </TabsContent>
 
         {/* Tab Content — Inventory */}
-        <TabsContent
-          value="inventory"
-          className="animate-in fade-in duration-500 mt-0"
-        >
-          <InventoryNextzen></InventoryNextzen>
+        <TabsContent value="inventory" className="animate-in fade-in duration-500 mt-0">
+          <InventoryNextzen />
         </TabsContent>
       </Tabs>
     </div>
   );
-};
-
-export default Tablisted;
+}
