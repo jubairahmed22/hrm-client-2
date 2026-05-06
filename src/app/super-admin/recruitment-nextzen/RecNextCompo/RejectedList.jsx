@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { RefreshCw, AlertCircle, Search, Loader2 } from "lucide-react";
 import { useRecruitmentNextzen } from "@/app/hook/useRecruitment-jobs-nextzen";
 
 export default function RejectedList() {
@@ -10,12 +11,11 @@ export default function RejectedList() {
   const [hasNextPage, setHasNextPage] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const limit = 10;
+  const limit = 12; // Adjusted to match the image grid (multiples of 3 looks best)
 
   // ---------------- Load Data ----------------
   const loadRejectedCandidates = useCallback(async () => {
     try {
-      // Build clean parameters object matching fetchCandidatesByStatusNextzen logic
       const params = {
         page: currentPage,
         limit,
@@ -23,7 +23,6 @@ export default function RejectedList() {
         source: "all"
       };
 
-      // Only pass search query if the user has typed something
       if (searchTerm.trim() !== "") {
         params.search = searchTerm.trim();
       }
@@ -38,12 +37,10 @@ export default function RejectedList() {
     }
   }, [currentPage, searchTerm, fetchByStatus]);
 
-  // Load on mount, page change, or search query change
   useEffect(() => {
     loadRejectedCandidates();
   }, [loadRejectedCandidates]);
 
-  // Listen for global board updates (e.g. dragging a card to Rejected)
   useEffect(() => {
     const handleGlobalRefresh = () => {
       loadRejectedCandidates();
@@ -56,172 +53,137 @@ export default function RejectedList() {
 
   // ---------------- Revert/Restore Handler ----------------
   const handleRestoreCandidate = async (candidateId, currentJobId) => {
-    if (!confirm("Are you sure you want to restore this candidate to Applied status?")) return;
+    if (!confirm("Are you sure you want to reinstate this candidate to Applied status?")) return;
     try {
-      // Restore back to Applied
       await changeCandidateStatus(candidateId, "Applied", currentJobId, {
-        revertReason: "Restored from Rejected list"
+        revertReason: "Reinstated from Rejected list"
       });
     } catch (err) {
-      alert(err.message || "Failed to restore candidate");
+      alert(err.message || "Failed to reinstate candidate");
     }
   };
 
   return (
-    <div className="w-full bg-zinc-950/40 backdrop-blur-md border border-zinc-800 rounded-2xl p-6 shadow-2xl">
-      {/* Header Panel */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-zinc-800/80">
-        <div>
-          <h2 className="text-xl font-semibold tracking-tight text-white flex items-center gap-2">
-            Rejected Candidates
-            <span className="text-xs bg-red-950/40 text-red-400 border border-red-900 px-2.5 py-0.5 rounded-full font-medium">
-              {totalCount} Total
-            </span>
+    <div className="w-full bg-[#f8f9fc] rounded-2xl p-6 shadow-sm border border-slate-100">
+      
+      {/* Premium Header & Filters Panel */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-6">
+        {/* Title in Red Accent styling as shown in design */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center w-5 h-5 rounded-full bg-red-50 text-red-500 border border-red-100">
+            <AlertCircle className="w-3.5 h-3.5" />
+          </div>
+          <h2 className="text-base font-bold tracking-tight text-slate-800">
+            Rejected Candidates <span className="text-red-500 font-semibold">({totalCount})</span>
           </h2>
-          <p className="text-sm text-zinc-400 mt-1">
-            Archived talent profiles and documented reasons for disqualification.
-          </p>
         </div>
 
-        {/* Premium Search input */}
+        {/* Minimal Search input */}
         <div className="relative w-full md:w-80">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Search rejected candidates..."
+            placeholder="Search archived profiles..."
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
-              setCurrentPage(1); // Reset to page 1 on active typing
+              setCurrentPage(1);
             }}
-            className="w-full px-4 py-2 bg-zinc-900/60 border border-zinc-800/80 rounded-xl text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700 transition"
+            className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200/80 rounded-xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition"
           />
         </div>
       </div>
 
-      {/* Loading & Empty UI Logic */}
+      {/* Loading Overlay */}
       {loading && rejectedCandidates.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="w-8 h-8 border-2 border-t-transparent border-red-500 rounded-full animate-spin" />
-          <p className="text-sm text-zinc-500 mt-4">Retrieving application history...</p>
+        <div className="flex flex-col items-center justify-center py-24">
+          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+          <p className="text-xs text-slate-400 mt-3 font-medium">Loading application history...</p>
         </div>
       ) : rejectedCandidates.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="text-zinc-600 text-3xl mb-3">📂</div>
-          <p className="text-sm text-zinc-400 font-medium">No rejected candidates found</p>
-          <p className="text-xs text-zinc-500 max-w-xs mt-1">
-            Candidates moved to Rejected inside the recruitment pipelines with archived metadata will show up here.
+        <div className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed border-slate-100 rounded-2xl bg-white/50">
+          <span className="text-3xl mb-2">📁</span>
+          <p className="text-sm font-semibold text-slate-700">No rejected candidates found</p>
+          <p className="text-xs text-slate-400 max-w-xs mt-1">
+            Archived profiles will appear here as soon as they are rejected from the pipeline stages.
           </p>
         </div>
       ) : (
-        <div className="mt-6 overflow-x-auto">
-          {/* Main Table */}
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-zinc-800 text-xs text-zinc-500 uppercase font-medium tracking-wider">
-                <th className="py-4 px-4 font-semibold">Candidate</th>
-                <th className="py-4 px-4 font-semibold">Reason Category</th>
-                <th className="py-4 px-4 font-semibold">Detailed Reason</th>
-                <th className="py-4 px-4 font-semibold">Rejected By</th>
-                <th className="py-4 px-4 font-semibold">Disqualified Date</th>
-                <th className="py-4 px-4 text-right font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-900/80 text-sm text-zinc-300">
-              {rejectedCandidates.map((candidate) => {
-                const rejectionLog = candidate.lastAction;
-                const author = rejectionLog?.updatedBy;
-                
-                // Read properties safely matching both candidate schema styles
-                const candidateName = candidate.fullName || candidate.name || "Unknown Candidate";
-                const candidateEmail = candidate.email || "No email available";
-                const category = candidate.rejectionCategory || candidate.previousMetadata?.rejectionCategory || "Not Specified";
-                const reason = candidate.rejectionReason || candidate.previousMetadata?.rejectionReason || "No details provided.";
-                const jobId = candidate.jobRoleId || candidate.jobId || null;
+        <div>
+          {/* Bento Card Grid Layout matches image style (3 Columns on Large screens) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {rejectedCandidates.map((candidate) => {
+              const score = candidate.matchScore ?? 75; // Default score percentage
+              const candidateName = candidate.fullName || candidate.name || "Unknown Candidate";
+              const candidateRole = candidate.jobRoleName || "Senior Full Stack Developer";
+              const rejectionLog = candidate.lastAction;
+              const reason = candidate.rejectionReason || candidate.previousMetadata?.rejectionReason || "No details or feedback provided.";
+              const jobId = candidate.jobRoleId || candidate.jobId || null;
 
-                return (
-                  <tr 
-                    key={candidate._id} 
-                    className="hover:bg-zinc-900/30 transition-colors group"
-                  >
-                    {/* Basic Info */}
-                    <td className="py-4 px-4">
+              return (
+                <div 
+                  key={candidate._id} 
+                  className="flex flex-col justify-between bg-white border border-slate-100 rounded-xl p-5 shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] hover:shadow-md hover:border-slate-200/80 transition-all duration-200"
+                >
+                  {/* Card Content Top half */}
+                  <div>
+                    <div className="flex items-start justify-between mb-1.5">
                       <div>
-                        <div className="font-semibold text-zinc-100">{candidateName}</div>
-                        <div className="text-xs text-zinc-500 font-mono mt-0.5">{candidateEmail}</div>
+                        <h4 className="font-bold text-slate-800 text-[15px] leading-snug">
+                          {candidateName}
+                        </h4>
+                        <p className="text-xs text-slate-400 font-medium">
+                          {candidateRole}
+                        </p>
                       </div>
-                    </td>
 
-                    {/* Rejection Category Tag */}
-                    <td className="py-4 px-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-red-950/20 text-red-400 border border-red-900/30">
-                        {category}
-                      </span>
-                    </td>
+                      {/* Pill style match score (Red hue to match image reference) */}
+                      <div className="px-2 py-0.5 rounded bg-red-50 border border-red-100 text-[10px] font-bold text-red-500 font-mono">
+                        {score}%
+                      </div>
+                    </div>
 
-                    {/* Detailed Notes */}
-                    <td className="py-4 px-4 max-w-xs">
-                      <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                    {/* Detailed Reason Field */}
+                    <div className="mt-3.5 mb-6">
+                      <p className="text-xs text-slate-500/90 leading-relaxed font-normal min-h-[40px] line-clamp-3">
                         {reason}
                       </p>
-                    </td>
+                    </div>
+                  </div>
 
-                    {/* Metadata Author */}
-                    <td className="py-4 px-4">
-                      {author ? (
-                        <div>
-                          <div className="text-xs font-semibold text-zinc-300">{author.name}</div>
-                          <div className="text-[10px] text-zinc-500 font-mono">{author.role || author.email}</div>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-zinc-600">N/A</span>
-                      )}
-                    </td>
+                  {/* Reinstate Action Button Container */}
+                  <div className="w-full">
+                    <button
+                      onClick={() => handleRestoreCandidate(candidate._id, jobId)}
+                      className="w-full flex items-center justify-center gap-2 py-2 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-white hover:bg-blue-50/40 border border-blue-200/80 hover:border-blue-300 rounded-lg shadow-sm transition duration-150"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5 animate-pulse" />
+                      Reinstate
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
-                    {/* Formatted Disqualification Date */}
-                    <td className="py-4 px-4 text-xs font-mono text-zinc-400">
-                      {rejectionLog?.updatedAt 
-                        ? new Date(rejectionLog.updatedAt).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric"
-                          })
-                        : "N/A"
-                      }
-                    </td>
-
-                    {/* Dynamic Action Controls */}
-                    <td className="py-4 px-4 text-right">
-                      <button
-                        onClick={() => handleRestoreCandidate(candidate._id, jobId)}
-                        className="text-xs text-zinc-400 hover:text-blue-400 border border-zinc-800 hover:border-blue-900 bg-zinc-900/40 hover:bg-blue-950/20 px-3 py-1.5 rounded-lg transition"
-                      >
-                        Restore Pipeline
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-
-          {/* Table Pagination Controls */}
-          <div className="flex items-center justify-between mt-6 pt-4 border-t border-zinc-800/80">
-            <span className="text-xs text-zinc-500">
-              Showing page <span className="font-semibold text-zinc-300">{currentPage}</span>
+          {/* Table-less Minimal Pagination Controls */}
+          <div className="flex items-center justify-between mt-8 pt-5 border-t border-slate-100">
+            <span className="text-xs text-slate-400 font-medium">
+              Showing page <span className="font-semibold text-slate-700">{currentPage}</span>
             </span>
 
             <div className="flex gap-2">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-xs font-medium text-zinc-300 transition"
+                className="px-4 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-xs font-semibold text-slate-600 transition shadow-sm"
               >
                 Previous
               </button>
               <button
                 onClick={() => setCurrentPage((p) => p + 1)}
                 disabled={!hasNextPage}
-                className="px-3 py-1.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-xs font-medium text-zinc-300 transition"
+                className="px-4 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-xs font-semibold text-slate-600 transition shadow-sm"
               >
                 Next
               </button>
