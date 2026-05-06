@@ -220,7 +220,7 @@ export default function ListedData() {
 
             {/* Job Role Selector with Aggregation Counts */}
             <Select value={jobRoleFilter} onValueChange={(val) => handleFilterChange("jobRole", val)}>
-              <SelectTrigger className="bg-slate-50 border-slate-200/80 rounded-xl">
+              <SelectTrigger className="w-56">
                 <SelectValue placeholder="Job Role" />
               </SelectTrigger>
               <SelectContent>
@@ -230,7 +230,7 @@ export default function ListedData() {
                   const count = metaCounts.jobRoles[opt.title] || metaCounts.jobRoles[opt.title.trim()] || 0;
                   return (
                     <SelectItem key={opt._id} value={opt.title}>
-                      <div className="flex items-center justify-between gap-10 w-full">
+                      <div className="flex items-center justify-between gap-2 w-full">
                         <span className="truncate max-w-[120px]">{opt.title}</span>
                         <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-mono font-bold">
                           {count}
@@ -244,7 +244,7 @@ export default function ListedData() {
 
             {/* Source Selector with Aggregation Counts */}
             <Select value={sourceFilter} onValueChange={(val) => handleFilterChange("source", val)}>
-              <SelectTrigger className="bg-slate-50 border-slate-200/80 rounded-xl">
+              <SelectTrigger className="w-56">
                 <SelectValue placeholder="Source" />
               </SelectTrigger>
               <SelectContent>
