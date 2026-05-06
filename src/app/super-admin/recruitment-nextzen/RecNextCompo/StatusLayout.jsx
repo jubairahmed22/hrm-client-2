@@ -75,14 +75,21 @@ const STAGES = [
     accent: "bg-emerald-500",
   },
   {
-    key: "Rejected",
-    label: "Rejected",
+    key: "Reject",
+    label: "Reject",
     icon: XCircle,
     iconBg: "bg-red-100/80",
     iconColor: "text-red-600",
     accent: "bg-red-500",
   },
-  { key: "Inventory", label: "Inventory", color: "bg-indigo-500 text-white border-indigo-600" },
+  {
+    key: "Inventory",
+    label: "Inventory",
+    icon: Archive, // Make sure to import Archive from 'lucide-react'
+    iconBg: "bg-indigo-100",
+    iconColor: "text-indigo-600",
+    accent: "bg-indigo-500",
+  },
 ];
 
 const StatusLayout = ({ filters = {}, onTotalChange }) => {
