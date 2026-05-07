@@ -100,7 +100,7 @@ const menuItems = [
     label: "Recruitment",
     icon: UserCheck,
     description: "Manage Recruitment records",
-    roles: ["superadmin", "admin"],
+    roles: ["superadmin"],
   },
   {
     id: "employees",
