@@ -25,8 +25,8 @@ import {
   Award,
   CheckCircle2,
 } from "lucide-react";
-import { useAssessmentNextzen } from "@/app/hook/useAssessmentNextzen";
 import { useJobPostsNextzen } from "@/app/hook/useJobPostsNextzen";
+import { useAssessmentNextzen } from "@/app/hook/useAssesmentNextzen";
 
 const CreateAssessmentDialog = ({ open, onClose }) => {
   const [activeTab, setActiveTab] = useState("create");
