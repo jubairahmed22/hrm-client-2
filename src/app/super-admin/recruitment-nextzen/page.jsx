@@ -1,14 +1,13 @@
-import React from 'react';
-import JobPostHeader from './RecNextCompo/JobPostHeader';
-import Tablisted from './RecNextCompo/Tablisted';
+import { Suspense } from 'react';
+// 1. Keep this import as is
+import RecruitmentNextzenMainPage from './RecruitmentNextzenMainPage';
 
-const page = () => {
-    return (
-        <div className='p-6  space-y-8'>
-             <JobPostHeader></JobPostHeader>
-             <Tablisted></Tablisted>
-        </div>
-    );
-};
-
-export default page;
+// 2. Rename this function to 'Page' (standard Next.js convention)
+export default function Page() {
+  return (
+    // This boundary handles the streaming/client-side rendering
+    <Suspense fallback={<div>Loading Payroll...</div>}>
+      <RecruitmentNextzenMainPage />
+    </Suspense>
+  );
+}
