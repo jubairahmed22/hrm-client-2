@@ -88,13 +88,13 @@ const menuItems = [
     description: "Configure leave types, policies, and rules",
     roles: ["superadmin", "admin"],
   },
-  {
-    id: "recruitment",
-    label: "Recruitment",
-    icon: UserCheck,
-    description: "Manage Recruitment records",
-    roles: ["superadmin", "admin"],
-  },
+  // {
+  //   id: "recruitment",
+  //   label: "Recruitment",
+  //   icon: UserCheck,
+  //   description: "Manage Recruitment records",
+  //   roles: ["superadmin", "admin"],
+  // },
     {
     id: "recruitment-nextzen",
     label: "Recruitment",
