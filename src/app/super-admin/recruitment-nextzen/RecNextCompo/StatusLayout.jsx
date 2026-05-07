@@ -75,14 +75,14 @@ const STAGES = [
     iconColor: "text-emerald-600",
     accent: "bg-emerald-500",
   },
-  {
-    key: "Reject",
-    label: "Reject",
-    icon: XCircle,
-    iconBg: "bg-red-100/80",
-    iconColor: "text-red-600",
-    accent: "bg-red-500",
-  },
+  // {
+  //   key: "Reject",
+  //   label: "Reject",
+  //   icon: XCircle,
+  //   iconBg: "bg-red-100/80",
+  //   iconColor: "text-red-600",
+  //   accent: "bg-red-500",
+  // },
   {
     key: "Inventory",
     label: "Inventory",
