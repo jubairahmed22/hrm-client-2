@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useRecruitment } from '@/app/hook/useRecruitment-jobs';
+import { useRecruitmentNextzen } from "@/app/hook/useRecruitment-jobs-nextzen";
 import { Progress } from "@/components/ui/progress"; // Assuming shadcn progress
 import {
   Select,
@@ -36,7 +36,7 @@ export default function AppliedDialog({ open, onClose, person, job }) {
   const [isInventoryOpen, setIsInventoryOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   
-  const { changeCandidateStatus } = useRecruitment();
+  const { changeCandidateStatus } = useRecruitmentNextzen();
 
   // 1. Helper to clean skill strings
   const getCleanSkills = (skillsArray) => {
@@ -125,7 +125,7 @@ export default function AppliedDialog({ open, onClose, person, job }) {
           {/* TABS & MAIN CONTENT */}
           <Tabs defaultValue="overview" className="w-full flex-1 flex flex-col overflow-hidden px-5">
             <TabsList className="w-full">
-              {["Overview"].map((tab) => (
+              {["Overview", "Assessments", "Interviews", "Timeline", "Notes"].map((tab) => (
                 <TabsTrigger 
                   key={tab}
                   value={tab.toLowerCase()} 
