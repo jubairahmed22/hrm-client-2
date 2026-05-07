@@ -1,56 +1,103 @@
 "use client";
 
-import React, { useState } from 'react';
-import { X, Archive, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  X,
+  Archive,
+  Loader2,
+  Info,
+  CheckCircle2,
+  AlertCircle,
+  Star,
+  Briefcase,
+} from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import { useRecruitment } from '@/app/hook/useRecruitment-jobs'; // Import your custom hook
+import { useRecruitmentNextzen } from "@/app/hook/useRecruitment-jobs-nextzen"; // ✅ Nextzen hook
+
+const INVENTORY_REASONS = [
+  { label: "Salary Expectations Mismatch", value: "salary", emoji: "💰" },
+  { label: "Location Not Suitable", value: "location", emoji: "📍" },
+  { label: "Candidate Declined Offer", value: "declined", emoji: "❌" },
+  { label: "Timing/Availability Issues", value: "timing", emoji: "⏰" },
+  { label: "Accepted Counter Offer", value: "counter_offer", emoji: "📉" },
+  { label: "Overqualified for Position", value: "overqualified", emoji: "🏆" },
+  { label: "Cultural Fit Concerns", value: "cultural_fit", emoji: "🤝" },
+  { label: "Other Reason", value: "other", emoji: "📋" },
+];
+
+const initialFormState = {
+  reasonCategory: "",
+  detailedReason: "",
+};
 
 const SendToInventoryDialog = ({ open, onOpenChange, person }) => {
-  const { sendToInventory } = useRecruitment(); // Access the specialized function
+  // ✅ Pull sendToInventory from the Nextzen hook
+  const { sendToInventory } = useRecruitmentNextzen();
+
+  const [formData, setFormData] = useState(initialFormState);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    reasonCategory: "other",
-    detailedReason: ""
-  });
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
+
+  // ── Reset form when dialog closes ──────────────────────────────────────
+  useEffect(() => {
+    if (!open) {
+      setFormData(initialFormState);
+      setSuccess("");
+      setError("");
+      setIsSubmitting(false);
+    }
+  }, [open]);
 
   if (!person) return null;
 
-  const inventoryReasons = [
-    { label: "Salary Expectations Mismatch", value: "salary", emoji: "💰" },
-    { label: "Location Not Suitable", value: "location", emoji: "📍" },
-    { label: "Candidate Declined Offer", value: "declined", emoji: "❌" },
-    { label: "Timing/Availability Issues", value: "timing", emoji: "⏰" },
-    { label: "Accepted Counter Offer", value: "counter_offer", emoji: "📉" },
-    { label: "Overqualified for Position", value: "overqualified", emoji: "🏆" },
-    { label: "Cultural Fit Concerns", value: "cultural_fit", emoji: "🤝" },
-    { label: "Other Reason", value: "other", emoji: "📋" },
-  ];
+  // ── Compute match score (same heuristic used elsewhere) ────────────────
+  const matchScore =
+    person.matchScore ?? Math.min(95, 70 + (person.experience || 0) * 3);
 
+  // ── Submit handler ─────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!formData.reasonCategory) {
+      setError("Please select a reason category");
+      return;
+    }
+    if (!formData.detailedReason.trim()) {
+      setError("Please provide a detailed reason");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // Calls the hook function which updates DB and refreshes Kanban
-      await sendToInventory(person._id, {
+      const result = await sendToInventory(person._id, {
         reasonCategory: formData.reasonCategory,
-        detailedReason: formData.detailedReason,
+        detailedReason: formData.detailedReason.trim(),
       });
-      
-      onOpenChange(false); // Close modal on success
-      // Reset form state for next use
-      setFormData({ reasonCategory: "other", detailedReason: "" });
-    } catch (error) {
-      console.error("Failed to send to inventory:", error);
-      // Optional: Add toast notification for error here
+
+      if (result?.success) {
+        setSuccess("Candidate moved to inventory successfully!");
+
+        // Brief delay to show the success state, then close
+        setTimeout(() => {
+          onOpenChange(false);
+        }, 800);
+      }
+    } catch (err) {
+      console.error("Failed to send to inventory:", err);
+      setError(err.message || "Failed to move to inventory. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -58,70 +105,78 @@ const SendToInventoryDialog = ({ open, onOpenChange, person }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[600px] p-0 overflow-hidden border-none bg-white shadow-2xl rounded-[32px] focus:outline-none ring-0">
-        
+      <DialogContent className="max-w-[600px] p-0 overflow-hidden border-none bg-white shadow-2xl rounded-2xl focus:outline-none">
         <form onSubmit={handleSubmit}>
-          {/* Header Section */}
-          <div className="px-8 pt-8 pb-4 relative">
-            <button 
+
+          {/* ── HEADER ──────────────────────────────────────────────────── */}
+          <div className="px-8 pt-8 pb-4 relative bg-white border-b border-slate-100">
+            <button
               type="button"
-              onClick={() => onOpenChange(false)} 
+              onClick={() => onOpenChange(false)}
               className="absolute right-6 top-6 text-slate-400 hover:text-slate-600 transition-colors"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
-            
+
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-[#f3e8ff] rounded-xl flex items-center justify-center">
-                <Archive className="w-6 h-6 text-[#9333ea]" />
+              <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
+                <Archive className="w-5 h-5 text-purple-600" />
               </div>
-              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+              <h2 className="text-xl font-bold text-slate-900">
                 Send to Candidate Inventory
               </h2>
             </div>
-            <p className="text-slate-500 font-medium">
-              Save {person.fullName} to inventory for future opportunities
+            <p className="text-sm text-slate-500">
+              Save{" "}
+              <span className="font-semibold text-slate-700">
+                {person.fullName}
+              </span>{" "}
+              to inventory for future opportunities
             </p>
           </div>
 
-          <div className="px-8 pb-8 space-y-6">
-            {/* Why use Inventory Info Box */}
-            <div className="bg-[#f5f0ff] border border-[#e9d5ff] rounded-[24px] p-6 flex gap-4">
-              <div className="shrink-0 mt-1">
-                <div className="w-6 h-6 border-2 border-[#9333ea] rounded-full flex items-center justify-center">
-                  <span className="text-[#9333ea] font-bold text-xs">i</span>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-bold text-[#6b21a8] text-lg">Why use Inventory?</h4>
-                <p className="text-[#7e22ce] text-[15px] leading-relaxed opacity-90">
-                  Qualified candidates who can't join now due to timing, salary, or location 
-                  can be saved for future roles.
+          {/* ── BODY ────────────────────────────────────────────────────── */}
+          <div className="px-8 py-6 space-y-5 max-h-[65vh] overflow-y-auto">
+
+            {/* Why use Inventory info card */}
+            <div className="bg-purple-50 border border-purple-100 rounded-xl p-4 flex gap-3">
+              <Info className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-bold text-purple-900 text-sm mb-1">
+                  Why use Inventory?
+                </h4>
+                <p className="text-purple-700 text-xs leading-relaxed">
+                  Qualified candidates who can't join now due to timing, salary,
+                  or location can be saved for future roles.
                 </p>
               </div>
             </div>
 
             {/* Reason Category */}
-            <div className="space-y-3">
-              <label className="text-lg font-bold text-slate-800">Reason Category</label>
-              <Select 
-                value={formData.reasonCategory} 
-                onValueChange={(val) => setFormData({...formData, reasonCategory: val})}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-slate-700">
+                Reason Category <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.reasonCategory}
+                onValueChange={(val) =>
+                  setFormData({ ...formData, reasonCategory: val })
+                }
               >
-                <SelectTrigger className="h-14 bg-[#f8fafc] border-slate-200 rounded-2xl px-5 text-slate-900 font-medium focus:ring-purple-200 transition-all">
+                <SelectTrigger className="h-11 bg-slate-50 border-slate-200 rounded-md focus:bg-white">
                   <SelectValue placeholder="Select a reason" />
                 </SelectTrigger>
-                <SelectContent className="rounded-2xl border-slate-100 shadow-xl overflow-hidden p-1">
-                  {inventoryReasons.map((reason) => (
-                    <SelectItem 
-                      key={reason.value} 
+                <SelectContent>
+                  {INVENTORY_REASONS.map((reason) => (
+                    <SelectItem
+                      key={reason.value}
                       value={reason.value}
-                      className="rounded-xl py-3 px-4 focus:bg-purple-50 focus:text-purple-900 cursor-pointer"
+                      className="cursor-pointer"
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg">{reason.emoji}</span>
-                        <span className="font-medium">{reason.label}</span>
-                      </div>
+                      <span className="flex items-center gap-2">
+                        <span className="text-base">{reason.emoji}</span>
+                        <span>{reason.label}</span>
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -129,58 +184,101 @@ const SendToInventoryDialog = ({ open, onOpenChange, person }) => {
             </div>
 
             {/* Detailed Reason */}
-            <div className="space-y-3">
-              <label className="text-lg font-bold text-slate-800">Detailed Reason</label>
-              <div className="relative">
-                <textarea 
-                  required
-                  value={formData.detailedReason}
-                  onChange={(e) => setFormData({...formData, detailedReason: e.target.value})}
-                  className="w-full min-h-[140px] bg-[#f8fafc] border border-slate-200 rounded-[24px] p-5 text-slate-600 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-100 transition-all resize-none leading-relaxed"
-                  placeholder="e.g., Excellent candidate but expecting 20% higher salary. Consider for senior role when budget allows..."
-                />
-                <div className="absolute bottom-4 right-4 bg-white rounded-full p-1 shadow-sm border">
-                  <div className="w-6 h-6 bg-[#00d1b2] rounded-full flex items-center justify-center text-white text-[10px] font-bold">G</div>
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-slate-700">
+                Detailed Reason <span className="text-red-500">*</span>
+              </Label>
+              <textarea
+                value={formData.detailedReason}
+                onChange={(e) =>
+                  setFormData({ ...formData, detailedReason: e.target.value })
+                }
+                placeholder="e.g., Excellent candidate but expecting 20% higher salary. Consider for senior role when budget allows..."
+                className="w-full min-h-[120px] bg-slate-50 border border-slate-200 rounded-md p-3 text-sm text-slate-700 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all resize-none"
+              />
+            </div>
+
+            {/* Candidate Summary */}
+            <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
+              <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-slate-500" />
+                Candidate Summary
+              </h4>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-xs text-slate-500 mb-0.5">Match Score</p>
+                  <p className="font-bold text-emerald-600 flex items-center gap-1">
+                    <Star className="w-3.5 h-3.5" />
+                    {matchScore}%
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 mb-0.5">Experience</p>
+                  <p className="font-bold text-slate-900">
+                    {person.experience || 0} years
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 mb-0.5">Current Stage</p>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-slate-100 text-slate-600 border border-slate-200">
+                    {person.status || "Applied"}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 mb-0.5">Job Role</p>
+                  <p className="font-semibold text-slate-700 text-xs truncate">
+                    {person.jobRoleName || "—"}
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Candidate Summary Card */}
-            <div className="bg-[#f8fafc] border border-slate-100 rounded-[24px] p-6">
-              <h4 className="text-slate-800 font-bold mb-4">Candidate Summary</h4>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500 font-medium">Match Score:</span>
-                  <span className="text-[#1eb773] font-bold text-lg">92%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500 font-medium">Experience:</span>
-                  <span className="text-slate-800 font-bold">{person.experience} years</span>
-                </div>
+            {/* Status messages */}
+            {error && (
+              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>{error}</span>
               </div>
-            </div>
+            )}
+            {success && (
+              <div className="text-sm text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                <span>{success}</span>
+              </div>
+            )}
           </div>
 
-          {/* Action Footer */}
-          <div className="px-8 py-6 bg-slate-50 flex items-center justify-end gap-4 border-t">
-            <button 
+          {/* ── ACTION FOOTER ───────────────────────────────────────────── */}
+          <div className="px-8 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => onOpenChange(false)}
-              className="px-6 py-3 text-slate-900 font-bold hover:bg-slate-100 rounded-xl transition-colors"
+              disabled={isSubmitting}
+              className="text-slate-600 hover:text-slate-900"
             >
               Cancel
-            </button>
-            <Button 
+            </Button>
+            <Button
               type="submit"
-              disabled={isSubmitting}
-              className="bg-[#a855f7] hover:bg-[#9333ea] text-white rounded-2xl h-14 px-8 font-bold flex items-center gap-2 shadow-lg shadow-purple-100 transition-all transform active:scale-95"
+              disabled={
+                isSubmitting ||
+                !formData.reasonCategory ||
+                !formData.detailedReason.trim()
+              }
+              className="bg-purple-600 hover:bg-purple-700 text-white h-10 px-6 rounded-md font-semibold flex items-center gap-2 shadow-sm shadow-purple-100"
             >
               {isSubmitting ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Moving...
+                </>
               ) : (
-                <Archive className="w-5 h-5" />
+                <>
+                  <Archive className="w-4 h-4" />
+                  Send to Inventory
+                </>
               )}
-              Send to Inventory
             </Button>
           </div>
         </form>
