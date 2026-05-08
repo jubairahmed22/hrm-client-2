@@ -165,7 +165,7 @@ const ParticularAttendance = ({ employeeId }) => {
       setLoading(true);
       setError(null);
 
-      let url = `http://localhost:50001/attendance/${employeeId}?limit=${limit}`;
+      let url = `https://code360.pro/attendance/${employeeId}?limit=${limit}`;
       if (dateRange.startDate && dateRange.endDate) {
         url += `&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
       }

@@ -5,7 +5,7 @@
  */
 export const createAssessment = async (assessmentForm) => {
   try {
-    const res = await fetch("http://localhost:50001/add-assessment-post", {
+    const res = await fetch("https://code360.pro/add-assessment-post", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(assessmentForm),
@@ -27,7 +27,7 @@ export const createAssessment = async (assessmentForm) => {
 export const getAllAssessments = async (params = {}) => {
   try {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`http://localhost:50001/all-assessments?${query}`);
+    const res = await fetch(`https://code360.pro/all-assessments?${query}`);
     
     const data = await res.json();
     if (data.success) return data;
@@ -45,7 +45,7 @@ export const getAllAssessments = async (params = {}) => {
 export const getJobBasedAssessments = async (jobId, params = {}) => {
   try {
     const query = new URLSearchParams({ jobId, ...params }).toString();
-    const res = await fetch(`http://localhost:50001/job-based-assessments?${query}`);
+    const res = await fetch(`https://code360.pro/job-based-assessments?${query}`);
     
     const data = await res.json();
     if (data.success) return data;
@@ -62,7 +62,7 @@ export const getJobBasedAssessments = async (jobId, params = {}) => {
  */
 export const deleteAssessment = async (id) => {
   try {
-    const res = await fetch(`http://localhost:50001/delete-assessment/${id}`, {
+    const res = await fetch(`https://code360.pro/delete-assessment/${id}`, {
       method: "DELETE",
     });
     

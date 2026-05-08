@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:50001";
+const BASE_URL = "https://code360.pro";
 
 /**
  * POST: Create a new interview

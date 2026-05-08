@@ -1,7 +1,7 @@
 // src/app/api/notification.js
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:50001';
+const API_BASE = 'https://code360.pro';
 
 export const notificationApi = {
   // Fetch history (No token needed)

@@ -27,7 +27,7 @@ export default function ResetPasswordPage() {
     if (!code) return alert('Enter the reset code');
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:50001/api/verify-reset-code`, {
+      const res = await fetch(`https://code360.pro/api/verify-reset-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: emailFromQuery, code }),
@@ -46,7 +46,7 @@ export default function ResetPasswordPage() {
     if (!code || !newPassword) return alert('All fields are required');
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:50001/api/reset-password`, {
+      const res = await fetch(`https://code360.pro/api/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: emailFromQuery, code, newPassword }),

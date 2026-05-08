@@ -16,7 +16,7 @@ const Attendance = () => {
   // ── Auth + employee context ──────────────────────────────────────────────
   const { UserAllDetails } = useAuth();
   const employeeId = UserAllDetails?.employeeId;
-  const API = "http://localhost:50001";
+  const API = "https://code360.pro";
 
   // ── State ─────────────────────────────────────────────────────────────────
   const [allAttendance, setAllAttendance] = useState([]);
