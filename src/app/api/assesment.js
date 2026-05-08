@@ -14,7 +14,7 @@ export const createAssessment = async (assessmentForm) => {
     const data = await res.json();
     if (data.success) return data;
     
-    throw new Error(data.message || "Failed to create assessment");
+    throw new Error(data.message || "Failed to create assessment 34t2");
   } catch (error) {
     console.error("createAssessment error:", error);
     throw error;
