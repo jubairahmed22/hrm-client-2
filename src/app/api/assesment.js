@@ -21,7 +21,6 @@ export const createAssessment = async (assessmentForm) => {
   }
 };
 
-asdfas
 
 /**
  * Fetch all assessments (Global list)
