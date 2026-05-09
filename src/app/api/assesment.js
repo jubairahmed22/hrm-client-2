@@ -20,7 +20,6 @@ export const createAssessment = async (assessmentForm) => {
     throw error;
   }
 };
-asdfasd
 
 /**
  * Fetch all assessments (Global list)
