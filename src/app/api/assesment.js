@@ -17,7 +17,7 @@ export const createAssessment = async (assessmentForm) => {
     throw new Error(data.message || "Failed to create assessment");
   } catch (error) {
     console.error("createAssessment error:", error);
-    throw error; fq4qt
+    throw error;
   }
 };
 
