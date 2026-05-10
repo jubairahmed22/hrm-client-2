@@ -18,7 +18,7 @@ export const createAssessment = async (assessmentForm) => {
   } catch (error) {
     console.error("createAssessment error:", error);
     throw error;
-  } wewqe
+  }
 };
 
 
