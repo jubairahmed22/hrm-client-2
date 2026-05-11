@@ -171,7 +171,7 @@ export async function updateRecruitmentStatusNextzen(
 // 6. Fetch paginated Nextzen candidates by status (Kanban columns)
 // ─────────────────────────────────────────────────────────────────────────────
 
-asdfad
+
 // Fetch paginated Nextzen candidates by status (Kanban columns)
 export async function fetchCandidatesByStatusNextzen(
   status,
