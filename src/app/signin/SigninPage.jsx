@@ -46,14 +46,14 @@ export default function SignInPage() {
       label: "Management control",
       email: "ademize360@gmail.com",
       pass: "ademize360",
-      icon: "🛡️",
+      icon: "🛡️", adsf
       bg: "bg-gradient-to-r from-[#ef4444] to-[#dc2626]", // Red
     },
     {
       role: "Employee",
-      label: "Self-service access",
-      email: "employee@demo.com",
-      pass: "employee123",
+      label: "Nafis Iqbal",
+      email: "nafis.ais.bup@gmail.com",
+      pass: "nafis.ais.bup",
       icon: "👤",
       bg: "bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed]", // Purple
     }

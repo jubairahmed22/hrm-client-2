@@ -46,7 +46,7 @@ const SelfServiceMainPage = () => {
     const [selectedYear, setSelectedYear] = useState("2024");
 
     const handleTabChange = (value) => {
-        router.push(`/super-admin/self-service?tab=${value}`, { scroll: false });
+        router.push(`/admin/self-service?tab=${value}`, { scroll: false });
     };
 
     const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
