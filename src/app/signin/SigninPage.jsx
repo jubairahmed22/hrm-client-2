@@ -46,7 +46,7 @@ export default function SignInPage() {
       label: "Management control",
       email: "ademize360@gmail.com",
       pass: "ademize360",
-      icon: "🛡️", adsf
+      icon: "🛡️",
       bg: "bg-gradient-to-r from-[#ef4444] to-[#dc2626]", // Red
     },
     {
