@@ -21,6 +21,7 @@ export default function SignInPage() {
   const {
     register,
     handleSubmit,
+    setValue, // Added to handle auto-fill
     formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(schema) });
   const [lockedMessage, setLockedMessage] = useState(null);
@@ -29,6 +30,42 @@ export default function SignInPage() {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") || "/dashboard";
+
+  // Demo User Data
+  const demoUsers = [
+    {
+      role: "Super Admin",
+      label: "Full system access",
+      email: "jubairahmed060@gmail.com",
+      pass: "jubairahmed060",
+      icon: "👑",
+      bg: "bg-gradient-to-r from-[#1e293b] to-[#334155]", // Dark Slate
+    },
+    {
+      role: "Admin",
+      label: "Management control",
+      email: "ademize360@gmail.com",
+      pass: "ademize360",
+      icon: "🛡️",
+      bg: "bg-gradient-to-r from-[#ef4444] to-[#dc2626]", // Red
+    },
+    {
+      role: "Employee",
+      label: "Self-service access",
+      email: "employee@demo.com",
+      pass: "employee123",
+      icon: "👤",
+      bg: "bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed]", // Purple
+    }
+  ];
+
+  const handleDemoClick = (email, pass) => {
+    setValue("email", email);
+    setValue("password", pass);
+    setTimeout(() => {
+      handleSubmit(onSubmit)();
+    }, 100);
+  };
 
   const onSubmit = async (data) => {
     try {
@@ -47,7 +84,6 @@ export default function SignInPage() {
         return;
       }
 
-      // 🔒 If user is locked
       if (json.locked) {
         Cookies.set("token", json.token, { expires: 7 });
         Cookies.set("role", json.user.role, { expires: 7 });
@@ -61,12 +97,10 @@ export default function SignInPage() {
           email: json.user.email,
         });
 
-        // Instead of redirecting, show locked message visually
         setLockedMessage(json.message);
         return;
       }
 
-      // ✅ Normal login
       Cookies.set("token", json.token, { expires: 7 });
       Cookies.set("role", json.user.role, { expires: 7 });
       Cookies.set("name", json.user.name, { expires: 7 });
@@ -112,9 +146,10 @@ export default function SignInPage() {
   return (
     <div className="min-h-screen font-inter relative flex items-center justify-center p-4">
       <AnimatedBackground />
-      <div className="relative z-10 w-full max-w-6xl flex gap-8">
-        {/* Main Login Card */}
-        <div className="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl w-full max-w-md border border-white/20 mx-auto lg:mx-0">
+      <div className="relative z-10 w-full max-w-6xl flex flex-col lg:flex-row items-center justify-center gap-12">
+        
+        {/* Main Login Card (Untouched Design) */}
+        <div className="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl w-full max-w-md border border-white/20">
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">
               <span className="text-white text-2xl">🏢</span>
@@ -125,7 +160,6 @@ export default function SignInPage() {
             <p className="text-gray-600">Sign in to access your dashboard</p>
           </div>
 
-          {/* Onboarding Link */}
           <Link href="/signup">
             <motion.div
               initial={{ opacity: 0 }}
@@ -142,13 +176,9 @@ export default function SignInPage() {
                   <span className="text-xl">🎯</span>
                   <div className="text-center">
                     <div className="font-semibold">New Employee Onboarding</div>
-                    <div className="text-sm opacity-90">
-                      Test complete profile setup
-                    </div>
+                    <div className="text-sm opacity-90">Test complete profile setup</div>
                   </div>
-                  <motion.span whileHover={{ x: 5 }} className="text-xl">
-                    ➤
-                  </motion.span>
+                  <motion.span whileHover={{ x: 5 }} className="text-xl">➤</motion.span>
                 </div>
               </motion.button>
             </motion.div>
@@ -158,104 +188,98 @@ export default function SignInPage() {
             <motion.div
               initial={{ opacity: 0, y: -30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ type: "spring", stiffness: 100, damping: 12 }}
-              className="relative my-6 text-center rounded-2xl  border border-red-400 bg-gradient-to-br from-red-50 via-red-100 to-red-200 overflow-hidden"
+              className="relative my-6 text-center rounded-2xl border border-red-400 bg-gradient-to-br from-red-50 via-red-100 to-red-200 overflow-hidden"
             >
-              {/* Animated Glow Pulse */}
-              <motion.div
-                animate={{ opacity: [0.4, 0.9, 0.4], scale: [1, 1.02, 1] }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 1.8,
-                  ease: "easeInOut",
-                }}
-                className="absolute inset-0 bg-red-300/30 blur-2xl"
-              />
-
+              <motion.div animate={{ opacity: [0.4, 0.9, 0.4], scale: [1, 1.02, 1] }} transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }} className="absolute inset-0 bg-red-300/30 blur-2xl" />
               <div className="relative z-10 p-6 flex flex-col items-center gap-3">
-                {/* Message */}
-                <p className="text-sm text-red-800 font-medium max-w-xs leading-relaxed">
-                  {lockedMessage}
-                </p>
+                <p className="text-sm text-red-800 font-medium max-w-xs leading-relaxed">{lockedMessage}</p>
               </div>
             </motion.div>
           )}
 
-          {/* Divider */}
           <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white/90 text-gray-500">
-                Enter credentials manually
-              </span>
-            </div>
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
+            <div className="relative flex justify-center text-sm"><span className="px-2 bg-white/90 text-gray-500">Enter credentials manually</span></div>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 placeholder-gray-400"
-                placeholder="Enter your email"
-                {...register("email")}
-              />
-              {errors.email && (
-                <p className="text-red-600 text-sm mt-1">
-                  {errors.email.message}
-                </p>
-              )}
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <input type="email" className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500" placeholder="Enter your email" {...register("email")} />
+              {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>}
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 placeholder-gray-400"
-                placeholder="Enter your password"
-                {...register("password")}
-              />
-              {errors.password && (
-                <p className="text-red-600 text-sm mt-1">
-                  {errors.password.message}
-                </p>
-              )}
+              <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+              <input type="password" className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500" placeholder="Enter your password" {...register("password")} />
+              {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password.message}</p>}
             </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
-            >
+            <button type="submit" disabled={isSubmitting} className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all">
               {isSubmitting ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
-          <p className="mt-4 text-sm text-gray-600 text-center">
-            No account?{" "}
-            <a className="text-blue-600 underline" href="/signup">
-              Sign up
-            </a>
-          </p>
-
-          <p
-            className="mt-2 text-sm text-blue-600 text-center cursor-pointer"
-            onClick={() =>
-              handleForgotPassword(
-                document.querySelector('input[name="email"]')?.value
-              )
-            }
-          >
-            Forgot Password?
-          </p>
+          {/* <p className="mt-4 text-sm text-gray-600 text-center">No account? <a className="text-blue-600 underline" href="/signup">Sign up</a></p> */}
+          <p className="mt-2 text-sm text-blue-600 text-center cursor-pointer" onClick={() => handleForgotPassword(document.querySelector('input[name="email"]')?.value)}>Forgot Password?</p>
         </div>
+
+        {/* Right Side Demo Access Card */}
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl w-full max-w-md border border-white/20"
+        >
+          <div className="text-center mb-8">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl mx-auto mb-3 flex items-center justify-center text-blue-600 shadow-sm">
+              <span className="text-xl">🔑</span>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-1">Demo User Accounts</h2>
+            <p className="text-gray-500 text-sm">Quick login for all role levels</p>
+          </div>
+
+          <div className="space-y-4">
+            {demoUsers.map((user, idx) => (
+              <motion.div
+                key={idx}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => handleDemoClick(user.email, user.pass)}
+                className={`${user.bg} p-4 rounded-2xl cursor-pointer shadow-md hover:shadow-lg transition-all group`}
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center text-xl">
+                      {user.icon}
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold text-sm">{user.role}</h4>
+                      <p className="text-white/70 text-[11px] font-medium">{user.label}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-white/60 text-[10px] font-mono leading-none">{user.email}</p>
+                    <p className="text-white/60 text-[10px] font-mono mt-1 leading-none">{user.pass}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="mt-8 p-5 bg-blue-50/80 rounded-2xl border border-blue-100">
+            <div className="flex gap-4">
+              <div className="text-xl">💡</div>
+              <div>
+                <h4 className="text-sm font-bold text-blue-900 mb-1">Quick Access Guide:</h4>
+                <ul className="text-xs text-blue-700 space-y-1 list-disc ml-3 leading-relaxed">
+                  <li>Click any credential card to auto-fill login form</li>
+                  <li>Each role has different permission levels</li>
+                  <li>Start with <b>Super Admin</b> for full access</li>
+                  <li>Try <b>Employee</b> for self-service experience</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
       </div>
     </div>
   );

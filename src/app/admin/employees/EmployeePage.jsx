@@ -180,7 +180,7 @@ const EmployeePage = () => {
     if (directory) params.set("directory", directory);
     params.set("page", String(page));
 
-    router.replace(`/super-admin/employees?${params.toString()}`);
+    router.replace(`/admin/employees?${params.toString()}`);
   }, [search, department, employmentType, status, directory, page]);
 
   // Fetch data when filters change
