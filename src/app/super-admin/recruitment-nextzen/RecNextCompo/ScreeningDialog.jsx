@@ -2,18 +2,47 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  Mail, Phone, MapPin, Briefcase, GraduationCap, DollarSign, FileText,
-  X, ExternalLink, Loader2, Star, Archive, ArrowRight, CheckCircle2,
-  Plus, Code, FileBadge, Brain, Users, Award, Layers, Calendar,
-  Trash2, MessageSquare, Sparkles, Video, Clock, TrendingUp,
-  ClipboardCheck, AlertCircle,
+  Mail,
+  Phone,
+  MapPin,
+  Briefcase,
+  GraduationCap,
+  DollarSign,
+  FileText,
+  X,
+  ExternalLink,
+  Loader2,
+  Star,
+  Archive,
+  ArrowRight,
+  CheckCircle2,
+  Plus,
+  Code,
+  FileBadge,
+  Brain,
+  Users,
+  Award,
+  Layers,
+  Calendar,
+  Trash2,
+  MessageSquare,
+  Sparkles,
+  Video,
+  Clock,
+  TrendingUp,
+  ClipboardCheck,
+  AlertCircle,
   Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { useAssessmentResultNextzen } from "@/app/hook/useAssessmentResultNextzen";
 import { useRecruitmentNotesNextzen } from "@/app/hook/useRecruitmentNotesNextzen";
@@ -23,13 +52,21 @@ import { useRecruitmentNextzen } from "@/app/hook/useRecruitment-jobs-nextzen";
 import { useAssessmentNextzen } from "@/app/hook/useAssesmentNextzen";
 
 const RECRUITMENT_STAGES = [
-  "Applied", "Screening", "Assessment", "Interview", "Final Review", "Offer", "Hired", "Rejected",
+  "Applied",
+  "Screening",
+  "Assessment",
+  "Interview",
+  "Final Review",
+  "Offer",
+  "Hired",
+  "Rejected",
 ];
 
 // Map keywords from a component title to a relevant icon
 const getAssessmentIcon = (title = "") => {
   const t = title.toLowerCase();
-  if (t.includes("coding") || t.includes("programming") || t.includes("code")) return Code;
+  if (t.includes("coding") || t.includes("programming") || t.includes("code"))
+    return Code;
   if (t.includes("case") || t.includes("business")) return Briefcase;
   if (t.includes("technical") || t.includes("knowledge")) return Brain;
   if (t.includes("behavioral") || t.includes("cultural")) return Users;
@@ -55,13 +92,20 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
   } = useAssessmentNextzen();
 
   const {
-    results, summary, loading: resultsLoading,
-    fetchByCandidate, submitResult, removeResult,
+    results,
+    summary,
+    loading: resultsLoading,
+    fetchByCandidate,
+    submitResult,
+    removeResult,
   } = useAssessmentResultNextzen();
 
   const {
-    notes, loading: notesLoading,
-    fetchByCandidate: fetchNotes, submitNote, removeNote,
+    notes,
+    loading: notesLoading,
+    fetchByCandidate: fetchNotes,
+    submitNote,
+    removeNote,
   } = useRecruitmentNotesNextzen();
 
   // ── Load all data when dialog opens ────────────────────────────────────
@@ -109,44 +153,51 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
   };
 
   // 2. Create a local handler
-const handleSendToHOD = async () => {
-  // Native browser warning
-  const confirmed = window.confirm(
-    `Are you sure you want to send ${person.fullName} to the HOD for review?`
-  );
+  const handleSendToHOD = async () => {
+    // Native browser warning
+    const confirmed = window.confirm(
+      `Are you sure you want to send ${person.fullName} to the HOD for review?`,
+    );
 
-  if (confirmed) {
-    try {
-      await sendToHOD(person._id);
-      // Success logic
-    } catch (err) {
-      console.error("HOD Review Error:", err);
+    if (confirmed) {
+      try {
+        await sendToHOD(person._id);
+        // Success logic
+      } catch (err) {
+        console.error("HOD Review Error:", err);
+      }
     }
-  }
-};
+  };
 
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="max-w-[950px] h-[90vh] p-0 overflow-hidden border-none bg-[#f8fafc] flex flex-col focus:outline-none">
-
           {/* Header */}
           <div className="px-8 pt-8 pb-4 bg-white border-b border-slate-100 flex items-start justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">{person.fullName}</h2>
-              <p className="text-sm text-slate-500 mt-1">{person.jobRoleName}</p>
+              <h2 className="text-2xl font-bold text-slate-900">
+                {person.fullName}
+              </h2>
+              <p className="text-sm text-slate-500 mt-1">
+                {person.jobRoleName}
+              </p>
               <p className="text-xs text-slate-400 mt-2 max-w-md">
-                Complete candidate profile with contact information, experience, and interview history
+                Complete candidate profile with contact information, experience,
+                and interview history
               </p>
             </div>
             <div className="flex items-center gap-3">
               <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold bg-slate-700 text-white">
                 {statusValue}
               </span>
-              {person.matchScore !== undefined || person.experience !== undefined ? (
+              {person.matchScore !== undefined ||
+              person.experience !== undefined ? (
                 <div className="flex items-center gap-1 px-3 py-1 rounded-md text-sm font-bold text-emerald-600 bg-emerald-50">
                   <Star className="w-3.5 h-3.5" />
-                  {person.matchScore || Math.min(95, 70 + (person.experience || 0) * 3)}%
+                  {person.matchScore ||
+                    Math.min(95, 70 + (person.experience || 0) * 3)}
+                  %
                 </div>
               ) : null}
               {person.resume && (
@@ -157,37 +208,34 @@ const handleSendToHOD = async () => {
                   <FileText className="w-4 h-4" /> Show Full CV
                 </button>
               )}
-              
             </div>
           </div>
 
           {/* Scrollable content area */}
           <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
-
             {/* ── HOD REVIEW CARD - New Design from image_47d6b4.png ── */}
-      <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-8 mb-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex flex-col gap-2">
-             <div className="flex flex-row gap-2">
-              <Briefcase className="w-6 h-6 text-slate-900" />
-               <h3 >HOD Review Required</h3>
-             </div>
-             <p>Department : {person.jobDepartment}</p>
-          </div>
-        </div>
-        <Button 
-    onClick={handleSendToHOD} // Added click handler
-    disabled={resultsLoading} // Disable while processing
-  
-  >
-    {resultsLoading ? (
-      <Loader2 className="w-5 h-5 animate-spin" />
-    ) : (
-      <Send className="w-5 h-5 " />
-    )}
-    Send to HOD for Assessment Review
-  </Button>
-      </div>
+            <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-8 mb-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex flex-col gap-2">
+                  <div className="flex flex-row gap-2">
+                    <Briefcase className="w-6 h-6 text-slate-900" />
+                    <h3>HOD Review Required</h3>
+                  </div>
+                  <p>Department : {person.jobDepartment}</p>
+                </div>
+              </div>
+              <Button
+                onClick={handleSendToHOD} // Added click handler
+                disabled={resultsLoading} // Disable while processing
+              >
+                {resultsLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5 " />
+                )}
+                Send to HOD for Assessment Review
+              </Button>
+            </div>
 
             {/* ── ASSESSMENT CENTER ──────────────────────────────────────── */}
             <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-6">
@@ -195,7 +243,9 @@ const handleSendToHOD = async () => {
                 <div className="flex items-center gap-3">
                   <FileText className="w-5 h-5 text-blue-600" />
                   <div>
-                    <h3 className="font-bold text-slate-900">Assessment Center</h3>
+                    <h3 className="font-bold text-slate-900">
+                      Assessment Center
+                    </h3>
                     <p className="text-xs text-slate-500">
                       Evaluate candidate skills and capabilities
                     </p>
@@ -217,24 +267,42 @@ const handleSendToHOD = async () => {
                 <div className="bg-white border border-slate-100 rounded-xl p-4 mb-4">
                   <div className="flex items-center gap-2 mb-3">
                     <TrendingUp className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-semibold text-slate-700">Assessment Summary</span>
+                    <span className="text-sm font-semibold text-slate-700">
+                      Assessment Summary
+                    </span>
                   </div>
                   <div className="grid grid-cols-4 gap-3">
                     <div className="bg-blue-50 rounded-lg p-3 text-center">
-                      <p className="text-2xl font-bold text-blue-600">{summary.totalTests}</p>
-                      <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">Total Tests</p>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {summary.totalTests}
+                      </p>
+                      <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
+                        Total Tests
+                      </p>
                     </div>
                     <div className="bg-emerald-50 rounded-lg p-3 text-center">
-                      <p className="text-2xl font-bold text-emerald-600">{summary.avgScore}%</p>
-                      <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">Avg Score</p>
+                      <p className="text-2xl font-bold text-emerald-600">
+                        {summary.avgScore}%
+                      </p>
+                      <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
+                        Avg Score
+                      </p>
                     </div>
                     <div className="bg-emerald-50 rounded-lg p-3 text-center">
-                      <p className="text-2xl font-bold text-emerald-600">{summary.highest}%</p>
-                      <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">Highest</p>
+                      <p className="text-2xl font-bold text-emerald-600">
+                        {summary.highest}%
+                      </p>
+                      <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
+                        Highest
+                      </p>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-3 text-center">
-                      <p className="text-2xl font-bold text-orange-600">{summary.lowest}%</p>
-                      <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">Lowest</p>
+                      <p className="text-2xl font-bold text-orange-600">
+                        {summary.lowest}%
+                      </p>
+                      <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
+                        Lowest
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -288,7 +356,9 @@ const handleSendToHOD = async () => {
               {/* Scoring Guide */}
               <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-xs">
                 <p className="font-bold text-blue-700 mb-1 flex items-center gap-1">
-                  <span className="w-3 h-3 rounded-full bg-blue-200 inline-flex items-center justify-center text-[8px] text-blue-700 font-black">i</span>
+                  <span className="w-3 h-3 rounded-full bg-blue-200 inline-flex items-center justify-center text-[8px] text-blue-700 font-black">
+                    i
+                  </span>
                   Assessment Scoring Guide
                 </p>
                 <ul className="text-blue-600 space-y-0.5 ml-4">
@@ -303,11 +373,21 @@ const handleSendToHOD = async () => {
             {/* ── TABS ───────────────────────────────────────────────────── */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="bg-slate-100 p-1 rounded-full grid grid-cols-5 w-full">
-                <TabsTrigger value="overview" className="rounded-full">Overview</TabsTrigger>
-                <TabsTrigger value="assessments" className="rounded-full">Assessments</TabsTrigger>
-                <TabsTrigger value="interviews" className="rounded-full">Interviews</TabsTrigger>
-                <TabsTrigger value="timeline" className="rounded-full">Timeline</TabsTrigger>
-                <TabsTrigger value="notes" className="rounded-full">Notes</TabsTrigger>
+                <TabsTrigger value="overview" className="rounded-full">
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger value="assessments" className="rounded-full">
+                  Assessments
+                </TabsTrigger>
+                <TabsTrigger value="interviews" className="rounded-full">
+                  Interviews
+                </TabsTrigger>
+                <TabsTrigger value="timeline" className="rounded-full">
+                  Timeline
+                </TabsTrigger>
+                <TabsTrigger value="notes" className="rounded-full">
+                  Notes
+                </TabsTrigger>
               </TabsList>
 
               {/* OVERVIEW */}
@@ -319,15 +399,28 @@ const handleSendToHOD = async () => {
                     <InfoRow icon={MapPin} text={person.location} />
                   </Card>
                   <Card title="Professional Details">
-                    <InfoRow icon={Briefcase} text={`${person.experience} years experience`} />
+                    <InfoRow
+                      icon={Briefcase}
+                      text={`${person.experience} years experience`}
+                    />
                     <InfoRow icon={GraduationCap} text={person.education} />
-                    <InfoRow icon={DollarSign} text={person.salary ? `$${Number(person.salary).toLocaleString()}` : "—"} />
+                    <InfoRow
+                      icon={DollarSign}
+                      text={
+                        person.salary
+                          ? `$${Number(person.salary).toLocaleString()}`
+                          : "—"
+                      }
+                    />
                   </Card>
                 </div>
                 <Card title="Skills">
                   <div className="flex flex-wrap gap-2">
                     {(person.skills || []).map((s, i) => (
-                      <span key={i} className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-100">
+                      <span
+                        key={i}
+                        className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-100"
+                      >
                         {s}
                       </span>
                     ))}
@@ -340,14 +433,31 @@ const handleSendToHOD = async () => {
                       <p className="font-bold">{person.source || "—"}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500 mb-1">Applied Date</p>
+                      <p className="text-xs text-slate-500 mb-1">
+                        Applied Date
+                      </p>
                       <p className="font-bold">
-                        {person.createdAt ? new Date(person.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                        {person.createdAt
+                          ? new Date(person.createdAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              },
+                            )
+                          : "—"}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500 mb-1">Notice Period</p>
-                      <p className="font-bold">{person.noticePeriod ? `${person.noticePeriod} days` : "—"}</p>
+                      <p className="text-xs text-slate-500 mb-1">
+                        Notice Period
+                      </p>
+                      <p className="font-bold">
+                        {person.noticePeriod
+                          ? `${person.noticePeriod} days`
+                          : "—"}
+                      </p>
                     </div>
                   </div>
                 </Card>
@@ -356,20 +466,34 @@ const handleSendToHOD = async () => {
               {/* ASSESSMENTS TAB */}
               <TabsContent value="assessments" className="mt-6 space-y-3">
                 {results.length === 0 ? (
-                  <EmptyState icon={FileText} message="No assessments evaluated yet" />
+                  <EmptyState
+                    icon={FileText}
+                    message="No assessments evaluated yet"
+                  />
                 ) : (
                   results.map((r) => (
-                    <div key={r._id} className="bg-white border border-slate-100 rounded-xl shadow-sm p-4">
+                    <div
+                      key={r._id}
+                      className="bg-white border border-slate-100 rounded-xl shadow-sm p-4"
+                    >
                       <div className="flex items-start justify-between">
                         <div>
-                          <h4 className="font-bold text-slate-900">{r.assessmentTitle}</h4>
-                          <p className="text-xs text-slate-500">{r.assessmentType}</p>
+                          <h4 className="font-bold text-slate-900">
+                            {r.assessmentTitle}
+                          </h4>
+                          <p className="text-xs text-slate-500">
+                            {r.assessmentType}
+                          </p>
                         </div>
                         <div className="text-right">
-                          <p className={`text-2xl font-bold ${getScoreColor(r.percentage)}`}>
+                          <p
+                            className={`text-2xl font-bold ${getScoreColor(r.percentage)}`}
+                          >
                             {r.scoreObtained}/{r.maxScore}
                           </p>
-                          <p className="text-xs text-slate-500">{r.percentage}%</p>
+                          <p className="text-xs text-slate-500">
+                            {r.percentage}%
+                          </p>
                         </div>
                       </div>
                       {r.overallFeedback && (
@@ -378,7 +502,10 @@ const handleSendToHOD = async () => {
                         </div>
                       )}
                       <div className="flex items-center justify-between mt-3 text-xs text-slate-500">
-                        <span>Evaluated by: {r.evaluatedBy?.role || r.evaluatedBy?.name || "—"}</span>
+                        <span>
+                          Evaluated by:{" "}
+                          {r.evaluatedBy?.role || r.evaluatedBy?.name || "—"}
+                        </span>
                         <span>{new Date(r.evaluatedAt).toLocaleString()}</span>
                       </div>
                     </div>
@@ -388,15 +515,19 @@ const handleSendToHOD = async () => {
 
               {/* INTERVIEWS */}
               <TabsContent value="interviews" className="mt-6">
-                <EmptyState icon={Video} message="No interviews scheduled yet" />
+                <EmptyState
+                  icon={Video}
+                  message="No interviews scheduled yet"
+                />
               </TabsContent>
 
               {/* TIMELINE */}
               <TabsContent value="timeline" className="mt-6 space-y-3">
-                {(person.history && person.history.length > 0) ? (
-                  person.history.slice().reverse().map((h, i) => (
-                    <TimelineItem key={i} item={h} />
-                  ))
+                {person.history && person.history.length > 0 ? (
+                  person.history
+                    .slice()
+                    .reverse()
+                    .map((h, i) => <TimelineItem key={i} item={h} />)
                 ) : (
                   <TimelineItem
                     item={{
@@ -414,7 +545,11 @@ const handleSendToHOD = async () => {
                   <p className="text-sm font-semibold text-slate-700">
                     {notes.length} note{notes.length !== 1 ? "s" : ""}
                   </p>
-                  <Button onClick={() => setIsNoteOpen(true)} size="sm" variant="outline">
+                  <Button
+                    onClick={() => setIsNoteOpen(true)}
+                    size="sm"
+                    variant="outline"
+                  >
                     <Plus className="w-4 h-4 mr-1" /> Add Note
                   </Button>
                 </div>
@@ -424,23 +559,37 @@ const handleSendToHOD = async () => {
                     <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
                   </div>
                 ) : notes.length === 0 ? (
-                  <EmptyState icon={MessageSquare} message="No notes added yet" />
+                  <EmptyState
+                    icon={MessageSquare}
+                    message="No notes added yet"
+                  />
                 ) : (
                   notes.map((n) => (
-                    <div key={n._id} className="bg-white border border-slate-100 rounded-xl shadow-sm p-4">
+                    <div
+                      key={n._id}
+                      className="bg-white border border-slate-100 rounded-xl shadow-sm p-4"
+                    >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-blue-50 text-blue-600 border border-blue-200">
                             {n.noteType}
                           </span>
-                          <p className="text-sm text-slate-700 mt-2">{n.noteContent}</p>
+                          <p className="text-sm text-slate-700 mt-2">
+                            {n.noteContent}
+                          </p>
                         </div>
-                        <Button size="sm" variant="ghost" onClick={() => removeNote(n._id, person._id)}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeNote(n._id, person._id)}
+                        >
                           <Trash2 className="w-3.5 h-3.5 text-red-500" />
                         </Button>
                       </div>
                       <div className="flex items-center justify-between mt-2 text-[11px] text-slate-500">
-                        <span>By {n.addedBy?.name || "—"} ({n.addedBy?.role || "—"})</span>
+                        <span>
+                          By {n.addedBy?.name || "—"} ({n.addedBy?.role || "—"})
+                        </span>
                         <span>{new Date(n.createdAt).toLocaleString()}</span>
                       </div>
                     </div>
@@ -458,40 +607,64 @@ const handleSendToHOD = async () => {
               </SelectTrigger>
               <SelectContent>
                 {RECRUITMENT_STAGES.map((s) => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => handleStatusChange("Rejected")} className="text-red-600 border-red-200 hover:bg-red-50">
+              <Button
+                variant="outline"
+                onClick={() => handleStatusChange("Rejected")}
+                className="text-red-600 border-red-200 hover:bg-red-50"
+              >
                 <X className="w-4 h-4 mr-1" /> Reject
               </Button>
-              <Button variant="outline" onClick={() => setIsInventoryOpen(true)} className="text-purple-600 border-purple-200 hover:bg-purple-50">
+              <Button
+                variant="outline"
+                onClick={() => setIsInventoryOpen(true)}
+                className="text-purple-600 border-purple-200 hover:bg-purple-50"
+              >
                 <Archive className="w-4 h-4 mr-1" /> Send to Inventory
               </Button>
-              <Button onClick={() => handleStatusChange("Screening")} className="bg-blue-600 hover:bg-blue-700">
+              <Button
+                onClick={() => handleStatusChange("Screening")}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
                 <ArrowRight className="w-4 h-4 mr-1" /> Send for Screening
               </Button>
-              <Button variant="ghost" onClick={onClose}>Close</Button>
+              <Button variant="ghost" onClick={onClose}>
+                Close
+              </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
-      
-      
 
       {/* Resume Modal */}
       <Dialog open={isResumeOpen} onOpenChange={setIsResumeOpen}>
         <DialogContent className="max-w-5xl h-[90vh] p-0 flex flex-col overflow-hidden bg-white">
           <div className="p-4 border-b flex items-center justify-between shrink-0">
-            <h3 className="font-bold text-slate-800">Resume: {person.fullName}</h3>
-            <a href={person.resume} target="_blank" rel="noreferrer" className="text-xs text-blue-600 font-bold flex items-center gap-1">
+            <h3 className="font-bold text-slate-800">
+              Resume: {person.fullName}
+            </h3>
+            <a
+              href={person.resume}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-blue-600 font-bold flex items-center gap-1"
+            >
               <ExternalLink className="w-3.5 h-3.5" /> Open Full
             </a>
           </div>
           <div className="flex-1 bg-slate-800 p-4 flex justify-center">
-            <iframe src={`${person.resume}#view=FitH`} className="w-full h-full border-none bg-white max-w-[850px]" title="CV" />
+            <iframe
+              src={`${person.resume}#view=FitH`}
+              className="w-full h-full border-none bg-white max-w-[850px]"
+              title="CV"
+            />
           </div>
         </DialogContent>
       </Dialog>
@@ -555,7 +728,8 @@ function TimelineItem({ item }) {
           <div>
             <p className="font-bold text-slate-900 text-sm">{item.status}</p>
             <p className="text-xs text-slate-500 mt-0.5">
-              Moved by {item.name || "System"} {item.designation && `(${item.designation})`}
+              Moved by {item.name || "System"}{" "}
+              {item.designation && `(${item.designation})`}
             </p>
           </div>
           <p className="text-[11px] text-slate-400">
@@ -585,13 +759,18 @@ function AssessmentResultCard({ result, onDelete }) {
             <Icon className="w-4 h-4 text-blue-600" />
           </div>
           <div>
-            <p className="font-bold text-sm text-slate-900">{result.assessmentTitle}</p>
+            <p className="font-bold text-sm text-slate-900">
+              {result.assessmentTitle}
+            </p>
             <p className="text-[11px] text-slate-500">
-              Evaluated by {result.evaluatedBy?.role || "—"} on {new Date(result.evaluatedAt).toLocaleString()}
+              Evaluated by {result.evaluatedBy?.role || "—"} on{" "}
+              {new Date(result.evaluatedAt).toLocaleString()}
             </p>
           </div>
         </div>
-        <div className={`px-3 py-1 rounded-full bg-amber-50 ${color} text-sm font-bold`}>
+        <div
+          className={`px-3 py-1 rounded-full bg-amber-50 ${color} text-sm font-bold`}
+        >
           {result.scoreObtained}/{result.maxScore}
         </div>
       </div>
@@ -604,14 +783,21 @@ function AssessmentResultCard({ result, onDelete }) {
       {result.overallFeedback && (
         <div className="bg-slate-50 border border-slate-100 rounded-lg p-3 text-sm text-slate-700 whitespace-pre-line">
           {result.overallFeedback}
-          {result.detailedEvaluation && Object.keys(result.detailedEvaluation).length > 0 && (
-            <div className="mt-2 pt-2 border-t border-slate-200">
-              <p className="font-semibold text-xs text-slate-700 mb-1">Detailed Evaluation:</p>
-              {Object.entries(result.detailedEvaluation).map(([key, val]) =>
-                val ? <p key={key} className="text-xs"><span className="font-semibold">{key}:</span> {val}</p> : null
-              )}
-            </div>
-          )}
+          {result.detailedEvaluation &&
+            Object.keys(result.detailedEvaluation).length > 0 && (
+              <div className="mt-2 pt-2 border-t border-slate-200">
+                <p className="font-semibold text-xs text-slate-700 mb-1">
+                  Detailed Evaluation:
+                </p>
+                {Object.entries(result.detailedEvaluation).map(([key, val]) =>
+                  val ? (
+                    <p key={key} className="text-xs">
+                      <span className="font-semibold">{key}:</span> {val}
+                    </p>
+                  ) : null,
+                )}
+              </div>
+            )}
         </div>
       )}
       <div className="flex justify-end mt-2">
@@ -648,7 +834,7 @@ function NewAssessmentFlow({
 
   const components = jobAssessment?.assessmentTypesList || [];
   const availableComponents = components.filter(
-    (c) => !takenComponentIds.has(c.typeTitle)
+    (c) => !takenComponentIds.has(c.typeTitle),
   );
 
   // ── STEP 1: Pick a component (each one represents an evaluation type) ──
@@ -688,7 +874,8 @@ function NewAssessmentFlow({
               </p>
               <p className="text-xs text-amber-700 mt-1">
                 Ask your admin to create an assessment for{" "}
-                <span className="font-bold">{candidate.jobRoleName}</span> first.
+                <span className="font-bold">{candidate.jobRoleName}</span>{" "}
+                first.
               </p>
             </div>
           </div>
@@ -700,7 +887,8 @@ function NewAssessmentFlow({
                 All assessments completed
               </p>
               <p className="text-xs text-emerald-700 mt-1">
-                The candidate has been evaluated on every component for this role.
+                The candidate has been evaluated on every component for this
+                role.
               </p>
             </div>
           </div>
@@ -775,7 +963,8 @@ function NewAssessmentFlow({
           <div>
             <p className="font-bold text-sm">{selectedComponent.typeTitle}</p>
             <p className="text-[11px] text-slate-500">
-              {jobAssessment.jobRoleName} · {selectedComponent.maxMarks} max marks
+              {jobAssessment.jobRoleName} · {selectedComponent.maxMarks} max
+              marks
             </p>
           </div>
         </div>
@@ -837,7 +1026,9 @@ function NewAssessmentFlow({
       </div>
 
       <div>
-        <label className="text-sm font-bold mb-1 block">Overall Feedback *</label>
+        <label className="text-sm font-bold mb-1 block">
+          Overall Feedback *
+        </label>
         <textarea
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
