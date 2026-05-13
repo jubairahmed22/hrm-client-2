@@ -89,6 +89,7 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
     assessments,
     loading: assessmentsLoading,
     fetchAssessmentsByJob,
+    submitCTOAssessment
   } = useAssessmentNextzen();
 
   const {
