@@ -42,7 +42,7 @@ const PasswordManagement = () => {
       });
 
       const res = await fetch(
-        `https://code360.pro/api/get-employee-options-password?${queryParams.toString()}`,
+        `http://localhost:50001/api/get-employee-options-password?${queryParams.toString()}`,
       );
       const data = await res.json();
       if (data.success) {

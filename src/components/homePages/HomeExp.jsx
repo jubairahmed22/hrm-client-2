@@ -72,7 +72,7 @@ const HomeExp = () => {
           transition={{ delay: 0.5 }}
           className="w-full flex flex-col items-center gap-8"
         >
-          <Link href="/" className="w-full max-w-xs">
+          <Link href="/signin" className="w-full max-w-xs">
             <motion.button
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.97 }}

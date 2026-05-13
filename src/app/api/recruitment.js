@@ -1,7 +1,7 @@
 // lib/api/jobs.js
 export async function createJobPost(jobData) {
   try {
-    const response = await fetch("https://code360.pro/add-job-post", {
+    const response = await fetch("http://localhost:50001/add-job-post", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -29,7 +29,7 @@ export async function getAllJobs({ page = 1, title, startDate, endDate } = {}) {
     if (startDate) query.append("startDate", startDate);
     if (endDate) query.append("endDate", endDate);
 
-    const response = await fetch(`https://code360.pro/all-job-post?${query.toString()}`);
+    const response = await fetch(`http://localhost:50001/all-job-post?${query.toString()}`);
     const data = await response.json();
 
     if (!response.ok) {
@@ -45,7 +45,7 @@ export async function getAllJobs({ page = 1, title, startDate, endDate } = {}) {
 
 export async function deleteJobPost(jobId) {
   try {
-    const response = await fetch(`https://code360.pro/delete-job/${jobId}`, {
+    const response = await fetch(`http://localhost:50001/delete-job/${jobId}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -68,7 +68,7 @@ export async function deleteJobPost(jobId) {
 // Add this to your existing recruitment.js file
 export async function getJobDetails(jobId) {
   try {
-    const response = await fetch(`https://code360.pro/all-job-post/${jobId}`);
+    const response = await fetch(`http://localhost:50001/all-job-post/${jobId}`);
     const data = await response.json();
 
     if (!response.ok) {
@@ -85,7 +85,7 @@ export async function getJobDetails(jobId) {
 // Add this to your existing recruitment.js or jobs.js
 export async function getJobOptions(page = 1) {
   try {
-    const response = await fetch(`https://code360.pro/all-job-post-option?page=${page}`);
+    const response = await fetch(`http://localhost:50001/all-job-post-option?page=${page}`);
     const data = await response.json();
 
     if (!response.ok) {

@@ -34,7 +34,7 @@ const ChangePassDialog = ({ employee, trigger, fetchEmployees }) => {
     setLoading(true);
     try {
       // ❗ Ensure this URL matches your backend port and route exactly
-      const response = await axios.post(`https://code360.pro/api/reset-password-admin`, {
+      const response = await axios.post(`http://localhost:50001/api/reset-password-admin`, {
         email: employee.email,
         newPassword: newPassword
       });

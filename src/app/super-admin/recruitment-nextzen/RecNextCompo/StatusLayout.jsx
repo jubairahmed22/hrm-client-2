@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   Loader2,
   FileText,
@@ -13,9 +13,13 @@ import {
   XCircle,
   Archive
 } from "lucide-react";
-import { Card, CardContent,  } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useRecruitmentNextzen } from "@/app/hook/useRecruitment-jobs-nextzen";
-import CandidateCard from "./CandidateCard"; // 👈 Imported extracted component
+import CandidateCard from "./CandidateCard";
+import { useAuth } from "@/context/AuthContext";
+
+// ── Designations that see ALL candidates (no department filter) ─────────────
+const FULL_ACCESS_DESIGNATIONS = ["CEO", "Head_of_HR", "HR_Manager"];
 
 // ── Pipeline stages ──────────────────────────────────────────────────────
 const STAGES = [
@@ -86,7 +90,7 @@ const STAGES = [
   {
     key: "Inventory",
     label: "Inventory",
-    icon: Archive, 
+    icon: Archive,
     iconBg: "bg-indigo-100",
     iconColor: "text-indigo-600",
     accent: "bg-indigo-500",
@@ -94,7 +98,24 @@ const STAGES = [
 ];
 
 const StatusLayout = ({ filters = {}, onTotalChange }) => {
-  const { fetchByStatus, changeCandidateStatus } = useRecruitmentNextzen();
+  const { UserAllDetails } = useAuth();
+  const designation = UserAllDetails?.designation ?? null;
+
+  // Don't fetch until we know the user's designation
+  const authReady = Boolean(designation);
+
+  // ✅ Case-insensitive — true means "use fetchByStatus" (see everything)
+  const hasFullAccess = useMemo(() => {
+    if (!designation) return false;
+    const norm = String(designation).trim().toLowerCase();
+    return FULL_ACCESS_DESIGNATIONS.map((d) => d.toLowerCase()).includes(norm);
+  }, [designation]);
+
+  const {
+    fetchByStatus,
+    fetchByStatusByDepartment,
+    changeCandidateStatus,
+  } = useRecruitmentNextzen();
 
   const [stageData, setStageData] = useState({});
   const [stageLoading, setStageLoading] = useState({});
@@ -105,17 +126,30 @@ const StatusLayout = ({ filters = {}, onTotalChange }) => {
 
   // ── Load all stages ──────────────────────────────────────────────────────
   const loadAllStages = useCallback(async () => {
+    if (!authReady) return;
+
     setStageLoading(STAGES.reduce((acc, s) => ({ ...acc, [s.key]: true }), {}));
+
+    const params = {
+      page: 1,
+      limit: 20,
+      search: filters.search || "",
+      jobRoleName: filters.jobRoleName || "all",
+      source: filters.source || "all",
+    };
+
+    // ✅ CEO / Head_of_HR / HR_Manager → fetchByStatus (all candidates)
+    // ✅ Everyone else → fetchByStatusByDepartment (own dept only)
+    const fetcher = (stageKey) => {
+      if (hasFullAccess) {
+        return fetchByStatus(stageKey, params);
+      }
+      return fetchByStatusByDepartment(stageKey, params);
+    };
 
     const results = await Promise.all(
       STAGES.map((stage) =>
-        fetchByStatus(stage.key, {
-          page: 1,
-          limit: 20,
-          search: filters.search || "",
-          jobRoleName: filters.jobRoleName || "all",
-          source: filters.source || "all",
-        }).then((res) => ({ stage: stage.key, data: res }))
+        fetcher(stage.key).then((res) => ({ stage: stage.key, data: res }))
       )
     );
 
@@ -123,7 +157,7 @@ const StatusLayout = ({ filters = {}, onTotalChange }) => {
     let total = 0;
     results.forEach(({ stage, data }) => {
       next[stage] = data;
-      total += data.total || 0;
+      total += data?.total || 0;
     });
 
     setStageData(next);
@@ -132,7 +166,16 @@ const StatusLayout = ({ filters = {}, onTotalChange }) => {
     );
 
     if (onTotalChange) onTotalChange(total);
-  }, [fetchByStatus, filters.search, filters.jobRoleName, filters.source, onTotalChange]);
+  }, [
+    authReady,
+    hasFullAccess,
+    fetchByStatus,
+    fetchByStatusByDepartment,
+    filters.search,
+    filters.jobRoleName,
+    filters.source,
+    onTotalChange,
+  ]);
 
   useEffect(() => {
     loadAllStages();
@@ -249,6 +292,18 @@ const StatusLayout = ({ filters = {}, onTotalChange }) => {
     0
   );
 
+  // Show a loading state while auth context resolves
+  if (!authReady) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+        <span className="ml-3 text-sm text-slate-500">
+          Loading user permissions...
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex gap-4">
       {STAGES.map((stage) => {
@@ -324,7 +379,7 @@ const StatusLayout = ({ filters = {}, onTotalChange }) => {
                     candidate={candidate}
                     onDragStart={(e) => handleDragStart(e, candidate, stage.key)}
                     onStatusChange={handleStatusChange}
-                    stagesConfig={STAGES} // Pass stages config down to display dynamic stage icons
+                    stagesConfig={STAGES}
                   />
                 ))
               )}

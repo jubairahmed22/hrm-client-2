@@ -8,6 +8,7 @@ import {
   deleteRecruitmentNextzen,
   updateRecruitmentStatusNextzen,
   fetchCandidatesByStatusNextzen,
+  fetchCandidatesByDepartmentByStatusNextzen, // Change this
   moveToInventoryNextzen,
 } from "../api/recruitment-jobs-nextzen";
 import { useAuth } from "@/context/AuthContext";
@@ -33,7 +34,7 @@ export function useRecruitmentNextzen() {
   const [pagination, setPagination] = useState(sharedRecruitmentPagination);
   const [loading, setLoading] = useState(sharedRecruitmentLoading);
   const [error, setError] = useState(sharedRecruitmentError);
-  const { user, UserAllDetails } = useAuth();
+  const { UserAllDetails } = useAuth();
 
   /* ================= REGISTER LISTENER ================= */
   useEffect(() => {
@@ -126,6 +127,39 @@ const fetchAllCandidates = useCallback(async (params = {}) => {
   []
 );
 
+/* ================= STATUS-WISE PAGINATION FETCH (Department Specific) ================= */
+  const fetchByStatusByDepartment = useCallback(
+    async (status, params = {}) => {
+      try {
+        // Ensure we have a department from the Auth context
+        const userDept = UserAllDetails?.department;
+
+        if (!userDept) {
+          console.warn("No department found for the current user.");
+          return { candidates: [], hasNextPage: false, total: 0 };
+        }
+
+        // Call the new API function using status and department
+        const result = await fetchCandidatesByDepartmentByStatusNextzen(
+          status,
+          userDept,
+          params
+        );
+
+        return {
+          candidates: result.candidates || [],
+          hasNextPage: result.hasNextPage || false,
+          total: result.total || 0,
+        };
+      } catch (err) {
+        console.error(`Nextzen error fetching stage ${status} for department ${UserAllDetails?.department}:`, err);
+        return { candidates: [], hasNextPage: false, total: 0 };
+      }
+    },
+    [UserAllDetails?.department] // Dependency added to re-sync if user changes
+  );
+
+
   /* ================= SUBMIT CANDIDATE ================= */
   const submitCandidate = useCallback(
     async (recruitmentData) => {
@@ -180,9 +214,9 @@ const fetchAllCandidates = useCallback(async (params = {}) => {
       // Build the action log — captures who did what and when
       const actionLog = {
         updatedBy: {
-          name: user?.displayName || user?.name || "System User",
-          email: user?.email,
-          role: user?.role,
+          name: UserAllDetails?.fullName,
+          email: UserAllDetails?.email,
+          role: UserAllDetails?.role,
           designation: UserAllDetails?.designation || "N/A",
         },
         updatedAt: new Date().toISOString(),
@@ -223,7 +257,7 @@ const fetchAllCandidates = useCallback(async (params = {}) => {
         notifyRecruitment();
       }
     },
-    [user, UserAllDetails]
+    [ UserAllDetails]
   );
 
   /* ================= SEND TO INVENTORY ================= */
@@ -270,6 +304,7 @@ const fetchAllCandidates = useCallback(async (params = {}) => {
     error,
     fetchAllCandidates,
     fetchCandidatesByJob,
+    fetchByStatusByDepartment,
     fetchByStatus,
     submitCandidate,
     removeCandidate,

@@ -34,7 +34,7 @@ const Today = () => {
   const { UserAllDetails } = useAuth();
   const employeeId = UserAllDetails?.employeeId;
   const userEmail = UserAllDetails?.email;
-  const API = "https://code360.pro";
+  const API = "http://localhost:50001";
 
   // ── Live dashboard stats ──────────────────────────────────────────────────
   const {

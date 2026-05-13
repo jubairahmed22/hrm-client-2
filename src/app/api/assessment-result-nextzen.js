@@ -1,4 +1,4 @@
-const BASE_URL = "https://code360.pro";
+const BASE_URL = "http://localhost:50001";
 
 export const createAssessmentResultNextzen = async (data) => {
   const res = await fetch(`${BASE_URL}/add-assessment-result-nextzen`, {

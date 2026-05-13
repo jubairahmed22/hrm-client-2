@@ -84,7 +84,7 @@ export default function MultiStepForm() {
     }
     setLoading(true);
     try {
-      const res = await fetch(`https://code360.pro/api/signup`, {
+      const res = await fetch(`http://localhost:50001/api/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

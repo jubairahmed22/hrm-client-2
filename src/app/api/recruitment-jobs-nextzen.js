@@ -1,6 +1,6 @@
 // lib/api/recruitment-jobs-nextzen.js
 
-const BASE_URL = "https://code360.pro";
+const BASE_URL = "http://localhost:50001";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. Create a new recruitment/candidate post (Nextzen)
@@ -199,6 +199,46 @@ export async function fetchCandidatesByStatusNextzen(
     return await response.json();
   } catch (error) {
     console.error("Nextzen Fetch Error (fetchCandidatesByStatus):", error);
+    throw error;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 6. Fetch Nextzen candidates filtered by Status and Department
+// ─────────────────────────────────────────────────────────────────────────────
+export async function fetchCandidatesByDepartmentByStatusNextzen(
+  status,
+  jobDepartment,
+  { page = 1, limit = 10, search = "", jobRoleName = "", source = "" } = {}
+) {
+  try {
+    // Validate required parameters
+    if (!status || !jobDepartment) {
+      throw new Error("Both Status and Department are required for this fetch.");
+    }
+
+    const query = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    if (search) query.append("search", search);
+    if (jobRoleName && jobRoleName !== "all") query.append("jobRoleName", jobRoleName);
+    if (source && source !== "all") query.append("source", source);
+
+    // Matches the backend route: /candidates-by-status-nextzen/:status/:jobDepartment
+    const response = await fetch(
+      `${BASE_URL}/candidates-by-status-nextzen/${encodeURIComponent(status)}/${encodeURIComponent(jobDepartment)}?${query.toString()}`
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to fetch candidates by department and status");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Nextzen API Error (fetchCandidatesByDepartmentByStatus):", error);
     throw error;
   }
 }

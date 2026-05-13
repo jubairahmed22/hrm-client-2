@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
     const fetchUserData = async () => {
       try {
         const res = await fetch(
-          `https://code360.pro/api/user-all`,
+          `http://localhost:50001/api/user-all`,
           {
             headers: {
               'Content-Type': 'application/json',

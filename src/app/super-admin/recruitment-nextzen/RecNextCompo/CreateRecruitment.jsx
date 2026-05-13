@@ -86,6 +86,7 @@ const CreateRecruitment = ({ open, onClose, job }) => {
     location: "",
     jobRoleId: "",
     jobRoleName: "",
+    jobDepartment: "",
     source: "Career Site",
     experience: "",
     education: "",
@@ -112,6 +113,7 @@ const CreateRecruitment = ({ open, onClose, job }) => {
               ...prev,
               jobRoleId: matchedJob._id,
               jobRoleName: matchedJob.title,
+              jobDepartment: matchedJob.department
             }));
           }
         }
@@ -166,6 +168,7 @@ const CreateRecruitment = ({ open, onClose, job }) => {
       ...prev,
       jobRoleId: selectedId,
       jobRoleName: selectedJob ? selectedJob.title : "",
+      jobDepartment: selectedJob ? selectedJob.department : "",
     }));
   };
 

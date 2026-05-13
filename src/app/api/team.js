@@ -1,7 +1,7 @@
 // api/team.js
 export const fetchTeams = async () => {
   try {
-    const res = await fetch("https://code360.pro/api/get-teams");
+    const res = await fetch("http://localhost:50001/api/get-teams");
     const data = await res.json();
     if (data.success) {
       return data.data.map((t) => ({
@@ -24,7 +24,7 @@ export const fetchDepartmentTeams = async ({
   teamLimit = 2,
 }) => {
   const res = await fetch(
-    `https://code360.pro/api/departments-with-teams?page=${page}&deptLimit=${deptLimit}&teamPage=${teamPage}&teamLimit=${teamLimit}`
+    `http://localhost:50001/api/departments-with-teams?page=${page}&deptLimit=${deptLimit}&teamPage=${teamPage}&teamLimit=${teamLimit}`
   );
 
   const data = await res.json();
@@ -45,7 +45,7 @@ export const fetchMyDepartmentTeams = async ({
 
   // Removed /api/ as requested
   const res = await fetch(
-    `https://code360.pro/departments-with-myteam/${encodedEmail}?page=${page}&deptLimit=${deptLimit}&teamPage=${teamPage}&teamLimit=${teamLimit}`
+    `http://localhost:50001/departments-with-myteam/${encodedEmail}?page=${page}&deptLimit=${deptLimit}&teamPage=${teamPage}&teamLimit=${teamLimit}`
   );
 
   const data = await res.json();
@@ -56,7 +56,7 @@ export const fetchMyDepartmentTeams = async ({
 
 export const createTeam = async (teamForm) => {
   try {
-    const res = await fetch("https://code360.pro/api/add-team", {
+    const res = await fetch("http://localhost:50001/api/add-team", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(teamForm),
@@ -71,7 +71,7 @@ export const createTeam = async (teamForm) => {
 };
 
 export const deleteTeam = async (teamId) => {
-  const res = await fetch("https://code360.pro/api/delete-team", {
+  const res = await fetch("http://localhost:50001/api/delete-team", {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ teamId }),
@@ -85,7 +85,7 @@ export const deleteTeam = async (teamId) => {
 // ADD TEAM MEMBER
 export const addTeamMember = async (teamId, payload) => {
   try {
-    const res = await fetch(`https://code360.pro/api/add-team-member/${teamId}`, {
+    const res = await fetch(`http://localhost:50001/api/add-team-member/${teamId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -104,7 +104,7 @@ export const addTeamMember = async (teamId, payload) => {
 // DELETE /api/delete-team-member
 export const deleteTeamMemberAPI = async ({ teamId, memberId }) => {
   try {
-    const res = await fetch("https://code360.pro/api/delete-team-member", {
+    const res = await fetch("http://localhost:50001/api/delete-team-member", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ teamId, memberId }),

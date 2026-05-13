@@ -1,6 +1,6 @@
 // lib/api/assessment-nextzen.js
 
-const BASE_URL = "https://code360.pro";
+const BASE_URL = "http://localhost:50001";
 
 // 1. Create assessment
 export const createAssessmentNextzen = async (assessmentForm) => {

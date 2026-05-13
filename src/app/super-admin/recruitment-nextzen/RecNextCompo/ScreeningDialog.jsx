@@ -7,6 +7,7 @@ import {
   Plus, Code, FileBadge, Brain, Users, Award, Layers, Calendar,
   Trash2, MessageSquare, Sparkles, Video, Clock, TrendingUp,
   ClipboardCheck, AlertCircle,
+  Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -145,6 +146,23 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
 
           {/* Scrollable content area */}
           <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+
+            {/* ── HOD REVIEW CARD - New Design from image_47d6b4.png ── */}
+      <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-8 mb-6">
+        <div className="flex items-center gap-3 mb-6">
+          <Briefcase className="w-6 h-6 text-slate-900" />
+          <div className="flex flex-col gap-2">
+             <h3 >HOD Review Required</h3>
+          <p>Department Name: {person.jobDepartment}</p>
+          </div>
+        </div>
+        <Button 
+         
+        >
+          <Send className="w-5 h-5 " />
+          Send to HOD for Assessment Review
+        </Button>
+      </div>
 
             {/* ── ASSESSMENT CENTER ──────────────────────────────────────── */}
             <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-6">
@@ -435,6 +453,8 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
           </div>
         </DialogContent>
       </Dialog>
+      
+      
 
       {/* Resume Modal */}
       <Dialog open={isResumeOpen} onOpenChange={setIsResumeOpen}>
