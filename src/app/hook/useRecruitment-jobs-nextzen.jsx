@@ -317,7 +317,6 @@ const fetchAllCandidates = useCallback(async (params = {}) => {
         }
       ],
       // We usually also update the main status to reflect it's under review
-      status: "HOD Review" 
     };
 
     await sendToHODReviewNextzen(id, reviewPayload);

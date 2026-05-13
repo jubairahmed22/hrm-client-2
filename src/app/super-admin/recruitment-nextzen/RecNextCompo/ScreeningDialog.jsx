@@ -19,7 +19,7 @@ import { useAssessmentResultNextzen } from "@/app/hook/useAssessmentResultNextze
 import { useRecruitmentNotesNextzen } from "@/app/hook/useRecruitmentNotesNextzen";
 import AddNoteDialog from "./AddNoteDialog";
 import SendToInventoryDialog from "./SendToInventoryDialog";
-import { useRecruitmentNextzen, sendToHOD } from "@/app/hook/useRecruitment-jobs-nextzen";
+import { useRecruitmentNextzen } from "@/app/hook/useRecruitment-jobs-nextzen";
 import { useAssessmentNextzen } from "@/app/hook/useAssesmentNextzen";
 
 const RECRUITMENT_STAGES = [
@@ -46,7 +46,7 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [statusValue, setStatusValue] = useState(person?.status || "Applied");
 
-  const { changeCandidateStatus } = useRecruitmentNextzen();
+  const { changeCandidateStatus, sendToHOD } = useRecruitmentNextzen();
 
   const {
     assessments,
@@ -110,12 +110,18 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
 
   // 2. Create a local handler
 const handleSendToHOD = async () => {
-  try {
-    await sendToHOD(person._id, person);
-    // Optional: add a toast or success notification here
-    onClose(); // Close dialog on success
-  } catch (err) {
-    alert("Failed to send to HOD: " + err.message);
+  // Native browser warning
+  const confirmed = window.confirm(
+    `Are you sure you want to send ${person.fullName} to the HOD for review?`
+  );
+
+  if (confirmed) {
+    try {
+      await sendToHOD(person._id);
+      // Success logic
+    } catch (err) {
+      console.error("HOD Review Error:", err);
+    }
   }
 };
 
@@ -177,7 +183,7 @@ const handleSendToHOD = async () => {
     {resultsLoading ? (
       <Loader2 className="w-5 h-5 animate-spin" />
     ) : (
-      <Send className="w-5 h-5 rotate-[-45deg]" />
+      <Send className="w-5 h-5 " />
     )}
     Send to HOD for Assessment Review
   </Button>
