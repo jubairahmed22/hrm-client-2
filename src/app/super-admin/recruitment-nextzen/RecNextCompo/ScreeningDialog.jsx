@@ -19,7 +19,7 @@ import { useAssessmentResultNextzen } from "@/app/hook/useAssessmentResultNextze
 import { useRecruitmentNotesNextzen } from "@/app/hook/useRecruitmentNotesNextzen";
 import AddNoteDialog from "./AddNoteDialog";
 import SendToInventoryDialog from "./SendToInventoryDialog";
-import { useRecruitmentNextzen } from "@/app/hook/useRecruitment-jobs-nextzen";
+import { useRecruitmentNextzen, sendToHOD } from "@/app/hook/useRecruitment-jobs-nextzen";
 import { useAssessmentNextzen } from "@/app/hook/useAssesmentNextzen";
 
 const RECRUITMENT_STAGES = [
@@ -108,6 +108,17 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
     });
   };
 
+  // 2. Create a local handler
+const handleSendToHOD = async () => {
+  try {
+    await sendToHOD(person._id, person);
+    // Optional: add a toast or success notification here
+    onClose(); // Close dialog on success
+  } catch (err) {
+    alert("Failed to send to HOD: " + err.message);
+  }
+};
+
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
@@ -150,18 +161,26 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
             {/* ── HOD REVIEW CARD - New Design from image_47d6b4.png ── */}
       <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-8 mb-6">
         <div className="flex items-center gap-3 mb-6">
-          <Briefcase className="w-6 h-6 text-slate-900" />
           <div className="flex flex-col gap-2">
-             <h3 >HOD Review Required</h3>
-          <p>Department Name: {person.jobDepartment}</p>
+             <div className="flex flex-row gap-2">
+              <Briefcase className="w-6 h-6 text-slate-900" />
+               <h3 >HOD Review Required</h3>
+             </div>
+             <p>Department : {person.jobDepartment}</p>
           </div>
         </div>
         <Button 
-         
-        >
-          <Send className="w-5 h-5 " />
-          Send to HOD for Assessment Review
-        </Button>
+    onClick={handleSendToHOD} // Added click handler
+    disabled={resultsLoading} // Disable while processing
+  
+  >
+    {resultsLoading ? (
+      <Loader2 className="w-5 h-5 animate-spin" />
+    ) : (
+      <Send className="w-5 h-5 rotate-[-45deg]" />
+    )}
+    Send to HOD for Assessment Review
+  </Button>
       </div>
 
             {/* ── ASSESSMENT CENTER ──────────────────────────────────────── */}

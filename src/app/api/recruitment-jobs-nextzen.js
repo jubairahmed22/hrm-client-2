@@ -273,3 +273,29 @@ export async function moveToInventoryNextzen(id, { reasonCategory, detailedReaso
     throw error;
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 8. Send for HOD Review (Nextzen)
+// ─────────────────────────────────────────────────────────────────────────────
+export async function sendToHODReviewNextzen(id, reviewData) {
+  try {
+    if (!id) throw new Error("Candidate ID is required.");
+
+    const response = await fetch(`${BASE_URL}/send-to-hod-review-nextzen/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(reviewData), // This contains the assessmentFlow array
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to send to HOD for review");
+    }
+    return data;
+  } catch (error) {
+    console.error("Nextzen API Error (sendToHODReview):", error);
+    throw error;
+  }
+}
