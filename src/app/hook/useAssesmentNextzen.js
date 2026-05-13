@@ -6,6 +6,7 @@ import {
   getAllAssessmentsNextzen,
   getJobBasedAssessmentsNextzen,
   deleteAssessmentNextzen,
+  
 } from "../api/assessment-nextzen";
 
 /* ================= SHARED STATE ================= */
@@ -146,6 +147,31 @@ export function useAssessmentNextzen() {
     }
   }, []);
 
+  /* ================= SUBMIT CTO ASSESSMENT ================= */
+  const submitCTOAssessment = useCallback(async (ctoData) => {
+    try {
+      sharedAssessmentLoading = true;
+      notifyAssessment();
+
+      const response = await createCTOAssessmentNextzen(ctoData);
+
+      if (response.success) {
+        // Refresh local list if needed
+        const result = await getAllAssessmentsNextzen({ page: 1 });
+        sharedAssessments = result?.assessments || [];
+        window.dispatchEvent(new CustomEvent("refresh-assessment-list"));
+      }
+
+      return response;
+    } catch (err) {
+      sharedAssessmentError = err.message || "Failed to add CTO assessment";
+      throw err;
+    } finally {
+      sharedAssessmentLoading = false;
+      notifyAssessment();
+    }
+  }, []);
+
   return {
     assessments,
     pagination,
@@ -155,5 +181,6 @@ export function useAssessmentNextzen() {
     fetchAssessmentsByJob,
     submitAssessment,
     removeAssessment,
+    submitCTOAssessment
   };
 }
