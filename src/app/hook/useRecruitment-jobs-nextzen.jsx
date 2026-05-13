@@ -10,7 +10,8 @@ import {
   fetchCandidatesByStatusNextzen,
   fetchCandidatesByDepartmentByStatusNextzen, // Change this
   moveToInventoryNextzen,
-  sendToHODReviewNextzen
+  sendToHODReviewNextzen,
+  updateApprovedToHODNextzen
 } from "../api/recruitment-jobs-nextzen";
 import { useAuth } from "@/context/AuthContext";
 
@@ -342,6 +343,46 @@ const fetchAllCandidates = useCallback(async (params = {}) => {
   }
 }, [UserAllDetails]);
 
+/* ================= APPROVE & REQUEST ASSESSMENT (HOD TO CTO) ================= */
+  const approveAndRequestAssessment = useCallback(async (id, hodQuestions) => {
+    try {
+      sharedRecruitmentLoading = true;
+      notifyRecruitment();
+
+      const approvalEntry = {
+        status: "approved_req_assessment",
+        approvedBy: UserAllDetails?.fullName || "System",
+        at: new Date().toISOString(),
+      };
+
+      // We send the whole updated array or just the entry depending on your backend logic
+      // Based on your app.put example, we send the entry inside an array
+      const payload = {
+        assessmentFlow: [approvalEntry],
+        hodQuestions: hodQuestions // Added the extra field for tasks/questions
+      };
+
+      await updateApprovedToHODNextzen(id, payload);
+
+      sharedCandidates = sharedCandidates.map((c) =>
+        c._id === id ? { 
+          ...c, 
+          assessmentFlow: c.assessmentFlow ? [...c.assessmentFlow, approvalEntry] : [approvalEntry],
+          hodQuestions 
+        } : c
+      );
+
+      window.dispatchEvent(new CustomEvent("refresh-kanban-board"));
+      return { success: true };
+    } catch (err) {
+      sharedRecruitmentError = err.message;
+      throw err;
+    } finally {
+      sharedRecruitmentLoading = false;
+      notifyRecruitment();
+    }
+  }, [UserAllDetails]);
+
   return {
     candidates,
     pagination,
@@ -355,6 +396,7 @@ const fetchAllCandidates = useCallback(async (params = {}) => {
     removeCandidate,
     changeCandidateStatus,
     sendToInventory,
-    sendToHOD
+    sendToHOD,
+    approveAndRequestAssessment
   };
 }

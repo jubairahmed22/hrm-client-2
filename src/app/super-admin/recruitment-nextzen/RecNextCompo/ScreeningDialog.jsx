@@ -83,7 +83,7 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [statusValue, setStatusValue] = useState(person?.status || "Applied");
 
-  const { changeCandidateStatus, sendToHOD } = useRecruitmentNextzen();
+  const { changeCandidateStatus, sendToHOD, approveAndRequestAssessment } = useRecruitmentNextzen();
 
   const {
     assessments,
