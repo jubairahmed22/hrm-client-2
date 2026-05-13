@@ -69,3 +69,20 @@ export const deleteAssessmentNextzen = async (id) => {
     throw error;
   }
 };
+
+// POST: Create the global assessment structure for a job role
+export async function createCTOAssessmentNextzen(assessmentData) {
+  try {
+    const response = await fetch(`${BASE_URL}/cto-assessment-post-nextzen`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(assessmentData),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to create CTO assessment");
+    return data;
+  } catch (error) {
+    console.error("API Error (createCTOAssessment):", error);
+    throw error;
+  }
+}
