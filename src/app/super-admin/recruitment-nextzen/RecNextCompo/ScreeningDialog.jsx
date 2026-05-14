@@ -178,8 +178,8 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
   ]);
 
   // Determine the current step in the flow
-  const lastFlowStatus =
-    person?.assessmentFlow?.[person.assessmentFlow.length - 1]?.status;
+  const currentFlow = person?.assessmentFlow?.[person.assessmentFlow.length - 1];
+  const lastFlowStatus = currentFlow?.status;
 
   // --- Handle Step 1: HOD Approval ---
   const handleApproveHOD = async () => {
@@ -200,11 +200,14 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
     ]);
   };
 
-  const handleUpdateCtoQuestion = (id, text) => {
-    setCtoQuestions(
-      ctoQuestions.map((q) => (q.id === id ? { ...q, typeTitle: text } : q)),
-    );
-  };
+ // Updated handler to accept a field name (typeTitle or maxMarks)
+const handleUpdateCtoQuestion = (id, field, value) => {
+  setCtoQuestions(
+    ctoQuestions.map((q) => 
+      q.id === id ? { ...q, [field]: value } : q
+    )
+  );
+};
 
   const handleSubmitCtoToHR = async () => {
     try {
@@ -266,38 +269,53 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
           {/* Scrollable content area */}
           <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
             {/* ── HOD REVIEW CARD - New Design from image_47d6b4.png ── */}
-            {!lastFlowStatus && (
-              <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-8 mb-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <Briefcase className="w-6 h-6 text-slate-900" />
-                  <div className="flex flex-col">
-                    <h3 className="text-xl font-bold text-slate-900">
-                      HOD Review Required
-                    </h3>
-                    <p className="text-sm text-slate-500">
-                      Department: {person.jobDepartment || person.department}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  onClick={handleSendToHOD}
-                  className="bg-[#3b82f6] hover:bg-blue-700 text-white px-6 py-6 rounded-xl text-lg font-medium flex items-center gap-3"
-                >
-                  <Send className="w-5 h-5 rotate-[-45deg]" />
-                  Send to HOD for Assessment Review
-                </Button>
-              </div>
-            )}
+            {/* Case 1: Assessment has been requested/sent (Based on image_b091b6.png) */}
+{lastFlowStatus && (
+  <div className="bg-[#f5f7ff] border border-[#e0e7ff] rounded-3xl p-8 mb-6">
+    <div className="flex items-center gap-3 mb-2">
+      <div className="bg-indigo-100 p-1 rounded-full">
+        <CheckCircle2 className="w-5 h-5 text-[#4f46e5]" />
+      </div>
+      <h3 className="text-[#4f46e5]">
+        Assessment Requested
+      </h3>
+    </div>
+    <p className=" text-[#6366f1]">
+      Status: <span className="font-medium">{lastFlowStatus}</span>
+    </p>
+  </div>
+)}
 
+{/* Case 2: HOD Review is still required (Your previous design) */}
+{!lastFlowStatus && (
+  <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-8 mb-6">
+    <div className="flex items-center gap-3 mb-6">
+      <Briefcase className="w-6 h-6 text-slate-900" />
+      <div className="flex flex-col">
+        <h3 className="text-xl font-bold text-slate-900">
+          HOD Review Required
+        </h3>
+        <p className="text-sm text-slate-500">
+          Department: {person.jobDepartment || person.department}
+        </p>
+      </div>
+    </div>
+    <Button
+      onClick={handleSendToHOD}
+      className="bg-[#3b82f6] hover:bg-blue-700 text-white px-6 py-6 rounded-xl text-lg font-medium flex items-center gap-3"
+    >
+      <Send className="w-5 h-5 rotate-[-45deg]" />
+      Send to HOD for Assessment Review
+    </Button>
+  </div>
+)}
             {/* --- HOD / CTO REVIEW SECTION --- */}
             {(lastFlowStatus === "sent_to_review" ||
               lastFlowStatus === "approved_req_assessment") && (
               <div className="space-y-6 animate-in fade-in duration-500">
                 {/* 1. Candidate Review (HOD Task Input) - Only shows while in 'sent_to_review' */}
-                {/* {lastFlowStatus === "sent_to_review" && (
-                  
-                )} */}
-                <div className="bg-[#F9F5FF] border border-purple-100 rounded-2xl p-8 mb-6 animate-in zoom-in-95 duration-300">
+                {lastFlowStatus === "sent_to_review" && (
+                  <div className="bg-[#F9F5FF] border border-purple-100 rounded-2xl p-8 mb-6 animate-in zoom-in-95 duration-300">
                     <div className="mb-4">
                       <h1 className="font-semibold" >
                         Candidate Review (Requested by HR)
@@ -338,6 +356,8 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
                       </Button>
                     </div>
                   </div>
+                )}
+                
                 {/* 2. CTO Assessment Panel - Shows when status is 'approved_req_assessment' */}
                 {lastFlowStatus === "approved_req_assessment" && (
                   <div className="bg-[#F9F5FF] border border-purple-100 rounded-2xl p-8 mb-6 animate-in zoom-in-95 duration-300">
@@ -354,34 +374,44 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
                     </div>
 
                     {/* Dynamic Question List */}
-                    <div className="space-y-4">
-                      {ctoQuestions.map((q, index) => (
-                        <div
-                          key={q.id}
-                          className=""
-                        >
-                          <p className="text-sm font-bold text-slate-700 mb-2">
-                            Question {index + 1}
-                          </p>
-                          <textarea
-                            className="w-full p-4 border border-slate-100 bg-slate-50 rounded-lg h-24 focus:ring-2 focus:ring-purple-400 outline-none"
-                            placeholder="e.g., Explain your experience with React and state management..."
-                            value={q.typeTitle}
-                            onChange={(e) =>
-                              handleUpdateCtoQuestion(q.id, e.target.value)
-                            }
-                          />
-                        </div>
-                      ))}
+                    {/* Dynamic Question List */}
+<div className="space-y-6">
+  {ctoQuestions.map((q, index) => (
+    <div key={q.id} className="p-4 border border-slate-200 rounded-xl bg-white shadow-sm">
+      <div className="flex justify-between items-center mb-3">
+        <p className="text-sm font-bold text-slate-700">
+          Question {index + 1}
+        </p>
+        
+        {/* New Max Marks Input */}
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-medium text-slate-500">Max Marks:</label>
+          <input
+            type="number"
+            className="w-20 p-1 text-sm border border-slate-200 rounded focus:ring-2 focus:ring-purple-400 outline-none"
+            value={q.maxMarks}
+            onChange={(e) => handleUpdateCtoQuestion(q.id, "maxMarks", e.target.value)}
+          />
+        </div>
+      </div>
 
-                      <Button
-                        variant="outline"
-                        onClick={handleAddCtoQuestion}
-                        className="w-full"
-                      >
-                        <Plus className="w-4 h-4 mr-2 " /> Add Another Question
-                      </Button>
-                    </div>
+      <textarea
+        className="w-full p-4 border border-slate-100 bg-slate-50 rounded-lg h-24 focus:ring-2 focus:ring-purple-400 outline-none text-sm"
+        placeholder="e.g., Explain your experience with React and state management..."
+        value={q.typeTitle}
+        onChange={(e) => handleUpdateCtoQuestion(q.id, "typeTitle", e.target.value)}
+      />
+    </div>
+  ))}
+
+  <Button
+    variant="outline"
+    onClick={handleAddCtoQuestion}
+    className="w-full border-dashed border-2 hover:bg-purple-50"
+  >
+    <Plus className="w-4 h-4 mr-2" /> Add Another Question
+  </Button>
+</div>
 
                     <div className="flex items-center gap-3 mt-8">
                       <Button
