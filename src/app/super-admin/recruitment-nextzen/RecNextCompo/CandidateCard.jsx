@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { MapPin, Briefcase, Star, FileText, Video, ChevronDown, Eye } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { MapPin, Briefcase, Star, FileText, Video, ChevronDown, Eye, Brain } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Separate Dialog Components (Imported exactly as in your structure)
+// Separate Dialog Components
 import AppliedDialog from './AppliedDialog';
 import ScreeningDialog from './ScreeningDialog';
 import AssessmentDialog from './AssessmentDialog';
@@ -19,7 +19,8 @@ import FinalReviewDialog from './FinalReviewDialog';
 import OfferDialog from './OfferDialog';
 import HiredDialog from './HiredDialog';
 
-// ── Pipeline stages (defined for dropdown population) ─────────────────────────────
+import { useAssessmentNextzen } from "@/app/hook/useAssesmentNextzen";
+
 const STAGES = [
   { key: "Applied", label: "Applied" },
   { key: "Screening", label: "Screening" },
@@ -32,47 +33,52 @@ const STAGES = [
 ];
 
 const CandidateCard = ({ candidate, onDragStart, onStatusChange, stagesConfig = STAGES, job }) => {
-  const [isViewOpen, setIsViewOpen] = useState(false); // Controls the Status Dialog visibility
+  const {
+    assessments,
+    fetchAssessmentsByJob,
+  } = useAssessmentNextzen();
 
-  const score =
-    candidate.matchScore ??
-    Math.min(95, 70 + (candidate.experience || 0) * 3);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+
+  // ── Critical Fix: Fetch assessments inside useEffect ──────────────────
+  useEffect(() => {
+    if (candidate.jobRoleId) {
+      fetchAssessmentsByJob(candidate.jobRoleId);
+    }
+  }, [candidate.jobRoleId, fetchAssessmentsByJob]);
+
+  // ── Logic for CTO Assessment Badge (image_a0bf1e.png) ─────────────────
+  const lastFlowStatus = candidate?.assessmentFlow?.[candidate.assessmentFlow.length - 1]?.status;
+  const showCtoBadge = lastFlowStatus === "sent_to_review";
+  
+  const ctoQuestionsCount = useMemo(() => {
+    const assessment = assessments?.find(a => a.jobRoleId === candidate.jobRoleId);
+    return assessment?.ctoAssessmentTypesList?.length || 0;
+  }, [assessments, candidate.jobRoleId]);
+
+  const score = candidate.matchScore ?? Math.min(95, 70 + (candidate.experience || 0) * 3);
 
   const scoreColor =
-    score >= 90
-      ? "text-emerald-600 bg-emerald-50"
-      : score >= 80
-      ? "text-blue-600 bg-blue-50"
-      : score >= 70
-      ? "text-amber-600 bg-amber-50"
-      : "text-slate-500 bg-slate-50";
+    score >= 90 ? "text-emerald-600 bg-emerald-50" :
+    score >= 80 ? "text-blue-600 bg-blue-50" :
+    score >= 70 ? "text-amber-600 bg-amber-50" : "text-slate-500 bg-slate-50";
 
-  const sourceColor =
-    {
-      LinkedIn: "bg-blue-50 text-blue-700",
-      Referral: "bg-purple-50 text-purple-700",
-      "Career Site": "bg-slate-50 text-slate-700",
-      "Job Board": "bg-orange-50 text-orange-700",
-      Indeed: "bg-cyan-50 text-cyan-700",
-    }[candidate.source] || "bg-slate-50 text-slate-700";
+  const sourceColor = {
+    LinkedIn: "bg-blue-50 text-blue-700",
+    Referral: "bg-purple-50 text-purple-700",
+    "Career Site": "bg-slate-50 text-slate-700",
+    "Job Board": "bg-orange-50 text-orange-700",
+    Indeed: "bg-cyan-50 text-cyan-700",
+  }[candidate.source] || "bg-slate-50 text-slate-700";
 
-  // --- DIALOG MAPPING LOGIC ---
   const renderStatusDialog = () => {
     if (!isViewOpen) return null;
-
-    // Safely resolve the job object so dialogs requiring 'job.skills' or 'job.title' do not crash or render null
     const activeJob = job || {
       _id: candidate.jobRoleId || candidate.jobId || "",
       title: candidate.jobRoleName || "Job Position",
       skills: candidate.skills || []
     };
-
-    const commonProps = {
-      open: isViewOpen,
-      onClose: () => setIsViewOpen(false),
-      person: candidate,
-      job: activeJob
-    };
+    const commonProps = { open: isViewOpen, onClose: () => setIsViewOpen(false), person: candidate, job: activeJob };
 
     switch (candidate.status) {
       case "Applied": return <AppliedDialog {...commonProps} />;
@@ -91,8 +97,31 @@ const CandidateCard = ({ candidate, onDragStart, onStatusChange, stagesConfig = 
       <Card
         draggable
         onDragStart={onDragStart}
-        className="candidate-card border-slate-100 shadow-sm rounded-xl hover:border-blue-200 hover:shadow-md transition-all cursor-grab active:cursor-grabbing"
+        className="candidate-card relative border-slate-100 shadow-sm rounded-xl hover:border-blue-200 hover:shadow-md transition-all cursor-grab active:cursor-grabbing"
       >
+        {/* CTO Badge from image_a0bf1e.png */}
+        {/* CTO Badge from image_a0bf1e.png with Pulse Animation */}
+{showCtoBadge && (
+  <div className="absolute -top-3 -left-3 z-10">
+    <div className="relative flex items-center justify-center">
+      {/* Outer Pulse Ring */}
+      <div className="absolute inset-0 rounded-full bg-indigo-400 animate-ping opacity-75"></div>
+      
+      {/* Main Badge Container */}
+      <div className="relative bg-indigo-600 p-1.5 rounded-full shadow-lg border border-indigo-400/50 hover:scale-110 transition-transform duration-200">
+        <Brain className="w-4 h-4 text-white animate-pulse" />
+      </div>
+
+      {/* Red Counter Badge */}
+      {ctoQuestionsCount > 0 && (
+        <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm z-20">
+          {ctoQuestionsCount}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
         <CardContent className="p-4">
           {/* Header */}
           <div className="flex items-start justify-between mb-2">
@@ -101,12 +130,10 @@ const CandidateCard = ({ candidate, onDragStart, onStatusChange, stagesConfig = 
                 {candidate.fullName || "Unknown"}
               </h4>
               <p className="text-xs text-slate-500 truncate">
-                {candidate.jobRoleName || "—"}
+                {candidate.jobRoleName || "—"} 
               </p>
             </div>
-            <div
-              className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold ${scoreColor} flex-shrink-0`}
-            >
+            <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold ${scoreColor} flex-shrink-0`}>
               <Star className="w-2.5 h-2.5" />
               {score}%
             </div>
@@ -133,27 +160,21 @@ const CandidateCard = ({ candidate, onDragStart, onStatusChange, stagesConfig = 
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-blue-50 text-blue-700">
               in progress
             </span>
-            <span
-              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold ${sourceColor}`}
-            >
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold ${sourceColor}`}>
               {candidate.source || "—"}
             </span>
           </div>
 
-          {/* Note */}
-          {candidate.lastUpdatedBy?.designation || candidate.education ? (
-            <div className="bg-pink-50 border border-pink-100 rounded-lg p-2 mb-3">
-              <p className="text-[11px] text-pink-700 leading-relaxed line-clamp-2">
-                {candidate.lastUpdatedBy?.designation
+          {/* Note Section from image_a0bf1e.png */}
+          <div className="bg-purple-50/50 border border-purple-100 rounded-lg p-2 mb-3">
+             <p className="text-[11px] text-purple-700 leading-relaxed line-clamp-2">
+                {candidate.lastUpdatedBy?.designation 
                   ? `Last reviewed by ${candidate.lastUpdatedBy.designation}`
-                  : `${candidate.education || ""} — ${
-                      candidate.experience || 0
-                    }y experience`}
-              </p>
-            </div>
-          ) : null}
+                  : `Reviewing technical skills for ${candidate.jobRoleName}...`}
+             </p>
+          </div>
 
-          {/* Footer + status dropdown */}
+          {/* Footer */}
           <div className="flex items-center justify-between text-[10px] text-slate-500 pt-2 border-t border-slate-100">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">
@@ -167,25 +188,17 @@ const CandidateCard = ({ candidate, onDragStart, onStatusChange, stagesConfig = 
             </div>
 
             <div className="flex items-center gap-1.5">
-              {/* Eye Button to open dialog */}
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsViewOpen(true);
-                }}
+                onClick={(e) => { e.stopPropagation(); setIsViewOpen(true); }}
                 className="p-1 hover:bg-slate-50 rounded text-slate-400 hover:text-indigo-600 transition-colors"
               >
                 <Eye className="w-4 h-4" />
               </button>
 
-              {/* Move-status dropdown (alternative to drag) */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-1 text-[10px] font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50 px-2 py-0.5 rounded-md transition-colors"
-                  >
+                  <button onClick={(e) => e.stopPropagation()} className="flex items-center gap-1 text-[10px] font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50 px-2 py-0.5 rounded-md transition-colors">
                     Move <ChevronDown className="w-3 h-3" />
                   </button>
                 </DropdownMenuTrigger>
@@ -193,12 +206,7 @@ const CandidateCard = ({ candidate, onDragStart, onStatusChange, stagesConfig = 
                   {stagesConfig
                     .filter((s) => s.key !== candidate.status)
                     .map((s) => (
-                      <DropdownMenuItem
-                        key={s.key}
-                        onClick={() => onStatusChange(candidate, s.key)}
-                        className="text-xs cursor-pointer"
-                      >
-                        {s.icon && <s.icon className={`w-3 h-3 mr-2 ${s.iconColor}`} />}
+                      <DropdownMenuItem key={s.key} onClick={() => onStatusChange(candidate, s.key)} className="text-xs cursor-pointer">
                         Move to {s.label}
                       </DropdownMenuItem>
                     ))}
@@ -209,7 +217,6 @@ const CandidateCard = ({ candidate, onDragStart, onStatusChange, stagesConfig = 
         </CardContent>
       </Card>
 
-      {/* Render the dynamically selected Dialog */}
       {renderStatusDialog()}
     </>
   );

@@ -270,125 +270,7 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
             {/* ── HOD REVIEW CARD - New Design from image_47d6b4.png ── */}
             {/* Case 1: Assessment has been requested/sent (Based on image_b091b6.png) */}
         {/* 2. CTO Assessment Panel - Shows when status is 'approved_req_assessment' */}
-{lastFlowStatus === "approved_req_assessment" && (
-  <div className="bg-[#F9F5FF] border border-purple-100 rounded-xl p-8 mb-6 animate-in zoom-in-95 duration-300">
-    
-    {/* Stepper Design from image_af3b5e.png */}
-    <div className="flex items-center justify-between mb-10">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-[#9333ea] flex items-center justify-center text-white font-bold">
-          1
-        </div>
-        <span className="text-[#9333ea] font-bold text-lg">Add Questions</span>
-      </div>
 
-      <div className="flex-1 mx-8 h-[2px] bg-slate-200 max-w-[100px]" />
-
-      <div className="flex items-center gap-3 opacity-40">
-        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold">
-          2
-        </div>
-        <span className="text-slate-600 font-medium">HR Scores</span>
-      </div>
-
-      <div className="flex-1 mx-8 h-[2px] bg-slate-200 max-w-[100px]" />
-
-      <div className="flex items-center gap-3 opacity-40">
-        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold">
-          3
-        </div>
-        <span className="text-slate-600 font-medium">Review & Decide</span>
-      </div>
-    </div>
-
-    {/* Info Alert Box from image_af3b5e.png */}
-    <div className="bg-white border border-purple-100 rounded-2xl p-4 flex items-center gap-3 mb-8">
-      <div className="w-6 h-6 rounded-full border-2 border-[#9333ea] flex items-center justify-center">
-        <span className="text-[#9333ea] font-bold text-xs">!</span>
-      </div>
-      <p className="text-slate-600 text-sm">
-        Add assessment questions for this candidate. HR will collect scores from the candidate and send them back to you for review.
-      </p>
-    </div>
-
-    {/* Dynamic Question List */}
-    <div className="space-y-6">
-      {ctoQuestions.map((q, index) => (
-        <div key={q.id} className="animate-in slide-in-from-top-2 duration-300">
-          <div className="flex justify-between items-center mb-3">
-            <p className="text-sm font-bold text-slate-700">
-              Question {index + 1}
-            </p>
-
-            {/* Max Marks Input */}
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-medium text-slate-500">
-                Max Marks:
-              </label>
-              <input
-                type="number"
-                className="w-20 p-1 text-sm border border-slate-200 rounded focus:ring-2 focus:ring-purple-400 outline-none"
-                value={q.maxMarks}
-                onChange={(e) =>
-                  handleUpdateCtoQuestion(
-                    q.id,
-                    "maxMarks",
-                    e.target.value,
-                  )
-                }
-              />
-            </div>
-          </div>
-
-          <textarea
-            className="w-full p-4 border border-slate-100 bg-slate-50 rounded-lg h-24 focus:ring-2 focus:ring-purple-400 outline-none text-sm"
-            placeholder="e.g., Explain your experience with React and state management..."
-            value={q.typeTitle}
-            onChange={(e) =>
-              handleUpdateCtoQuestion(
-                q.id,
-                "typeTitle",
-                e.target.value,
-              )
-            }
-          />
-        </div>
-      ))}
-
-      <Button
-        variant="outline"
-        onClick={handleAddCtoQuestion}
-        className="w-full border-dashed border-2 hover:bg-purple-50"
-      >
-        <Plus className="w-4 h-4 mr-2" /> Add Another Question
-      </Button>
-    </div>
-
-    <div className="flex items-center gap-3 mt-8">
-      <Button
-        onClick={handleSubmitCtoToHR}
-        disabled={
-          assessmentsLoading ||
-          ctoQuestions.some((q) => !q.typeTitle.trim())
-        }
-        className="flex-1 bg-purple-500 hover:bg-purple-600 "
-      >
-        {assessmentsLoading ? (
-          <Loader2 className="animate-spin mr-2" />
-        ) : (
-          <Send className="w-5 h-5 mr-2 " />
-        )}
-        Send Questions to HR ({ctoQuestions.length})
-      </Button>
-      <Button
-        variant="outline"
-        className="border-red-200 text-red-500 hover:bg-red-50"
-      >
-        <X className="w-5 h-5 mr-2" /> Reject
-      </Button>
-    </div>
-  </div>
-)}
 
             {/* Case 2: HOD Review is still required (Your previous design) */}
             {!lastFlowStatus && (
@@ -484,10 +366,10 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
                     {/* Stepper Design from image_af3b5e.png */}
                     <div className="flex items-center justify-between mb-10 text-sm">
                       <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-[#9333ea] text-sm flex items-center justify-center text-white font-bold">
+                        <div className="w-6 h-6 rounded-full bg-[#9333ea]  flex items-center justify-center text-white font-bold">
                           1
                         </div>
-                        <span className="text-[#9333ea] font-bold text-sm">
+                        <span className="text-[#9333ea] text-sm font-bold ">
                           Add Questions
                         </span>
                       </div>
