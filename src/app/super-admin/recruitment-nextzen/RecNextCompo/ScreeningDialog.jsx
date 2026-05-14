@@ -311,6 +311,7 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
               lastFlowStatus === "approved_req_assessment") && (
               <div className="space-y-6 animate-in fade-in duration-500">
                 {/* 1. Candidate Review (HOD Task Input) - Only shows while in 'sent_to_review' */}
+
                 {lastFlowStatus === "sent_to_review" && (
                   <div className="bg-[#F9F5FF] border border-purple-100 rounded-2xl p-8 mb-6 animate-in zoom-in-95 duration-300">
                     <div className="mb-4">
@@ -358,14 +359,67 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
                 {/* 2. CTO Assessment Panel - Shows when status is 'approved_req_assessment' */}
                 {lastFlowStatus === "approved_req_assessment" && (
                   <div className="bg-[#F9F5FF] border border-purple-100 rounded-xl p-8 mb-6 animate-in zoom-in-95 duration-300">
-                    <div className="flex justify-between items-center mb-6">
-                      <div className="flex items-center gap-2 text-purple-700">
-                        <Brain className="w-6 h-6" />
-                        <h3>CTO Assessment Panel</h3>
+                    <div className="flex flex-col gap-2 mb-6">
+                      <div className="flex justify-between items-center ">
+                        <div className="flex items-center gap-2 text-purple-700">
+                          <Brain className="w-6 h-6" />
+                          <h3>CTO Assessment Panel</h3>
+                        </div>
+                        <span className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full font-bold">
+                          Step 1 of 3
+                        </span>
                       </div>
-                      <span className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full font-bold">
-                        Step 1 of 3
-                      </span>
+                      <p className="text-gray-400">
+                        Create custom assessment questions for this candidate
+                      </p>
+                    </div>
+
+                    {/* Stepper Design from image_af3b5e.png */}
+                    <div className="flex items-center justify-between mb-10">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-full bg-[#9333ea] text-sm flex items-center justify-center text-white font-bold">
+                          1
+                        </div>
+                        <span className="text-[#9333ea] font-bold text-sm">
+                          Add Questions
+                        </span>
+                      </div>
+
+                      <div className="flex-1 mx-8 h-[2px] bg-slate-200 max-w-[100px]" />
+
+                      <div className="flex items-center gap-3 opacity-40">
+                        <div className="w-6 h-6 rounded-full bg-slate-200  text-sm flex items-center justify-center text-slate-600 font-bold">
+                          2
+                        </div>
+                        <span className="text-slate-600 text-sm font-medium">
+                          HR Scores
+                        </span>
+                      </div>
+
+                      <div className="flex-1 mx-8 h-[2px] bg-slate-200 max-w-[100px]" />
+
+                      <div className="flex items-center gap-3 opacity-40">
+                        <div className="w-6 h-6 rounded-full bg-slate-200 flex text-sm items-center justify-center text-slate-600 font-bold">
+                          3
+                        </div>
+                        <span className="text-slate-600 text-sm font-medium">
+                          Review & Decide
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Info Alert Box from image_af3b5e.png */}
+                    <div className="bg-white border border-purple-100 rounded-2xl p-4 flex items-center gap-3 mb-8">
+                      <div className="w-6 h-6 rounded-full border-2 border-[#9333ea] flex items-center justify-center">
+                        <span className="text-[#9333ea] font-bold text-xs">
+                          !
+                        </span>
+                      </div>
+                      <p className="text-slate-600 text-sm">
+                        Add assessment questions for this candidate. HR will
+                        collect scores from the candidate and send them back to
+                        you for review.
+                      </p>
                     </div>
 
                     {/* Dynamic Question List */}
