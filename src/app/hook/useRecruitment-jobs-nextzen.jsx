@@ -487,6 +487,7 @@ const assessmentResultFinalConfirm = useCallback(async (id) => {
     sendToInventory,
     sendToHOD,
     sendToHODToConfirmResult,
+    assessmentResultFinalConfirm,
     approveAndRequestAssessment
   };
 }

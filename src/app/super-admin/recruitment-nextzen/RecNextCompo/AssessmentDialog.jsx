@@ -87,6 +87,7 @@ export default function AssessmentDialog({ open, onClose, person, job }) {
     changeCandidateStatus,
     sendToHOD,
     sendToHODToConfirmResult,
+    assessmentResultFinalConfirm,
     approveAndRequestAssessment,
   } = useRecruitmentNextzen();
 
@@ -185,6 +186,22 @@ export default function AssessmentDialog({ open, onClose, person, job }) {
     if (confirmed) {
       try {
         await sendToHODToConfirmResult(person._id);
+        // Success logic
+      } catch (err) {
+        console.error("HOD Review Error:", err);
+      }
+    }
+  };
+
+  const handleAssessmentResultFinalConfirm = async () => {
+    // Native browser warning
+    const confirmed = window.confirm(
+      `Are you sure you want to confirm ${person.fullName} assessment result?`,
+    );
+
+    if (confirmed) {
+      try {
+        await assessmentResultFinalConfirm(person._id);
         // Success logic
       } catch (err) {
         console.error("HOD Review Error:", err);
@@ -372,28 +389,15 @@ export default function AssessmentDialog({ open, onClose, person, job }) {
                       </p>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="font-semibold">
-                        Assessment Questions / Tasks
-                      </label>
-                      <textarea
-                        className="w-full p-4 border border-slate-100 bg-slate-50 rounded-lg h-24 focus:ring-2 focus:ring-purple-400 outline-none"
-                        placeholder="Enter assessment questions/tasks for the candidate..."
-                        value={hodTaskInput}
-                        onChange={(e) => setHodTaskInput(e.target.value)}
-                      />
-                    </div>
+                   
 
                     <div className="flex gap-3 mt-6">
                       <Button
-                        onClick={handleApproveHOD}
-                        disabled={resultsLoading}
+                        onClick={handleAssessmentResultFinalConfirm}
                         className="bg-blue-500 hover:bg-blue-600 "
                       >
-                        {resultsLoading && (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        )}
-                        Approve & Request Assessment
+                        
+                        Confirm and Final Approved Assessment
                       </Button>
                      
                     </div>
@@ -403,10 +407,10 @@ export default function AssessmentDialog({ open, onClose, person, job }) {
                 
               </div>
             )}
-            
-            {(lastFlowStatus === "sent_to_review" ||
-              lastFlowStatus === "approved_req_assessment") && (
-              <div className="space-y-6 animate-in fade-in duration-500">
+            {/* Added check: lastFlowStatus !== "assessment_result_final_confirm" */}
+{(lastFlowStatus !== "assessment_result_final_confirm" && 
+  (lastFlowStatus === "sent_to_review" || lastFlowStatus === "approved_req_assessment")) && (
+  <div className="space-y-6 animate-in fade-in duration-500">
                 {/* 1. Candidate Review (HOD Task Input) - Only shows while in 'sent_to_review' */}
 
                 {lastFlowStatus === "sent_to_review" && (
@@ -599,8 +603,9 @@ export default function AssessmentDialog({ open, onClose, person, job }) {
                   </div>
                 )}
               </div>
-            )}
-
+)}
+            
+            
             {/* ── ASSESSMENT CENTER ──────────────────────────────────────── */}
             <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-6">
               <div className="flex items-start justify-between mb-4">
