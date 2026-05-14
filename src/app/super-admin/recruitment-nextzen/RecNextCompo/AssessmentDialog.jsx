@@ -1468,7 +1468,7 @@ function CTOScorePanel({ candidate, jobAssessment, results = [], onSubmit, loadi
                     onChange={(e) => handleScoreChange(q.id, e.target.value)}
                     className="flex-1 h-11 px-4 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:ring-2 focus:ring-purple-400 outline-none"
                   />
-                  <span className="text-xl font-bold text-slate-400 flex-shrink-0">
+                  <span className="text-xl font-bold text-slate-400 flex-shrink-0">. sd
                     / {q.maxMarks}
                   </span>
                 </div>
