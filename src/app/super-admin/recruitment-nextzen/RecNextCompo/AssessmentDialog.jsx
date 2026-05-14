@@ -83,8 +83,12 @@ export default function AssessmentDialog({ open, onClose, person, job }) {
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [statusValue, setStatusValue] = useState(person?.status || "Applied");
 
-  const { changeCandidateStatus, sendToHOD, sendToHODToConfirmResult, approveAndRequestAssessment } =
-    useRecruitmentNextzen();
+  const {
+    changeCandidateStatus,
+    sendToHOD,
+    sendToHODToConfirmResult,
+    approveAndRequestAssessment,
+  } = useRecruitmentNextzen();
 
   const {
     assessments,
@@ -165,6 +169,22 @@ export default function AssessmentDialog({ open, onClose, person, job }) {
     if (confirmed) {
       try {
         await sendToHOD(person._id);
+        // Success logic
+      } catch (err) {
+        console.error("HOD Review Error:", err);
+      }
+    }
+  };
+
+  const handleSendToHODToConfirmResult = async () => {
+    // Native browser warning
+    const confirmed = window.confirm(
+      `Are you sure you want to send ${person.fullName} to the HOD for review?`,
+    );
+
+    if (confirmed) {
+      try {
+        await sendToHODToConfirmResult(person._id);
         // Success logic
       } catch (err) {
         console.error("HOD Review Error:", err);
@@ -270,17 +290,19 @@ export default function AssessmentDialog({ open, onClose, person, job }) {
           <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
             {/* ── HOD REVIEW CARD - New Design from image_47d6b4.png ── */}
             {/* Case 1: Assessment has been requested/sent (Based on image_b091b6.png) */}
-        {/* 2. CTO Assessment Panel - Shows when status is 'approved_req_assessment' */}
+            {/* 2. CTO Assessment Panel - Shows when status is 'approved_req_assessment' */}
 
-            <CTOScorePanel
+            {lastFlowStatus !== "sent_to_review_confirm_result" && (
+  <CTOScorePanel
     candidate={person}
     jobAssessment={jobAssessment}
+    handleSendToHODToConfirmResult={handleSendToHODToConfirmResult}
     results={results}
     onSubmit={async (scores) => {
       for (const item of scores) {
         // Check if a result already exists for this question title
         const existing = results.find(
-          (r) => r.assessmentTitle === item.typeTitle
+          (r) => r.assessmentTitle === item.typeTitle,
         );
 
         if (existing) {
@@ -291,7 +313,7 @@ export default function AssessmentDialog({ open, onClose, person, job }) {
               scoreObtained: item.scoreObtained,
               maxScore: item.maxMarks,
             },
-            person._id
+            person._id,
           );
         } else {
           // Create a new result
@@ -314,30 +336,74 @@ export default function AssessmentDialog({ open, onClose, person, job }) {
     }}
     loading={resultsLoading}
   />
+)}
             {/* Case 2: HOD Review is still required (Your previous design) */}
             {!lastFlowStatus && (
               <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-8 mb-6">
                 <div className="flex items-center gap-3 mb-6">
                   <Briefcase className="w-6 h-6 text-slate-900" />
                   <div className="flex flex-col">
-                    <h3 className="font-semibold">
-                      HOD Review Required
-                    </h3>
+                    <h3 className="font-semibold">HOD Review Required</h3>
                     <p className="text-sm text-slate-500">
                       Department: {person.jobDepartment || person.department}
                     </p>
                   </div>
                 </div>
-                <Button
-                  onClick={handleSendToHOD}
-               
-                >
+                <Button onClick={handleSendToHOD}>
                   <Send className="w-5 h-5" />
                   Send to HOD for Assessment Review
                 </Button>
               </div>
             )}
-            {/* --- HOD / CTO REVIEW SECTION --- */}
+            {/* --- HOD / CTO REVIEW TO CONFIRM THE RESULT SECTION --- */}
+            {(lastFlowStatus === "sent_to_review_confirm_result" ||
+              lastFlowStatus === "approved_req_assessment") && (
+              <div className="space-y-6 animate-in fade-in duration-500">
+                {/* 1. Candidate Review (HOD Task Input) - Only shows while in 'sent_to_review' */}
+
+                {lastFlowStatus === "sent_to_review_confirm_result" && (
+                  <div className="bg-[#F9F5FF] border border-purple-100 rounded-2xl p-8 mb-6 animate-in zoom-in-95 duration-300">
+                    <div className="mb-4">
+                      <h1 className="font-semibold">
+                        Candidate Review (Requested by HR)
+                      </h1>
+                      <p className="text-sm text-slate-500">
+                        Review candidate profile and decide next steps.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="font-semibold">
+                        Assessment Questions / Tasks
+                      </label>
+                      <textarea
+                        className="w-full p-4 border border-slate-100 bg-slate-50 rounded-lg h-24 focus:ring-2 focus:ring-purple-400 outline-none"
+                        placeholder="Enter assessment questions/tasks for the candidate..."
+                        value={hodTaskInput}
+                        onChange={(e) => setHodTaskInput(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="flex gap-3 mt-6">
+                      <Button
+                        onClick={handleApproveHOD}
+                        disabled={resultsLoading}
+                        className="bg-blue-500 hover:bg-blue-600 "
+                      >
+                        {resultsLoading && (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        )}
+                        Approve & Request Assessment
+                      </Button>
+                     
+                    </div>
+                  </div>
+                )}
+
+                
+              </div>
+            )}
+            
             {(lastFlowStatus === "sent_to_review" ||
               lastFlowStatus === "approved_req_assessment") && (
               <div className="space-y-6 animate-in fade-in duration-500">
@@ -1360,7 +1426,14 @@ function NewAssessmentFlow({
   );
 }
 
-function CTOScorePanel({ candidate, jobAssessment, results = [], onSubmit, loading }) {
+function CTOScorePanel({
+  candidate,
+  jobAssessment,
+  handleSendToHODToConfirmResult,
+  results = [],
+  onSubmit,
+  loading,
+}) {
   const ctoQuestions = jobAssessment?.ctoAssessmentTypesList || [];
 
   // Pre-fill scores if results already exist for these questions
@@ -1369,8 +1442,8 @@ function CTOScorePanel({ candidate, jobAssessment, results = [], onSubmit, loadi
       ctoQuestions.map((q) => {
         const existing = results.find((r) => r.assessmentTitle === q.typeTitle);
         return [q.id, existing ? String(existing.scoreObtained) : ""];
-      })
-    )
+      }),
+    ),
   );
 
   const handleScoreChange = (id, value) => {
@@ -1378,7 +1451,7 @@ function CTOScorePanel({ candidate, jobAssessment, results = [], onSubmit, loadi
   };
 
   const allFilled = ctoQuestions.every(
-    (q) => scores[q.id] !== "" && scores[q.id] !== undefined
+    (q) => scores[q.id] !== "" && scores[q.id] !== undefined,
   );
 
   const handleSubmit = () => {
@@ -1390,6 +1463,7 @@ function CTOScorePanel({ candidate, jobAssessment, results = [], onSubmit, loadi
       scoreObtained: Number(scores[q.id]),
     }));
     onSubmit(payload);
+    handleSendToHODToConfirmResult();
   };
 
   return (
@@ -1402,8 +1476,8 @@ function CTOScorePanel({ candidate, jobAssessment, results = [], onSubmit, loadi
         </div>
         <p className="text-purple-200 text-xs mt-1">
           CTO has sent {ctoQuestions.length} question
-          {ctoQuestions.length !== 1 ? "s" : ""} for this candidate. Please
-          fill in the scores.
+          {ctoQuestions.length !== 1 ? "s" : ""} for this candidate. Please fill
+          in the scores.
         </p>
       </div>
 
@@ -1438,7 +1512,9 @@ function CTOScorePanel({ candidate, jobAssessment, results = [], onSubmit, loadi
 
         <div className="space-y-3 mb-6">
           {ctoQuestions.map((q, index) => {
-            const existing = results.find((r) => r.assessmentTitle === q.typeTitle);
+            const existing = results.find(
+              (r) => r.assessmentTitle === q.typeTitle,
+            );
             return (
               <div
                 key={q.id}
@@ -1451,7 +1527,8 @@ function CTOScorePanel({ candidate, jobAssessment, results = [], onSubmit, loadi
                   {/* Show a small badge if this question was already scored */}
                   {existing && (
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
-                      Previously scored: {existing.scoreObtained}/{existing.maxScore}
+                      Previously scored: {existing.scoreObtained}/
+                      {existing.maxScore}
                     </span>
                   )}
                 </div>

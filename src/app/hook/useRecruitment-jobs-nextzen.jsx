@@ -353,7 +353,7 @@ const fetchAllCandidates = useCallback(async (params = {}) => {
     const reviewPayload = {
       assessmentFlow: [
         {
-          status: "sent_to_review",
+          status: "sent_to_review_confirm_result",
           ReqReviewName: UserAllDetails?.fullName || "System",
           ReqEmail: UserAllDetails?.email || "",
           ReqRole: UserAllDetails?.role || "",
