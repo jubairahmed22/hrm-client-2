@@ -294,23 +294,25 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
               lastFlowStatus === "approved_req_assessment") && (
               <div className="space-y-6 animate-in fade-in duration-500">
                 {/* 1. Candidate Review (HOD Task Input) - Only shows while in 'sent_to_review' */}
-                {lastFlowStatus === "sent_to_review" && (
-                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                {/* {lastFlowStatus === "sent_to_review" && (
+                  
+                )} */}
+                <div className="bg-[#F9F5FF] border border-purple-100 rounded-2xl p-8 mb-6 animate-in zoom-in-95 duration-300">
                     <div className="mb-4">
-                      <h3 >
+                      <h1 className="font-semibold" >
                         Candidate Review (Requested by HR)
-                      </h3>
+                      </h1>
                       <p className="text-sm text-slate-500">
                         Review candidate profile and decide next steps.
                       </p>
                     </div>
 
                     <div className="space-y-2">
-                      <label>
+                      <label className="font-semibold">
                         Assessment Questions / Tasks
                       </label>
                       <textarea
-                        className="w-full min-h-[120px] p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full p-4 border border-slate-100 bg-slate-50 rounded-lg h-24 focus:ring-2 focus:ring-purple-400 outline-none"
                         placeholder="Enter assessment questions/tasks for the candidate..."
                         value={hodTaskInput}
                         onChange={(e) => setHodTaskInput(e.target.value)}
@@ -321,7 +323,7 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
                       <Button
                         onClick={handleApproveHOD}
                         disabled={resultsLoading}
-                        className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-6"
+                        className="bg-blue-500 hover:bg-blue-600 "
                       >
                         {resultsLoading && (
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -330,14 +332,12 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
                       </Button>
                       <Button
                         variant="outline"
-                        className="text-red-500 border-red-200 hover:bg-red-50 rounded-lg"
+                        className="text-red-500 border-red-200 hover:bg-red-50 "
                       >
                         Reject Candidate
                       </Button>
                     </div>
                   </div>
-                )}
-
                 {/* 2. CTO Assessment Panel - Shows when status is 'approved_req_assessment' */}
                 {lastFlowStatus === "approved_req_assessment" && (
                   <div className="bg-[#F9F5FF] border border-purple-100 rounded-2xl p-8 mb-6 animate-in zoom-in-95 duration-300">
