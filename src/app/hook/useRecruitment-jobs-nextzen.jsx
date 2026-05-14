@@ -388,6 +388,50 @@ const fetchAllCandidates = useCallback(async (params = {}) => {
   }
 }, [UserAllDetails]);
 
+const assessmentResultFinalConfirm = useCallback(async (id) => {
+  try {
+    sharedRecruitmentLoading = true;
+    notifyRecruitment();
+
+    // Construct the payload based on your requirements
+    const reviewPayload = {
+      assessmentFlow: [
+        {
+          status: "assessment_result_final_confirm",
+          ReqReviewName: UserAllDetails?.fullName || "System",
+          ReqEmail: UserAllDetails?.email || "",
+          ReqRole: UserAllDetails?.role || "",
+          ReqDesignation: UserAllDetails?.designation || "",
+          ReqDepartment: UserAllDetails?.department || "",
+          at: new Date().toISOString(),
+        }
+      ],
+      // We usually also update the main status to reflect it's under review
+    };
+
+    await sendToHODReviewNextzen(id, reviewPayload);
+
+    // Optimistic UI update
+    sharedCandidates = sharedCandidates.map((candidate) =>
+      candidate._id === id
+        ? { ...candidate, ...reviewPayload }
+        : candidate
+    );
+
+    window.dispatchEvent(new CustomEvent("refresh-kanban-board"));
+    notifyRecruitment();
+
+    return { success: true };
+  } catch (err) {
+    sharedRecruitmentError = err.message || "Failed to send to HOD";
+    notifyRecruitment();
+    throw err;
+  } finally {
+    sharedRecruitmentLoading = false;
+    notifyRecruitment();
+  }
+}, [UserAllDetails]);
+
 /* ================= APPROVE & REQUEST ASSESSMENT (HOD TO CTO) ================= */
   const approveAndRequestAssessment = useCallback(async (id, hodQuestions) => {
     try {
