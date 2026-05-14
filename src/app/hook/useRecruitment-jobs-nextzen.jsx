@@ -11,7 +11,8 @@ import {
   fetchCandidatesByDepartmentByStatusNextzen, // Change this
   moveToInventoryNextzen,
   sendToHODReviewNextzen,
-  updateApprovedToHODNextzen
+  updateApprovedToHODNextzen,
+  
 } from "../api/recruitment-jobs-nextzen";
 import { useAuth } from "@/context/AuthContext";
 

@@ -83,13 +83,14 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [statusValue, setStatusValue] = useState(person?.status || "Applied");
 
-  const { changeCandidateStatus, sendToHOD, approveAndRequestAssessment } = useRecruitmentNextzen();
+  const { changeCandidateStatus, sendToHOD, approveAndRequestAssessment } =
+    useRecruitmentNextzen();
 
   const {
     assessments,
     loading: assessmentsLoading,
     fetchAssessmentsByJob,
-    submitCTOAssessment
+    submitCTOAssessment,
   } = useAssessmentNextzen();
 
   const {
@@ -170,6 +171,56 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
     }
   };
 
+  // ... existing states ...
+  const [hodTaskInput, setHodTaskInput] = useState("");
+  const [ctoQuestions, setCtoQuestions] = useState([
+    { id: Date.now(), typeTitle: "", maxMarks: 100 },
+  ]);
+
+  // Determine the current step in the flow
+  const lastFlowStatus =
+    person?.assessmentFlow?.[person.assessmentFlow.length - 1]?.status;
+
+  // --- Handle Step 1: HOD Approval ---
+  const handleApproveHOD = async () => {
+    if (!hodTaskInput.trim())
+      return alert("Please enter assessment tasks/questions.");
+    try {
+      await approveAndRequestAssessment(person._id, hodTaskInput);
+    } catch (err) {
+      console.error("HOD Approval Error:", err);
+    }
+  };
+
+  // --- Handle Step 2: CTO Question Submission ---
+  const handleAddCtoQuestion = () => {
+    setCtoQuestions([
+      ...ctoQuestions,
+      { id: Date.now(), typeTitle: "", maxMarks: 100 },
+    ]);
+  };
+
+  const handleUpdateCtoQuestion = (id, text) => {
+    setCtoQuestions(
+      ctoQuestions.map((q) => (q.id === id ? { ...q, typeTitle: text } : q)),
+    );
+  };
+
+  const handleSubmitCtoToHR = async () => {
+    try {
+      const payload = {
+        jobRoleId: person.jobRoleId,
+        jobRoleName: person.jobRoleName,
+        ctoAssessmentTypesList: ctoQuestions,
+      };
+      await submitCTOAssessment(payload);
+      // You might want to update the candidate status again here or trigger a refresh
+      alert("Assessment questions sent to HR successfully!");
+    } catch (err) {
+      console.error("CTO Submission Error:", err);
+    }
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
@@ -215,28 +266,150 @@ export default function ScreeningDialog({ open, onClose, person, job }) {
           {/* Scrollable content area */}
           <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
             {/* ── HOD REVIEW CARD - New Design from image_47d6b4.png ── */}
-            <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-8 mb-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex flex-col gap-2">
-                  <div className="flex flex-row gap-2">
-                    <Briefcase className="w-6 h-6 text-slate-900" />
-                    <h3>HOD Review Required</h3>
+            {!lastFlowStatus && (
+              <div className="bg-[#f8fafc] border border-slate-200 rounded-3xl p-8 mb-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <Briefcase className="w-6 h-6 text-slate-900" />
+                  <div className="flex flex-col">
+                    <h3 className="text-xl font-bold text-slate-900">
+                      HOD Review Required
+                    </h3>
+                    <p className="text-sm text-slate-500">
+                      Department: {person.jobDepartment || person.department}
+                    </p>
                   </div>
-                  <p>Department : {person.jobDepartment}</p>
                 </div>
+                <Button
+                  onClick={handleSendToHOD}
+                  className="bg-[#3b82f6] hover:bg-blue-700 text-white px-6 py-6 rounded-xl text-lg font-medium flex items-center gap-3"
+                >
+                  <Send className="w-5 h-5 rotate-[-45deg]" />
+                  Send to HOD for Assessment Review
+                </Button>
               </div>
-              <Button
-                onClick={handleSendToHOD} // Added click handler
-                disabled={resultsLoading} // Disable while processing
-              >
-                {resultsLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Send className="w-5 h-5 " />
+            )}
+
+            {/* --- HOD / CTO REVIEW SECTION --- */}
+            {(lastFlowStatus === "sent_to_review" ||
+              lastFlowStatus === "approved_req_assessment") && (
+              <div className="space-y-6 animate-in fade-in duration-500">
+                {/* 1. Candidate Review (HOD Task Input) - Only shows while in 'sent_to_review' */}
+                {lastFlowStatus === "sent_to_review" && (
+                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                    <div className="mb-4">
+                      <h3 >
+                        Candidate Review (Requested by HR)
+                      </h3>
+                      <p className="text-sm text-slate-500">
+                        Review candidate profile and decide next steps.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label>
+                        Assessment Questions / Tasks
+                      </label>
+                      <textarea
+                        className="w-full min-h-[120px] p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+                        placeholder="Enter assessment questions/tasks for the candidate..."
+                        value={hodTaskInput}
+                        onChange={(e) => setHodTaskInput(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="flex gap-3 mt-6">
+                      <Button
+                        onClick={handleApproveHOD}
+                        disabled={resultsLoading}
+                        className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-6"
+                      >
+                        {resultsLoading && (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        )}
+                        Approve & Request Assessment
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="text-red-500 border-red-200 hover:bg-red-50 rounded-lg"
+                      >
+                        Reject Candidate
+                      </Button>
+                    </div>
+                  </div>
                 )}
-                Send to HOD for Assessment Review
-              </Button>
-            </div>
+
+                {/* 2. CTO Assessment Panel - Shows when status is 'approved_req_assessment' */}
+                {lastFlowStatus === "approved_req_assessment" && (
+                  <div className="bg-[#F9F5FF] border border-purple-100 rounded-2xl p-8 mb-6 animate-in zoom-in-95 duration-300">
+                    <div className="flex justify-between items-center mb-6">
+                      <div className="flex items-center gap-2 text-purple-700">
+                        <Brain className="w-6 h-6" />
+                        <h3>
+                          CTO Assessment Panel
+                        </h3>
+                      </div>
+                      <span className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full font-bold">
+                        Step 1 of 3
+                      </span>
+                    </div>
+
+                    {/* Dynamic Question List */}
+                    <div className="space-y-4">
+                      {ctoQuestions.map((q, index) => (
+                        <div
+                          key={q.id}
+                          className=""
+                        >
+                          <p className="text-sm font-bold text-slate-700 mb-2">
+                            Question {index + 1}
+                          </p>
+                          <textarea
+                            className="w-full p-4 border border-slate-100 bg-slate-50 rounded-lg h-24 focus:ring-2 focus:ring-purple-400 outline-none"
+                            placeholder="e.g., Explain your experience with React and state management..."
+                            value={q.typeTitle}
+                            onChange={(e) =>
+                              handleUpdateCtoQuestion(q.id, e.target.value)
+                            }
+                          />
+                        </div>
+                      ))}
+
+                      <Button
+                        variant="outline"
+                        onClick={handleAddCtoQuestion}
+                        className="w-full"
+                      >
+                        <Plus className="w-4 h-4 mr-2 " /> Add Another Question
+                      </Button>
+                    </div>
+
+                    <div className="flex items-center gap-3 mt-8">
+                      <Button
+                        onClick={handleSubmitCtoToHR}
+                        disabled={
+                          assessmentsLoading ||
+                          ctoQuestions.some((q) => !q.typeTitle.trim())
+                        }
+                        className="flex-1 bg-purple-500 hover:bg-purple-600 "
+                      >
+                        {assessmentsLoading ? (
+                          <Loader2 className="animate-spin mr-2" />
+                        ) : (
+                          <Send className="w-5 h-5 mr-2 " />
+                        )}
+                        Send Questions to HR ({ctoQuestions.length})
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="border-red-200 text-red-500"
+                      >
+                        <X className="w-5 h-5 mr-2" /> Reject
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* ── ASSESSMENT CENTER ──────────────────────────────────────── */}
             <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-6">
