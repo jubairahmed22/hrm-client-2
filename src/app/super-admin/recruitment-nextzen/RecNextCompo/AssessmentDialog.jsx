@@ -83,7 +83,7 @@ export default function AssessmentDialog({ open, onClose, person, job }) {
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [statusValue, setStatusValue] = useState(person?.status || "Applied");
 
-  const { changeCandidateStatus, sendToHOD, approveAndRequestAssessment } =
+  const { changeCandidateStatus, sendToHOD, sendToHODToConfirmResult, approveAndRequestAssessment } =
     useRecruitmentNextzen();
 
   const {

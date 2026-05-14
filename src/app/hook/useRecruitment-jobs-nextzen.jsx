@@ -442,6 +442,7 @@ const fetchAllCandidates = useCallback(async (params = {}) => {
     changeCandidateStatus,
     sendToInventory,
     sendToHOD,
+    sendToHODToConfirmResult,
     approveAndRequestAssessment
   };
 }
