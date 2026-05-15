@@ -1079,10 +1079,113 @@ export default function InterviewDialog({ open, onClose, person, job }) {
 
               {/* INTERVIEWS */}
               <TabsContent value="interviews" className="mt-6">
-                <EmptyState
-                  icon={Video}
-                  message="No interviews scheduled yet"
-                />
+                <div className="space-y-6">
+                  {/* 1. VIEW MODE: If interviews exist, show read-only Result & Question */}
+                  {interviews && interviews.length > 0 ? (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      {interviews.map((interview) => (
+                        <div
+                          key={interview._id}
+                          className="bg-[#f8fafc] border border-slate-200 rounded-2xl p-6 shadow-sm"
+                        >
+                          {/* Header - Fixed Read-Only */}
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className="bg-indigo-600 p-2 rounded-full shadow-md">
+                                <Brain className="w-4 h-4 text-white" />
+                              </div>
+                              <div>
+                                <h3 className="text-slate-800 font-bold text-base">
+                                  Interview Evaluation
+                                </h3>
+                                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">
+                                  Assessment ID: {interview._id.slice(-6)}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Final Score Badge - The only thing user sees */}
+                            {interview.marks ? (
+                              <div className="bg-white border-2 border-emerald-500 rounded-2xl px-4 py-2 flex items-baseline gap-1 shadow-sm">
+                                <span className="text-2xl font-black text-emerald-600">
+                                  {interview.marks}
+                                </span>
+                                <span className="text-emerald-400 font-bold text-xs">
+                                  /100
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="bg-amber-50 text-amber-600 px-3 py-1 rounded-full text-[10px] font-bold border border-amber-200">
+                                PENDING EVALUATION
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Question/Topic Box - Read Only */}
+                          <div className="bg-white border border-slate-100 rounded-xl p-4 relative">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase absolute -top-2 left-3 bg-white px-1">
+                              Interview Topic / Question
+                            </label>
+                            <p className="text-sm text-slate-600 leading-relaxed font-medium italic">
+                              "{interview.interviewTopic}"
+                            </p>
+                          </div>
+
+                          {/* Footer Metadata */}
+                          <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                {interview.createdBy?.charAt(0)}
+                              </div>
+                              <span className="text-xs text-slate-500 font-medium">
+                                Suggested by {interview.createdBy}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-medium italic">
+                              {new Date(
+                                interview.createdAt,
+                              ).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    /* 2. EMPTY STATE & INPUT: Show Suggestion box when nothing exists */
+                    <div className="space-y-6 animate-in fade-in duration-500">
+                      <EmptyState
+                        icon={Video}
+                        message="No interviews suggested yet"
+                        description="Be the first to suggest a technical topic or final review for this candidate."
+                      />
+
+                      <div className="bg-white border-2 border-dashed border-purple-100 rounded-2xl p-6">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Sparkles className="w-5 h-5 text-purple-400" />
+                          <h3 className="text-sm font-bold text-slate-800">
+                            Suggest Interview Topic
+                          </h3>
+                        </div>
+
+                        <textarea
+                          className="w-full p-4 border border-slate-100 bg-slate-50 rounded-xl h-28 focus:ring-2 focus:ring-purple-400 outline-none text-sm transition-all resize-none mb-4"
+                          placeholder="What should the interviewer focus on? (e.g. Test their knowledge on system design and microservices...)"
+                          value={interviewTopic}
+                          onChange={(e) => setInterviewTopic(e.target.value)}
+                        />
+
+                        <Button
+                          onClick={handleSuggestInterview}
+                          disabled={!interviewTopic.trim()}
+                          className="w-full bg-[#C084FC] hover:bg-[#A855F7] text-white rounded-xl font-bold py-6 shadow-lg shadow-purple-100"
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          Post Suggestion to Final Review
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </TabsContent>
 
               {/* TIMELINE */}
@@ -1194,10 +1297,10 @@ export default function InterviewDialog({ open, onClose, person, job }) {
                 <Archive className="w-4 h-4 mr-1" /> Send to Inventory
               </Button>
               <Button
-                onClick={() => handleStatusChange("Interview")}
+                onClick={() => handleStatusChange("Final Review")}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                <ArrowRight className="w-4 h-4 mr-1" /> Send for Interview
+                <ArrowRight className="w-4 h-4 mr-1" /> Send for Final Review
               </Button>
               <Button variant="ghost" onClick={onClose}>
                 Close
