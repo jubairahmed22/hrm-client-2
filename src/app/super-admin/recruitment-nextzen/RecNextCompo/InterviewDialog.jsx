@@ -86,7 +86,12 @@ export default function InterviewDialog({ open, onClose, person, job }) {
   const [statusValue, setStatusValue] = useState(person?.status || "Applied");
   const { UserAllDetails } = useAuth();
 
-  const { submitInterviewSuggestion } = useInterviewNextzen();
+  const {
+    submitInterviewSuggestion,
+    interviews,
+    fetchInterviews,
+    submitInterviewResult,
+  } = useInterviewNextzen();
   const [interviewTopic, setInterviewTopic] = useState("");
 
   const handleSuggestInterview = async () => {
@@ -110,6 +115,16 @@ export default function InterviewDialog({ open, onClose, person, job }) {
       alert(err.message);
     }
   };
+
+  // Add this useEffect to fetch interview data when the dialog opens
+  useEffect(() => {
+    if (open && person.jobRoleId) {
+      fetchInterviews(person.jobRoleId);
+    }
+  }, [open, person.jobRoleId, fetchInterviews]);
+
+  const [marks, setMarks] = useState("");
+  const [isSubmittingResult, setIsSubmittingResult] = useState(false);
 
   const {
     changeCandidateStatus,
@@ -339,28 +354,157 @@ export default function InterviewDialog({ open, onClose, person, job }) {
 
             {/* post interview panel */}
             {/* Design exactly as image_fc4743.png */}
-    <div className="mt-6 border border-purple-100 rounded-2xl p-6 bg-white animate-in fade-in duration-500">
-      <h3 className="text-sm font-semibold text-slate-800 mb-4">Interview Suggestion</h3>
-      
-      <div className="relative">
-        <textarea
-          className="w-full p-4 border border-slate-50 bg-slate-50/50 rounded-xl h-32 focus:ring-2 focus:ring-purple-400 outline-none text-sm resize-none"
-          placeholder="Interview passed. Good technical skills..."
-          value={interviewTopic}
-          onChange={(e) => setInterviewTopic(e.target.value)}
-        />
-        <div className="absolute bottom-3 right-3 text-slate-300 pointer-events-none">
-           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-        </div>
-      </div>
+            <div className="mt-6 border border-purple-100 rounded-2xl p-6 bg-white animate-in fade-in duration-500">
+              <h3 className="text-sm font-semibold text-slate-800 mb-4">
+                Interview Suggestion
+              </h3>
 
-      <Button
-        onClick={handleSuggestInterview}
-        className="mt-4 bg-[#C084FC] hover:bg-[#A855F7] text-white rounded-xl px-6 py-2 h-auto text-sm font-medium transition-all"
-      >
-        Suggest Final Review
-      </Button>
-    </div>
+              <div className="relative">
+                <textarea
+                  className="w-full p-4 border border-slate-50 bg-slate-50/50 rounded-xl h-32 focus:ring-2 focus:ring-purple-400 outline-none text-sm resize-none"
+                  placeholder="Interview passed. Good technical skills..."
+                  value={interviewTopic}
+                  onChange={(e) => setInterviewTopic(e.target.value)}
+                />
+                <div className="absolute bottom-3 right-3 text-slate-300 pointer-events-none">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                  </svg>
+                </div>
+              </div>
+
+              <Button
+                onClick={handleSuggestInterview}
+                className="mt-4 bg-[#C084FC] hover:bg-[#A855F7] text-white rounded-xl px-6 py-2 h-auto text-sm font-medium transition-all"
+              >
+                Suggest Final Review
+              </Button>
+            </div>
+
+            {/* view interview and add marks */}
+
+            {/* --- Interview Suggestion & Marks Card --- */}
+            {interviews && interviews.length > 0 ? (
+              interviews.map((interview) => (
+                <div
+                  key={interview._id}
+                  className="bg-[#f5f7ff] border border-[#e0e7ff] rounded-2xl p-6 mb-6 shadow-sm animate-in slide-in-from-bottom-4 duration-500"
+                >
+                  {/* Header Styled like image_b091b6.png */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-indigo-100 p-1.5 rounded-full">
+                        <CheckCircle2 className="w-5 h-5 text-[#4f46e5]" />
+                      </div>
+                      <h3 className="text-[#4f46e5] font-bold text-lg">
+                        Interview Suggestion
+                      </h3>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest block">
+                        Suggested By
+                      </span>
+                      <span className="text-sm font-medium text-slate-700">
+                        {interview.createdBy}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Suggestion Content Styled like image_fc4743.png */}
+                  <div className="bg-white border border-purple-100 rounded-xl p-4 mb-6 shadow-sm relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-purple-400"></div>
+                    <p className="text-sm text-slate-600 leading-relaxed italic pl-2">
+                      "{interview.interviewTopic}"
+                    </p>
+                  </div>
+
+                  {/* Marks Submission Section */}
+                  <div className="flex items-end gap-4 border-t border-indigo-100 pt-6">
+                    <div className="flex-1">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase ml-1 mb-2 block">
+                        Technical Assessment Score (0-100)
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          max="100"
+                          min="0"
+                          value={interview.marks || marks}
+                          disabled={!!interview.marks}
+                          onChange={(e) => setMarks(e.target.value)}
+                          className={`w-full bg-white border ${!!interview.marks ? "border-emerald-100 bg-emerald-50/30" : "border-slate-200"} rounded-xl p-3 text-sm focus:ring-2 focus:ring-purple-400 outline-none transition-all`}
+                          placeholder="Enter technical marks..."
+                        />
+                        <span className="absolute right-4 top-3 text-slate-400 text-sm font-medium">
+                          / 100
+                        </span>
+                      </div>
+                    </div>
+
+                    {!interview.marks ? (
+                      <Button
+                        onClick={async () => {
+                          if (!marks || marks > 100)
+                            return alert("Please enter valid marks (0-100)");
+                          setIsSubmittingResult(true);
+                          try {
+                            await submitInterviewResult(
+                              interview._id,
+                              marks,
+                              interview.interviewTopic,
+                              person.jobRoleId,
+                            );
+                            alert("Score submitted successfully!");
+                          } catch (err) {
+                            alert(err.message);
+                          } finally {
+                            setIsSubmittingResult(false);
+                          }
+                        }}
+                        disabled={isSubmittingResult || !marks}
+                        className="bg-[#C084FC] hover:bg-[#A855F7] text-white rounded-xl px-8 h-[46px] shadow-lg shadow-purple-200 transition-all active:scale-95"
+                      >
+                        {isSubmittingResult ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          "Submit Result"
+                        )}
+                      </Button>
+                    ) : (
+                      <div className="h-[46px] flex items-center px-6 bg-emerald-100 text-emerald-700 rounded-xl font-bold text-sm border border-emerald-200">
+                        <CheckCircle2 className="w-4 h-4 mr-2" /> Completed
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              /* Fallback: Input to suggest interview if none exists (image_fc4743.png style) */
+              <div className="border border-purple-100 rounded-2xl p-6 bg-white mb-6">
+                <h3 className="text-sm font-semibold text-slate-800 mb-4">
+                  Suggest Final Interview Topic
+                </h3>
+                <textarea
+                  className="w-full p-4 border border-slate-50 bg-slate-50/50 rounded-xl h-24 focus:ring-2 focus:ring-purple-400 outline-none text-sm mb-4"
+                  placeholder="e.g., Conduct deep dive into system architecture..."
+                  value={interviewTopic}
+                  onChange={(e) => setInterviewTopic(e.target.value)}
+                />
+                <Button
+                  onClick={handleSuggestInterview}
+                  className="bg-[#C084FC] hover:bg-[#A855F7] text-white rounded-xl"
+                >
+                  Post Suggestion
+                </Button>
+              </div>
+            )}
 
             {lastFlowStatus !== "sent_to_review_confirm_result" &&
               lastFlowStatus !== "assessment_result_final_confirm" && (
