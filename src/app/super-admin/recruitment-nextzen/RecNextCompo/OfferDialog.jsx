@@ -1276,10 +1276,10 @@ export default function OfferDialog({ open, onClose, person, job }) {
                 <Archive className="w-4 h-4 mr-1" /> Send to Inventory
               </Button>
               <Button
-                onClick={() => handleStatusChange("Offer")}
+                onClick={() => handleStatusChange("Hired")}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                <ArrowRight className="w-4 h-4 mr-1" /> Send for Offer
+                <ArrowRight className="w-4 h-4 mr-1" /> Send for Hired
               </Button>
               <Button variant="ghost" onClick={onClose}>
                 Close
