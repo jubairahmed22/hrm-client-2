@@ -21,3 +21,17 @@ export const deleteInterviewNextzen = async (id) => {
   });
   return await res.json();
 };
+
+// Update Result in the same interview document
+export const updateInterviewResultNextzen = async (id, resultData) => {
+  try {
+    const res = await fetch(`${BASE_URL}/update-interview-result-nextzen/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(resultData),
+    });
+    return await res.json();
+  } catch (error) {
+    throw error;
+  }
+};

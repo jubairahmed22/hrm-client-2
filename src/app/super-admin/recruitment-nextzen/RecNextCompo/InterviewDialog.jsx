@@ -51,6 +51,7 @@ import SendToInventoryDialog from "./SendToInventoryDialog";
 import { useRecruitmentNextzen } from "@/app/hook/useRecruitment-jobs-nextzen";
 import { useAssessmentNextzen } from "@/app/hook/useAssesmentNextzen";
 import { useAuth } from "@/context/AuthContext";
+import { useInterviewNextzen } from "@/app/hook/useInterviewAddNextzen";
 
 const RECRUITMENT_STAGES = [
   "Applied",
@@ -337,6 +338,29 @@ export default function InterviewDialog({ open, onClose, person, job }) {
             {/* 2. CTO Assessment Panel - Shows when status is 'approved_req_assessment' */}
 
             {/* post interview panel */}
+            {/* Design exactly as image_fc4743.png */}
+    <div className="mt-6 border border-purple-100 rounded-2xl p-6 bg-white animate-in fade-in duration-500">
+      <h3 className="text-sm font-semibold text-slate-800 mb-4">Interview Suggestion</h3>
+      
+      <div className="relative">
+        <textarea
+          className="w-full p-4 border border-slate-50 bg-slate-50/50 rounded-xl h-32 focus:ring-2 focus:ring-purple-400 outline-none text-sm resize-none"
+          placeholder="Interview passed. Good technical skills..."
+          value={interviewTopic}
+          onChange={(e) => setInterviewTopic(e.target.value)}
+        />
+        <div className="absolute bottom-3 right-3 text-slate-300 pointer-events-none">
+           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        </div>
+      </div>
+
+      <Button
+        onClick={handleSuggestInterview}
+        className="mt-4 bg-[#C084FC] hover:bg-[#A855F7] text-white rounded-xl px-6 py-2 h-auto text-sm font-medium transition-all"
+      >
+        Suggest Final Review
+      </Button>
+    </div>
 
             {lastFlowStatus !== "sent_to_review_confirm_result" &&
               lastFlowStatus !== "assessment_result_final_confirm" && (
