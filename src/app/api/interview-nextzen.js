@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:50001";
+const BASE_URL = "https://code360.pro";
 
 export const createInterviewNextzen = async (interviewForm) => {
   const res = await fetch(`${BASE_URL}/add-interview-post-nextzen`, {

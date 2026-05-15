@@ -1,6 +1,6 @@
 // lib/api/recruitment-nextzen.js
 
-const BASE_URL = "http://localhost:50001";
+const BASE_URL = "https://code360.pro";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Create a new Nextzen job post

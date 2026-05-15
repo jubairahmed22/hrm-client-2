@@ -28,7 +28,7 @@ const AttendanceToday = ({ UserAllDetails }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const employeeId = UserAllDetails?.employeeId;
-  const API = "http://localhost:50001";
+  const API = "https://code360.pro";
 
   // Format helpers
   const formatDateTime = (date) => {

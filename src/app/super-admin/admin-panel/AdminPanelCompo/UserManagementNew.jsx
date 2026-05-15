@@ -60,7 +60,7 @@ const UserManagementNew = () => {
       });
 
       const res = await fetch(
-        `http://localhost:50001/api/get-employee?${queryParams.toString()}`,
+        `https://code360.pro/api/get-employee?${queryParams.toString()}`,
       );
       const data = await res.json();
 

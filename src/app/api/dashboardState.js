@@ -4,7 +4,7 @@
  */
 export const fetchDashboardStats = async () => {
   try {
-    const res = await fetch("http://localhost:50001/super-admin-dashboard-count");
+    const res = await fetch("https://code360.pro/super-admin-dashboard-count");
     
     // Check if the response is actually okay (200-299)
     if (!res.ok) {
@@ -34,7 +34,7 @@ export const fetchDashboardStats = async () => {
 export const fetchUserDashboardStats = async (email) => {
   try {
     // Note: Using a template literal to pass the email as a query parameter
-    const res = await fetch(`http://localhost:50001/user-dashboard-stats?email=${email}`);
+    const res = await fetch(`https://code360.pro/user-dashboard-stats?email=${email}`);
 
     if (!res.ok) {
       const errorData = await res.json();

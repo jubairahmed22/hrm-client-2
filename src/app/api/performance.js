@@ -6,7 +6,7 @@
  */
 export const addEmployeeReview = async (reviewData) => {
   try {
-    const res = await fetch("http://localhost:50001/add-employee-review", {
+    const res = await fetch("https://code360.pro/add-employee-review", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(reviewData),
@@ -28,7 +28,7 @@ export const addEmployeeReview = async (reviewData) => {
 export const getAllPerformanceReviews = async (params = {}) => {
   try {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`http://localhost:50001/all-performance-reviews?${query}`);
+    const res = await fetch(`https://code360.pro/all-performance-reviews?${query}`);
 
     const data = await res.json();
     if (data.success) return data;
@@ -46,7 +46,7 @@ export const getAllPerformanceReviews = async (params = {}) => {
 export const getEmployeePerformanceHistory = async (employeeId, params = {}) => {
   try {
     const query = new URLSearchParams({ employeeId, ...params }).toString();
-    const res = await fetch(`http://localhost:50001/employee-performance-history?${query}`);
+    const res = await fetch(`https://code360.pro/employee-performance-history?${query}`);
 
     const data = await res.json();
     if (data.success) return data;
@@ -63,7 +63,7 @@ export const getEmployeePerformanceHistory = async (employeeId, params = {}) => 
  */
 export const deletePerformanceReview = async (id) => {
   try {
-    const res = await fetch(`http://localhost:50001/delete-performance-review/${id}`, {
+    const res = await fetch(`https://code360.pro/delete-performance-review/${id}`, {
       method: "DELETE",
     });
 
@@ -85,7 +85,7 @@ export const deletePerformanceReview = async (id) => {
 export const getEmployeePerformance = async (params = {}) => {
   try {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`http://localhost:50001/get-employee-performance?${query}`);
+    const res = await fetch(`https://code360.pro/get-employee-performance?${query}`);
 
     const data = await res.json();
     if (data.success) return data;
@@ -100,7 +100,7 @@ export const getEmployeePerformance = async (params = {}) => {
 // Fetch single employee's performance by email
 export const getEmployeePerformanceByEmail = async (email, params = {}) => {
   const queryString = new URLSearchParams(params).toString();
-  const url = `http://localhost:50001/get-employee-performance-by-email/${encodeURIComponent(
+  const url = `https://code360.pro/get-employee-performance-by-email/${encodeURIComponent(
     email
   )}${queryString ? `?${queryString}` : ""}`;
 
@@ -112,7 +112,7 @@ export const getEmployeePerformanceByEmail = async (email, params = {}) => {
 // Fetch this user's reviews only (by email)
 export const getAllPerformanceReviewsByEmail = async (email, params = {}) => {
   const queryString = new URLSearchParams(params).toString();
-  const url = `http://localhost:50001/all-performance-reviews-by-email/${encodeURIComponent(
+  const url = `https://code360.pro/all-performance-reviews-by-email/${encodeURIComponent(
     email
   )}${queryString ? `?${queryString}` : ""}`;
 

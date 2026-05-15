@@ -39,8 +39,8 @@ export default function EmployeeRowCard({ employee, departments, fetchEmployees 
       setLoading(true);
       const endpoint =
         action === "lock"
-          ? `http://localhost:50001/api/add-locked/${emp._id}`
-          : `http://localhost:50001/api/add-unlocked/${emp._id}`;
+          ? `https://code360.pro/api/add-locked/${emp._id}`
+          : `https://code360.pro/api/add-unlocked/${emp._id}`;
       const res = await axios.put(endpoint);
       if (res.data.success) {
         toast.success(res.data.message);
