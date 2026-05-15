@@ -309,7 +309,8 @@ export default function AssessmentDialog({ open, onClose, person, job }) {
             {/* Case 1: Assessment has been requested/sent (Based on image_b091b6.png) */}
             {/* 2. CTO Assessment Panel - Shows when status is 'approved_req_assessment' */}
 
-            {lastFlowStatus !== "sent_to_review_confirm_result" && (
+           {lastFlowStatus !== "sent_to_review_confirm_result" &&
+ lastFlowStatus !== "assessment_result_final_confirm" && (
   <CTOScorePanel
     candidate={person}
     jobAssessment={jobAssessment}
@@ -1000,10 +1001,10 @@ export default function AssessmentDialog({ open, onClose, person, job }) {
                 <Archive className="w-4 h-4 mr-1" /> Send to Inventory
               </Button>
               <Button
-                onClick={() => handleStatusChange("Assessment")}
+                onClick={() => handleStatusChange("Interview")}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                <ArrowRight className="w-4 h-4 mr-1" /> Send for Assessment
+                <ArrowRight className="w-4 h-4 mr-1" /> Send for Interview
               </Button>
               <Button variant="ghost" onClick={onClose}>
                 Close
