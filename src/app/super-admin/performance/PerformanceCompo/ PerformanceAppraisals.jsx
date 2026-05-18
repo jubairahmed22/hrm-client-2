@@ -17,12 +17,12 @@ import ReviewDialog from "./ReviewDialog";
 
 const PerformanceAppraisals = () => {
   const { UserAllDetails } = useAuth();
-
+  
   const {
     employees,
     pagination,
     loading,
-    filters,            // ✅ designations[] + departments[]
+    filters,            
     fetchEmployeePerformance,
   } = usePerformance();
 

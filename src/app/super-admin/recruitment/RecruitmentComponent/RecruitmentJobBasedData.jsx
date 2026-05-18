@@ -18,7 +18,7 @@ import {
 import { useRecruitment } from "@/app/hook/useRecruitment-jobs";
 import { useJobPosts } from "@/app/hook/useRecruitment";
 import StatusLayout from "./StatusLayout";
-import CreateAssessmentDialog from "./CreateAssessmentDialog";
+import CreateAssessmentDialog from "./CreateAssessmentDialog"; 
 import InventoryData from "./InventoryData";
 import RejectedList from "./RejectedList";
 import CreateInterviewDialog from "./CreateInterviewDialog";

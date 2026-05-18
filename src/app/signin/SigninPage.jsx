@@ -33,31 +33,47 @@ export default function SignInPage() {
 
   // Demo User Data
   const demoUsers = [
-    {
-      role: "Super Admin",
-      label: "Full system access",
-      email: "jubairahmed060@gmail.com",
-      pass: "jubairahmed060",
-      icon: "👑",
-      bg: "bg-gradient-to-r from-[#1e293b] to-[#334155]", // Dark Slate
-    },
-    {
-      role: "Admin",
-      label: "Management control",
-      email: "ademize360@gmail.com",
-      pass: "ademize360",
-      icon: "🛡️",
-      bg: "bg-gradient-to-r from-[#ef4444] to-[#dc2626]", // Red
-    },
-    {
-      role: "Employee",
-      label: "Nafis Iqbal",
-      email: "nafis.ais.bup@gmail.com",
-      pass: "nafis.ais.bup",
-      icon: "👤",
-      bg: "bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed]", // Purple
-    }
-  ];
+  {
+    role: "CEO (SUPER ADMIN)",
+    label: "Full system access",
+    email: "jubairahmed060@gmail.com",
+    pass: "jubairahmed060",
+    icon: "👑",
+    bg: "bg-gradient-to-r from-slate-900 to-slate-800", // Dark Premium Slate
+  },
+  {
+    role: "CTO (Admin)",
+    label: "Management control",
+    email: "ademize360@gmail.com",
+    pass: "ademize360",
+    icon: "🛡️",
+    bg: "bg-gradient-to-r from-red-600 to-rose-600", // Energetic/Secure Red
+  },
+  {
+    role: "HOD HR",
+    label: "Nafis Iqbal HR",
+    email: "24nafis@gmail.com",
+    pass: "24nafis",
+    icon: "👔",
+    bg: "bg-gradient-to-r from-violet-600 to-indigo-600", // Corporate Violet
+  },
+  {
+    role: "HOD of Finance",
+    label: "Faruk Islam",
+    email: "gokuxskull@gmail.com",
+    pass: "gokuxskull",
+    icon: "💰",
+    bg: "bg-gradient-to-r from-emerald-600 to-teal-600", // Money/Finance Green
+  },
+  {
+    role: "Employee",
+    label: "Nafis Iqbal",
+    email: "nafis.ais.bup@gmail.com",
+    pass: "nafis.ais.bup",
+    icon: "👤",
+    bg: "bg-gradient-to-r from-blue-600 to-sky-600", // Standard Professional Blue
+  },
+];
 
   const handleDemoClick = (email, pass) => {
     setValue("email", email);
@@ -69,14 +85,11 @@ export default function SignInPage() {
 
   const onSubmit = async (data) => {
     try {
-      const res = await fetch(
-        `https://code360.pro/api/signin`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      );
+      const res = await fetch(`https://code360.pro/api/signin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
       const json = await res.json();
       if (!res.ok) {
@@ -124,14 +137,11 @@ export default function SignInPage() {
     if (!email) return alert("Please enter your email first");
 
     try {
-      const res = await fetch(
-        `https://code360.pro/api/forgot-password`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        }
-      );
+      const res = await fetch(`https://code360.pro/api/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
       const data = await res.json();
       alert(data.message);
       if (res.ok) {
@@ -147,7 +157,6 @@ export default function SignInPage() {
     <div className="min-h-screen font-inter relative flex items-center justify-center p-4">
       <AnimatedBackground />
       <div className="relative z-10 w-full max-w-6xl flex flex-col lg:flex-row items-center justify-center gap-12">
-        
         {/* Main Login Card (Untouched Design) */}
         <div className="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl w-full max-w-md border border-white/20">
           <div className="text-center mb-8">
@@ -176,9 +185,13 @@ export default function SignInPage() {
                   <span className="text-xl">🎯</span>
                   <div className="text-center">
                     <div className="font-semibold">New Employee Onboarding</div>
-                    <div className="text-sm opacity-90">Test complete profile setup</div>
+                    <div className="text-sm opacity-90">
+                      Test complete profile setup
+                    </div>
                   </div>
-                  <motion.span whileHover={{ x: 5 }} className="text-xl">➤</motion.span>
+                  <motion.span whileHover={{ x: 5 }} className="text-xl">
+                    ➤
+                  </motion.span>
                 </div>
               </motion.button>
             </motion.div>
@@ -190,40 +203,91 @@ export default function SignInPage() {
               animate={{ opacity: 1, y: 0 }}
               className="relative my-6 text-center rounded-2xl border border-red-400 bg-gradient-to-br from-red-50 via-red-100 to-red-200 overflow-hidden"
             >
-              <motion.div animate={{ opacity: [0.4, 0.9, 0.4], scale: [1, 1.02, 1] }} transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }} className="absolute inset-0 bg-red-300/30 blur-2xl" />
+              <motion.div
+                animate={{ opacity: [0.4, 0.9, 0.4], scale: [1, 1.02, 1] }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 1.8,
+                  ease: "easeInOut",
+                }}
+                className="absolute inset-0 bg-red-300/30 blur-2xl"
+              />
               <div className="relative z-10 p-6 flex flex-col items-center gap-3">
-                <p className="text-sm text-red-800 font-medium max-w-xs leading-relaxed">{lockedMessage}</p>
+                <p className="text-sm text-red-800 font-medium max-w-xs leading-relaxed">
+                  {lockedMessage}
+                </p>
               </div>
             </motion.div>
           )}
 
           <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
-            <div className="relative flex justify-center text-sm"><span className="px-2 bg-white/90 text-gray-500">Enter credentials manually</span></div>
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white/90 text-gray-500">
+                Enter credentials manually
+              </span>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-              <input type="email" className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500" placeholder="Enter your email" {...register("email")} />
-              {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>}
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                placeholder="Enter your email"
+                {...register("email")}
+              />
+              {errors.email && (
+                <p className="text-red-600 text-sm mt-1">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-              <input type="password" className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500" placeholder="Enter your password" {...register("password")} />
-              {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password.message}</p>}
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                className="w-full px-4 py-3 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                placeholder="Enter your password"
+                {...register("password")}
+              />
+              {errors.password && (
+                <p className="text-red-600 text-sm mt-1">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
-            <button type="submit" disabled={isSubmitting} className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
+            >
               {isSubmitting ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
           {/* <p className="mt-4 text-sm text-gray-600 text-center">No account? <a className="text-blue-600 underline" href="/signup">Sign up</a></p> */}
-          <p className="mt-2 text-sm text-blue-600 text-center cursor-pointer" onClick={() => handleForgotPassword(document.querySelector('input[name="email"]')?.value)}>Forgot Password?</p>
+          <p
+            className="mt-2 text-sm text-blue-600 text-center cursor-pointer"
+            onClick={() =>
+              handleForgotPassword(
+                document.querySelector('input[name="email"]')?.value,
+              )
+            }
+          >
+            Forgot Password?
+          </p>
         </div>
 
         {/* Right Side Demo Access Card */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           className="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl w-full max-w-md border border-white/20"
@@ -232,8 +296,12 @@ export default function SignInPage() {
             <div className="w-12 h-12 bg-blue-100 rounded-xl mx-auto mb-3 flex items-center justify-center text-blue-600 shadow-sm">
               <span className="text-xl">🔑</span>
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-1">Demo User Accounts</h2>
-            <p className="text-gray-500 text-sm">Quick login for all role levels</p>
+            <h2 className="text-2xl font-bold text-gray-800 mb-1">
+              Demo User Accounts
+            </h2>
+            <p className="text-gray-500 text-sm">
+              Quick login for all role levels
+            </p>
           </div>
 
           <div className="space-y-4">
@@ -251,13 +319,21 @@ export default function SignInPage() {
                       {user.icon}
                     </div>
                     <div>
-                      <h4 className="text-white font-bold text-sm">{user.role}</h4>
-                      <p className="text-white/70 text-[11px] font-medium">{user.label}</p>
+                      <h4 className="text-white font-bold text-sm">
+                        {user.role}
+                      </h4>
+                      <p className="text-white/70 text-[11px] font-medium">
+                        {user.label}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-white/60 text-[10px] font-mono leading-none">{user.email}</p>
-                    <p className="text-white/60 text-[10px] font-mono mt-1 leading-none">{user.pass}</p>
+                    <p className="text-white/60 text-[10px] font-mono leading-none">
+                      {user.email}
+                    </p>
+                    <p className="text-white/60 text-[10px] font-mono mt-1 leading-none">
+                      {user.pass}
+                    </p>
                   </div>
                 </div>
               </motion.div>
@@ -268,18 +344,23 @@ export default function SignInPage() {
             <div className="flex gap-4">
               <div className="text-xl">💡</div>
               <div>
-                <h4 className="text-sm font-bold text-blue-900 mb-1">Quick Access Guide:</h4>
+                <h4 className="text-sm font-bold text-blue-900 mb-1">
+                  Quick Access Guide:
+                </h4>
                 <ul className="text-xs text-blue-700 space-y-1 list-disc ml-3 leading-relaxed">
                   <li>Click any credential card to auto-fill login form</li>
                   <li>Each role has different permission levels</li>
-                  <li>Start with <b>Super Admin</b> for full access</li>
-                  <li>Try <b>Employee</b> for self-service experience</li>
+                  <li>
+                    Start with <b>Super Admin</b> for full access
+                  </li>
+                  <li>
+                    Try <b>Employee</b> for self-service experience
+                  </li>
                 </ul>
               </div>
             </div>
           </div>
         </motion.div>
-
       </div>
     </div>
   );
