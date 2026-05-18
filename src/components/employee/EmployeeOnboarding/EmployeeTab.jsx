@@ -68,13 +68,13 @@ const EmployeeTab = ({
                 Export CSV
               </Button>
 
-              <Button
+              {/* <Button
                 onClick={() => console.log("Add Employee")}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 font-semibold"
               >
                 <UserPlus className="w-4 h-4 mr-2" />
                 Add Employee
-              </Button>
+              </Button> */}
             </div>
           </div>
         </CardHeader>
